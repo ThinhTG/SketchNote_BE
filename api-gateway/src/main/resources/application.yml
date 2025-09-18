@@ -1,0 +1,44 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+
+          routes:
+
+#springdoc:
+#  swagger-ui:
+#    urls:
+#
+#name: catalog-service
+#  url: /catalog-service/v3/api-docs
+#
+#
+#name: account-service
+#  url: /account-service/v3/api-docs
+#
+#
+#name: order-service
+#  url: /order-service/v3/api-docs
+#
+#
+#name: notification-service
+#  url: /notification-service/v3/api-docs
+
+eureka:
+  client:
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
