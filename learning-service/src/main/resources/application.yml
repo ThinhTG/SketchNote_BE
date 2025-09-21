@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: learning-service
+  cloud:
+    discovery:
+      enabled: true
+
+    server:
+      port=8085:
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/learningDB
+    username: postgres
+    password: Thinh123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # code first: tự tạo bảng từ entity
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
