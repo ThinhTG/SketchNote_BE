@@ -15,30 +15,23 @@ spring:
               lower-case-service-id: true
 
           routes:
+          - id: learning-service
+            uri: http://localhost:8085   # service chạy ở port 8085
+            predicates:
+              - Path=/api/learning/**    # mọi request /api/learning/** sẽ forward sang learning-service
 
-#springdoc:
-#  swagger-ui:
-#    urls:
-#
-#name: catalog-service
-#  url: /catalog-service/v3/api-docs
-#
-#
-#name: account-service
-#  url: /account-service/v3/api-docs
-#
-#
-#name: order-service
-#  url: /order-service/v3/api-docs
-#
-#
-#name: notification-service
-#  url: /notification-service/v3/api-docs
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: learning-service
+        url: /learning-service/v3/api-docs
+      - name: account-service
+        url: /account-service/v3/api-docs
+      - name: order-service
+        url: /order-service/v3/api-docs
 
 eureka:
   client:
-    enabled: true
-    register-with-eureka: true
-    fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/

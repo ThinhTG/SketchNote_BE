@@ -1,4 +1,4 @@
-package com.sketchnotes.api_gateway;
+package com.sketchnotes.apigateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
