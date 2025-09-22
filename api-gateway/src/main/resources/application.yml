@@ -15,21 +15,22 @@ spring:
               lower-case-service-id: true
 
           routes:
-          - id: learning-service
-            uri: http://localhost:8085   # service chạy ở port 8085
-            predicates:
-              - Path=/api/learning/**    # mọi request /api/learning/** sẽ forward sang learning-service
-
+            - id: learning-service
+              uri: http://localhost:8085   # service chạy ở port 8085
+              predicates:
+                - Path=/api/learning/**    # mọi request /api/learning/** sẽ forward sang learning-service
+            - id: user-service
+              uri: lb://user-service   # service chạy ở port 8085
+              predicates:
+                - Path=/api/users/**
 
 springdoc:
   swagger-ui:
     urls:
       - name: learning-service
         url: /learning-service/v3/api-docs
-      - name: account-service
-        url: /account-service/v3/api-docs
-      - name: order-service
-        url: /order-service/v3/api-docs
+      - name: user-service
+        url: /api/users/v3/api-docs
 
 eureka:
   client:
