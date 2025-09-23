@@ -4,21 +4,33 @@ server:
 spring:
   application:
     name: api-gateway
+
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-      routes:
-        - id: learning-service
-          uri: lb://learning-service  # Sửa từ http://localhost:8085
-          predicates:
-            - Path=/api/learning/**
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/users/**
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+
+          routes:
+          - id: learning-service
+            uri: lb://learning-service
+            predicates:
+              - Path=/api/learning/**
+
+          - id: payment-service
+            uri: lb://payment-service
+            predicates:
+              - Path=/api/payment/**
+
+          - id: user-service
+            uri: lb://user-service
+            predicates:
+              - Path=/api/users/**
+
+
 
 springdoc:
   swagger-ui:

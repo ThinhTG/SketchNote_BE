@@ -9,9 +9,9 @@ spring:
       port=8085:
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/learningservice
+    url: jdbc:postgresql://localhost:5432/learningDB
     username: postgres
-    password: 12345
+    password: Thinh123
 
   jpa:
     hibernate:

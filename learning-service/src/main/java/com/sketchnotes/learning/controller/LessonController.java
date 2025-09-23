@@ -1,5 +1,6 @@
 package com.sketchnotes.learning.controller;
 
+import com.sketchnotes.learning.dto.ApiResponse;
 import com.sketchnotes.learning.dto.LessonDTO;
 import com.sketchnotes.learning.entity.Lesson;
 import com.sketchnotes.learning.service.LessonService;
@@ -18,12 +19,16 @@ public class LessonController {
     }
 
     @PostMapping("/{courseId}")
-    public List<Lesson> createLessons(@PathVariable Long courseId, @RequestBody List<LessonDTO> dtos) {
-        return lessonService.createLessonsForCourse(courseId, dtos);
+    public ApiResponse<List<Lesson>> createLessons(
+            @PathVariable Long courseId,
+            @RequestBody List<LessonDTO> dtos) {
+        List<Lesson> lessons = lessonService.createLessonsForCourse(courseId, dtos);
+        return ApiResponse.success(lessons, "Lessons created successfully");
     }
 
     @GetMapping("/{courseId}")
-    public List<Lesson> getLessons(@PathVariable Long courseId) {
-        return lessonService.getLessonsByCourse(courseId);
+    public ApiResponse<List<Lesson>> getLessons(@PathVariable Long courseId) {
+        List<Lesson> lessons = lessonService.getLessonsByCourse(courseId);
+        return ApiResponse.success(lessons, "Lessons fetched successfully");
     }
 }
