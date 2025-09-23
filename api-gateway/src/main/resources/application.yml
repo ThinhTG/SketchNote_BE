@@ -25,18 +25,24 @@ spring:
             predicates:
               - Path=/api/payment/**
 
+          - id: user-service
+            uri: lb://user-service
+            predicates:
+              - Path=/api/users/**
+
+
 
 springdoc:
   swagger-ui:
     urls:
       - name: learning-service
         url: /learning-service/v3/api-docs
-      - name: account-service
-        url: /account-service/v3/api-docs
+      - name: user-service
+        url: /user-service/v3/api-docs
       - name: payment-service
         url: /payment-service/v3/api-docs
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}  # Sửa fallback thành http://eureka:8761/eureka/
