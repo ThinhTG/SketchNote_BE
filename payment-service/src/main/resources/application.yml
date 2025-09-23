@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: payment-service
+  cloud:
+    discovery:
+      enabled: true
+
+    server:
+      port=8084:
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/paymentDB
+    username: postgres
+    password: Thinh123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+
+
+      payos:
+        client-id: 1d3270ba-354d-4ac1-9693-09bd3ef01a47
+        api-key: 8be8c8ef-3f5f-4fd8-ae46-4a170ca132e5
+        checksum-key: f9386305d4e364c17bbe31b5beffeb99def6fa6da7ea63afc856301a8edbf851
