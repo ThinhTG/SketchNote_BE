@@ -4,25 +4,21 @@ server:
 spring:
   application:
     name: api-gateway
-
   cloud:
     gateway:
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: true
-              lower-case-service-id: true
-
-          routes:
-            - id: learning-service
-              uri: http://localhost:8085   # service chạy ở port 8085
-              predicates:
-                - Path=/api/learning/**    # mọi request /api/learning/** sẽ forward sang learning-service
-            - id: user-service
-              uri: lb://user-service   # service chạy ở port 8085
-              predicates:
-                - Path=/api/users/**
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: learning-service
+          uri: lb://learning-service  # Sửa từ http://localhost:8085
+          predicates:
+            - Path=/api/learning/**
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
 
 springdoc:
   swagger-ui:
@@ -30,9 +26,9 @@ springdoc:
       - name: learning-service
         url: /learning-service/v3/api-docs
       - name: user-service
-        url: /api/users/v3/api-docs
+        url: /user-service/v3/api-docs
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}  # Sửa fallback thành http://eureka:8761/eureka/

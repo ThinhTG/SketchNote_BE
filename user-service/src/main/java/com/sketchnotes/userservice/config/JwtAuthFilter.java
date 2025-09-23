@@ -15,7 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
@@ -28,57 +27,47 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final HandlerExceptionResolver resolver;
 
-    public JwtAuthFilter(JwtService jwtService, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
+    public JwtAuthFilter(JwtService jwtService,
+                         @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
         this.jwtService = jwtService;
         this.resolver = resolver;
     }
-    private final List<String> AUTH_PERMISSION = List.of(
-            "/api/users/auth/*"
-    );
-    private boolean isPermitted(String uri) {
-        AntPathMatcher matcher = new AntPathMatcher();
-        return AUTH_PERMISSION.stream().anyMatch(pattern -> matcher.match(pattern, uri));
-    }
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String uri = request.getRequestURI();///login, /register
-        if (isPermitted(uri)) {
-            // yêu cầu truy cập 1 api => ai cũng truy cập đc
-            filterChain.doFilter(request, response); // cho phép truy cập dô controller
-        } else {
-            String token = getToken(request);
-            if (token == null) {
-                resolver.resolveException(request, response, null, new AuthException("Missing Token")); // Empty token
-                return;
-            }
-            User user;
-            try {
-                user = (User) jwtService.extractUserDetails(token);
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        String token = resolveToken(request);
 
-            } catch (ExpiredJwtException expiredJwtException) {
-                resolver.resolveException(request, response, null, new AuthException("Token is expired")); // Expired Token
+        if (token != null) {
+            try {
+                User user = (User) jwtService.extractUserDetails(token);
+
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(auth);
+
+            } catch (ExpiredJwtException e) {
+                resolver.resolveException(request, response, null, new AuthException("Token expired"));
                 return;
-            } catch (MalformedJwtException malformedJwtException) {
-                resolver.resolveException(request, response, null, new AuthException("Invalid Token")); // Invalid Token
+            } catch (MalformedJwtException e) {
+                resolver.resolveException(request, response, null, new AuthException("Invalid token"));
                 return;
-            }catch (AuthException exception) {
-                resolver.resolveException(request, response, null, new AuthException("User not found")); // Invalid Token
+            } catch (AuthException | UsernameNotFoundException e) {
+                resolver.resolveException(request, response, null, new AuthException("User not found"));
                 return;
             }
-            // token dung
-            UsernamePasswordAuthenticationToken
-                    authenToken =
-                    new UsernamePasswordAuthenticationToken(user, token, user.getAuthorities());
-            authenToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authenToken);
-            // token ok, cho vao`
-            filterChain.doFilter(request, response);
         }
+        filterChain.doFilter(request, response);
     }
 
-    public String getToken(HttpServletRequest request) {
+    private String resolveToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
-        if (authHeader == null) return null;
-        return authHeader.substring(7);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
     }
 }

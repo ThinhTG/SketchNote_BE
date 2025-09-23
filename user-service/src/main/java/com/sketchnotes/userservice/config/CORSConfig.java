@@ -7,19 +7,22 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class CORSConfig implements WebMvcConfigurer {
+
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-
         registry.addMapping("/**")
-                .allowedOrigins("*")
+                .allowedOriginPatterns("*") // dùng allowedOriginPatterns thay vì allowedOrigins("*") cho Spring 6+
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
-                .exposedHeaders("Access-Control-Allow-Origin", "Access-Control-Allow-Methods","Access-Control-Allow-Headers")
-                .allowedMethods("*")
-                .maxAge(1440000);
+                .exposedHeaders("Authorization", "Content-Type")
+                .allowCredentials(true)
+                .maxAge(3600);
     }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Cho Swagger UI và static files
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/");
     }
