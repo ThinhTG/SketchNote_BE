@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: usersdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
+
+  eureka:
+    build: ./eureka-server
+    image: eurekaserver:latest
+    container_name: eureka
+    ports:
+      - "8761:8761"
+
+  gateway:
+    build: ./api-gateway
+    image: gatewayservice:latest
+    container_name: gateway
+    ports:
+      - "8888:8888"
+    depends_on:
+      - eureka
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_HOST=http://eureka:8761/eureka
+
+  userservice:
+    build: ./user-service
+    image: userservice:latest
+    container_name: userservice
+    depends_on:
+      - postgres
+      - eureka
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/usersdb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin
+      - EUREKA_HOST=http://eureka:8761/eureka
+    ports:
+      - "8081:8081"
+
+volumes:
+  pgdata:
