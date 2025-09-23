@@ -12,42 +12,56 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./initdb:/docker-entrypoint-initdb.d
+      - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
 
   eureka:
-    build: ./eureka-server
-    image: eurekaserver:latest
+    image: ghcr.io/alarmistt/eurekaservice:latest
     container_name: eureka
     ports:
       - "8761:8761"
+    depends_on:
+      - postgres
 
   gateway:
-    build: ./api-gateway
-    image: gatewayservice:latest
+    image: ghcr.io/alarmistt/apigateway:latest
     container_name: gateway
     ports:
       - "8888:8888"
-    depends_on:
-      - eureka
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_HOST=http://eureka:8761/eureka
+    depends_on:
+      - eureka
 
   userservice:
-    build: ./user-service
-    image: userservice:latest
+    image: ghcr.io/alarmistt/userservice:latest
     container_name: userservice
-    depends_on:
-      - postgres
-      - eureka
+    ports:
+      - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/usersdb
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=admin
       - EUREKA_HOST=http://eureka:8761/eureka
+    depends_on:
+      - postgres
+      - eureka
+
+  paymentservice:
+    image: ghcr.io/alarmistt/paymentservice:latest
+    container_name: paymentservice
     ports:
-      - "8081:8081"
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/paymentsdb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin
+      - EUREKA_HOST=http://eureka:8761/eureka
+    depends_on:
+      - postgres
+      - eureka
 
 volumes:
   pgdata:
