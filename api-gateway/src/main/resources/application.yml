@@ -24,7 +24,6 @@ spring:
             uri: lb://payment-service
             predicates:
               - Path=/api/payment/**
-
           - id: user-service
             uri: lb://user-service
             predicates:
@@ -39,6 +38,8 @@ springdoc:
         url: /learning-service/v3/api-docs
       - name: user-service
         url: /user-service/v3/api-docs
+      - name: payment-service
+        url: /payment-service/v3/api-docs
 
 eureka:
   client:
