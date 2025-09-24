@@ -1,3 +1,0 @@
-CREATE DATABASE usersdb;
-CREATE DATABASE learningdb;
-CREATE DATABASE ordersdb;

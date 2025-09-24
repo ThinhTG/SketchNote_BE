@@ -1,18 +1,17 @@
+server:
+  port: 8084
+
 spring:
   application:
     name: payment-service
   cloud:
     discovery:
       enabled: true
-
-    server:
-      port=8084:
-
   datasource:
-    url: jdbc:postgresql://localhost:5432/paymentDB
-    username: postgres
-    password: Thinh123
-    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/paymentDB}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:Thinh123}
+
 
   jpa:
     hibernate:
@@ -23,7 +22,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
 
 
 
