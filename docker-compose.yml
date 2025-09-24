@@ -15,6 +15,7 @@ services:
       - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
     networks:
       - sketchnote-net
+    restart: unless-stopped
 
   eureka:
     image: ghcr.io/alarmistt/eurekaservice:latest
@@ -25,19 +26,21 @@ services:
       - postgres
     networks:
       - sketchnote-net
+    restart: unless-stopped
 
   gateway:
     image: ghcr.io/alarmistt/apigateway:latest
     container_name: gateway
     ports:
-      - "8888:8888"   
+      - "8888:8888"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      - EUREKA_HOST=http://eureka:8761/eureka/
     depends_on:
       - eureka
     networks:
       - sketchnote-net
+    restart: unless-stopped
 
   userservice:
     image: ghcr.io/alarmistt/userservice:latest
@@ -49,12 +52,13 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/usersdb
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=admin
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      - EUREKA_HOST=http://eureka:8761/eureka/
     depends_on:
       - postgres
       - eureka
     networks:
       - sketchnote-net
+    restart: unless-stopped
 
   paymentservice:
     image: ghcr.io/alarmistt/paymentservice:latest
@@ -66,12 +70,13 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/paymentsdb
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=admin
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      - EUREKA_HOST=http://eureka:8761/eureka/
     depends_on:
       - postgres
       - eureka
     networks:
       - sketchnote-net
+    restart: unless-stopped
 
 volumes:
   pgdata:

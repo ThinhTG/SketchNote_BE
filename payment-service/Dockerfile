@@ -9,6 +9,6 @@ RUN ./mvnw package -DskipTests
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
-
+ENV JAVA_TOOL_OPTIONS="-Dspring.metrics.use-cgroup=false"
 EXPOSE 8084
 ENTRYPOINT ["java", "-jar", "app.jar"]
