@@ -1,14 +1,14 @@
-# Builder stage
-FROM openjdk:17-jdk-slim as builder
+# Stage 1: Build stage with Maven + JDK 17
+FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
-COPY . .
-RUN chmod +x ./mvnw
-RUN ./mvnw package -DskipTests
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Final stage
-FROM openjdk:17-jdk-slim
+# Stage 2: Runtime stage with JRE 17
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
-ENV JAVA_TOOL_OPTIONS="-Dspring.metrics.use-cgroup=false"
+COPY --from=build /app/target/*.jar paymentservice.jar
+
 EXPOSE 8084
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "paymentservice.jar"]
