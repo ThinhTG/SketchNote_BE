@@ -4,6 +4,7 @@ import com.sketchnotes.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -35,7 +36,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
+                .cors(cors -> {}) // ✅ Cho phép dùng config từ CORSConfig
                 .authorizeHttpRequests(auth -> auth
+                        // Cho phép OPTIONS để browser preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // Các endpoint public
                         .requestMatchers(
                                 "/api/users/auth/**",
@@ -43,6 +48,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+
                         // Các endpoint còn lại cần auth
                         .anyRequest().authenticated()
                 )
@@ -52,4 +58,6 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+
 }
