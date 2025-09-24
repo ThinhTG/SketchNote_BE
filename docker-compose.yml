@@ -21,6 +21,8 @@ services:
     container_name: eureka
     ports:
       - "8761:8761"
+    depends_on:
+      - postgres
     networks:
       - sketchnote-net
 
