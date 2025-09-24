@@ -13,6 +13,8 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
+    networks:
+      - sketchnote-net
 
   eureka:
     image: ghcr.io/alarmistt/eurekaservice:latest
@@ -21,6 +23,8 @@ services:
       - "8761:8761"
     depends_on:
       - postgres
+    networks:
+      - sketchnote-net
 
   gateway:
     image: ghcr.io/alarmistt/apigateway:latest
@@ -32,6 +36,8 @@ services:
       - EUREKA_HOST=http://eureka:8761/eureka
     depends_on:
       - eureka
+    networks:
+      - sketchnote-net
 
   userservice:
     image: ghcr.io/alarmistt/userservice:latest
@@ -47,6 +53,8 @@ services:
     depends_on:
       - postgres
       - eureka
+    networks:
+      - sketchnote-net
 
   paymentservice:
     image: ghcr.io/alarmistt/paymentservice:latest
@@ -62,6 +70,12 @@ services:
     depends_on:
       - postgres
       - eureka
+    networks:
+      - sketchnote-net
 
 volumes:
   pgdata:
+
+networks:
+  sketchnote-net:
+    driver: bridge
