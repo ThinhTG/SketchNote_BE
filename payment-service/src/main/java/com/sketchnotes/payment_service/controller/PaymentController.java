@@ -8,6 +8,7 @@ import vn.payos.type.Webhook;
 
 import java.math.BigDecimal;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/payment")
 @RequiredArgsConstructor
