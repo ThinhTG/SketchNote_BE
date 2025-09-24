@@ -1,5 +1,6 @@
 server:
   port: 8888
+  forward-headers-strategy: native   # để Swagger lấy đúng host từ request (localhost)
 
 spring:
   application:
@@ -7,32 +8,32 @@ spring:
 
   cloud:
     gateway:
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: true
-              lower-case-service-id: true
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
 
-          routes:
-          - id: learning-service
-            uri: lb://learning-service
-            predicates:
-              - Path=/api/learning/**
-
-          - id: payment-service
-            uri: lb://payment-service
-            predicates:
-              - Path=/api/payment/**
-          - id: user-service
-            uri: lb://user-service
-            predicates:
-              - Path=/api/users/**
-
-
+      routes:
+        - id: learning-service
+          uri: lb://learning-service
+          predicates:
+            - Path=/api/learning/**
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/payment/**
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
 
 springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs   # chuẩn đường dẫn openapi
   swagger-ui:
+    enabled: true
+    use-root-path: true # ép Swagger UI sử dụng localhost thay vì container-id
     urls:
       - name: learning-service
         url: /learning-service/v3/api-docs
@@ -44,4 +45,6 @@ springdoc:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}  # Sửa fallback thành http://eureka:8761/eureka/
+      # Khi chạy Docker → trỏ vào service name "eureka"
+      # Khi chạy local → fallback localhost
+      defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}

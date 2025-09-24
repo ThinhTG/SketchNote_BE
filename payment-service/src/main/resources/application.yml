@@ -8,9 +8,10 @@ spring:
     discovery:
       enabled: true
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/paymentservice}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/paymentDB}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:12345}
+    password: ${SPRING_DATASOURCE_PASSWORD:Thinh123}
+
 
   jpa:
     hibernate:
