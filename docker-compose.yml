@@ -82,7 +82,7 @@ services:
     image: ghcr.io/alarmistt/learningservice:latest
     container_name: learningservice
     ports:
-      - "8084:8084"
+      - "8085:8085"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/learningdb
