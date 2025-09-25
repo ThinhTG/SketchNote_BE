@@ -35,7 +35,7 @@ services:
       - "8888:8888"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - EUREKA_HOST=http://eureka:8761/eureka/
+      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
     depends_on:
       - eureka
     networks:
@@ -52,7 +52,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/usersdb
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=admin
-      - EUREKA_HOST=http://eureka:8761/eureka/
+      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
     depends_on:
       - postgres
       - eureka
@@ -70,7 +70,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/paymentsdb
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=admin
-      - EUREKA_HOST=http://eureka:8761/eureka/
+      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
     depends_on:
       - postgres
       - eureka
