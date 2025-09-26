@@ -1,3 +1,4 @@
 CREATE DATABASE learningdb;
 CREATE DATABASE ordersdb;
 CREATE DATABASE paymentsdb;
+CREATE DATABASE keycloak;
