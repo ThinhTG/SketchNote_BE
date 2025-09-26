@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Table(name = "course_enrollment")
 public class CourseEnrollment {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long enrollmentId;
 
     private long userId;  // từ Identity Service

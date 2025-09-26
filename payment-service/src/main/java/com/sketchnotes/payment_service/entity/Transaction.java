@@ -1,5 +1,6 @@
 package com.sketchnotes.payment_service.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sketchnotes.payment_service.entity.enumeration.PaymentStatus;
 import com.sketchnotes.payment_service.entity.enumeration.TransactionType;
 import jakarta.persistence.*;
@@ -49,6 +50,7 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "wallet_id", nullable = false)
+    @JsonIgnore
     private Wallet wallet;
     // getters and setters
 }
