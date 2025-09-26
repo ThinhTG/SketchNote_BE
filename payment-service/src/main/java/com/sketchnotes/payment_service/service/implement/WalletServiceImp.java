@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +26,10 @@ public class WalletServiceImp implements WalletService {
 
     @Override
     public Wallet createWallet(Long userId) {
+        Optional<Wallet> existingWallet = walletRepository.findByUserId(userId);
+        if (existingWallet.isPresent()) {
+            throw new IllegalStateException("User đã có ví, không thể tạo thêm.");
+        }
         Wallet wallet = new Wallet();
         wallet.setUserId(userId);
         wallet.setCurrency("VND");

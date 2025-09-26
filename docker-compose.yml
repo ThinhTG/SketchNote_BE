@@ -1,5 +1,12 @@
 version: "3.9"
 
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -14,33 +21,33 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
     networks:
-      - sketchnote-net
+      - app-network
 
   eureka:
-    image: ghcr.io/alarmistt/eurekaservice:latest
+    build: ./eureka        # build từ Dockerfile trong folder eureka
     container_name: eureka
     ports:
       - "8761:8761"
+    networks:
+      - app-network
     depends_on:
       - postgres
-    networks:
-      - sketchnote-net
 
   gateway:
-    image: ghcr.io/alarmistt/apigateway:latest
+    build: ./apigateway    # build từ Dockerfile trong folder apigateway
     container_name: gateway
     ports:
       - "8888:8888"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_HOST=http://eureka:8761/eureka
+    networks:
+      - app-network
     depends_on:
       - eureka
-    networks:
-      - sketchnote-net
 
   userservice:
-    image: ghcr.io/alarmistt/userservice:latest
+    build: ./userservice   # build từ Dockerfile trong folder userservice
     container_name: userservice
     ports:
       - "8081:8081"
@@ -50,14 +57,14 @@ services:
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=admin
       - EUREKA_HOST=http://eureka:8761/eureka
+    networks:
+      - app-network
     depends_on:
       - postgres
       - eureka
-    networks:
-      - sketchnote-net
 
   paymentservice:
-    image: ghcr.io/alarmistt/paymentservice:latest
+    build: ./paymentservice  # build từ Dockerfile trong folder paymentservice
     container_name: paymentservice
     ports:
       - "8084:8084"
@@ -67,15 +74,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=admin
       - EUREKA_HOST=http://eureka:8761/eureka
+    networks:
+      - app-network
     depends_on:
       - postgres
       - eureka
-    networks:
-      - sketchnote-net
-
-volumes:
-  pgdata:
-
-networks:
-  sketchnote-net:
-    driver: bridge
