@@ -119,22 +119,26 @@ services:
     image: redis:7-alpine
     container_name: redis
     ports:
-      - "6379:6379" # có thể bỏ nếu không cần kết nối redis từ ngoài VM
+      - "6379:6379" 
     networks:
       - sketchnote-net
     restart: unless-stopped
 
   keycloak:
-    image: quay.io/keycloak/keycloak:25.0.0
+    image: quay.io/keycloak/keycloak:26.0.2
     container_name: keycloak
-    command: start-dev --import-realm --features=scripts
+    # command: 'start-dev --import-realm'
     environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: admin
+      KC_DB_PASSWORD: admin
     ports:
       - "8090:8080"
-    volumes:
-      - ./identity-service/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    # volumes:
+    #   - ./identity-service/realm-export.json:/opt/keycloak/data/import/realm-export.json
     networks:
       - sketchnote-net
     restart: unless-stopped
