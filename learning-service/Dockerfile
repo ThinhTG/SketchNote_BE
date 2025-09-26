@@ -8,7 +8,7 @@ RUN mvn clean package -DskipTests
 # Stage 2: Runtime stage with JRE 17
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
-COPY --from=build /app/target/*.jar paymentservice.jar
+COPY --from=build /app/target/*.jar learningservice.jar
 
-EXPOSE 8084
-ENTRYPOINT ["java", "-jar", "paymentservice.jar"]
+EXPOSE 8085
+ENTRYPOINT ["java", "-jar", "learningservice.jar"]
