@@ -1,17 +1,14 @@
 server:
-  port: 8085
+  port: 8081
+
+
 spring:
   application:
-    name: learning-service
-  cloud:
-    discovery:
-      enabled: true
-
+    name: user-service
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://139.59.119.65:5432/learningdb}
-    username: ${SPRING_DATASOURCE_USERNAME:admin}
-    password: ${SPRING_DATASOURCE_PASSWORD:admin}
-
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/userservice}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:Thinh123}
   jpa:
     hibernate:
       ddl-auto: update
@@ -26,4 +23,4 @@ eureka:
       defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
   instance:
     prefer-ip-address: true
-    ip-address: localhost
+    ip-address: 139.59.119.65

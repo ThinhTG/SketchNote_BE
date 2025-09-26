@@ -1,21 +1,23 @@
 server:
-  port: 8085
+  port: 8089
+
+
 spring:
   application:
-    name: learning-service
-  cloud:
-    discovery:
-      enabled: true
-
+    name: identity-service
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://139.59.119.65:5432/learningdb}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/keycloak}
     username: ${SPRING_DATASOURCE_USERNAME:admin}
     password: ${SPRING_DATASOURCE_PASSWORD:admin}
-
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+idp:
+  url: ${KEYCLOAK_URL:http://localhost:8180}
+  client-id: sketchnote
+  client-secret: jJ1gdXhJbeOXMnqe1A1jnZVmc3WKCTx3
 
 eureka:
   client:
