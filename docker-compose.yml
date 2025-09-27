@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: usersdb
     ports:
-      - "5432:5432" # có thể bỏ nếu không cần truy cập từ ngoài VM
+      - "5432:5432" 
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
@@ -110,7 +110,7 @@ services:
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - ALLOW_PLAINTEXT_LISTENER=yes
     ports:
-      - "9092:9092" # có thể bỏ nếu không cần kết nối Kafka từ ngoài VM
+      - "9092:9092" 
     networks:
       - sketchnote-net
     restart: unless-stopped
@@ -127,7 +127,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.0.2
     container_name: keycloak
-    command: start-dev
+    command: start-dev --http-enabled=true --hostname-strict=false
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
@@ -150,6 +150,9 @@ services:
       - "8089:8089"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/userservice
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin
       - EUREKA_HOST=http://eureka:8761/eureka/
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - REDIS_HOST=redis

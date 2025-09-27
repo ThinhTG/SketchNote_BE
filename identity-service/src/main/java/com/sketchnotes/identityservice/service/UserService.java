@@ -1,0 +1,89 @@
+package com.sketchnotes.identityservice.service;
+
+import com.sketchnotes.identityservice.model.User;
+import com.sketchnotes.identityservice.dto.request.UserRequest;
+import com.sketchnotes.identityservice.dto.response.UserResponse;
+import com.sketchnotes.identityservice.repository.IUserRepository;
+import com.sketchnotes.identityservice.service.interfaces.IUserService;
+import com.sketchnotes.identityservice.ultils.PagedResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class UserService implements IUserService {
+
+    private final IUserRepository userRepository;
+
+
+    @Override
+    public UserResponse getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Not found"));
+        return UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .role(user.getRole().toString())
+                .avatarUrl(user.getAvatarUrl())
+                .build();
+    }
+
+    @Override
+    public PagedResponse<UserResponse> getAllUsers(int pageNo, int pageSize) {
+        Pageable pageable =  PageRequest.of(pageNo, pageSize);
+        Page<User> users = userRepository.findAll(pageable);
+        List<UserResponse> userResponses = users.stream().map(user -> UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .role(user.getRole().toString())
+                .avatarUrl(user.getAvatarUrl())
+                .build()).toList();
+        return new PagedResponse(
+                userResponses,
+                users.getNumber(),
+                users.getSize(),
+                (int) users.getTotalElements(),
+                users.getTotalPages(),
+                users.isLast()
+        );
+    }
+    @Override
+    public UserResponse updateUser(Long id, UserRequest request) {
+        User account = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Not found"));
+
+        account.setFirstName(request.getFirstName());
+        account.setLastName(request.getLastName());
+        account.setAvatarUrl(request.getAvatarUrl());
+        account.setUpdateAt(LocalDateTime.now());
+        account = userRepository.save(account);
+        return UserResponse.builder()
+                .id(account.getId())
+                .email(account.getEmail())
+                .firstName(account.getFirstName())
+                .lastName(account.getLastName())
+                .role(account.getRole().toString())
+                .avatarUrl(account.getAvatarUrl())
+                .build();
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        User account = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Not found"));
+        account.setActive(false);
+        account.setUpdateAt(LocalDateTime.now());
+         userRepository.save(account);
+    }
+}
