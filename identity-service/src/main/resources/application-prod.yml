@@ -17,7 +17,7 @@ spring:
 idp:
   url: ${KEYCLOAK_URL:http://localhost:8180}
   client-id: sketchnote
-  client-secret: jJ1gdXhJbeOXMnqe1A1jnZVmc3WKCTx3
+  client-secret: QYHYNsUNOS40S0Z28N7IytIf9bLYhtK3
 
 eureka:
   client:
