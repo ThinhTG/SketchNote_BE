@@ -6,7 +6,7 @@ spring:
   application:
     name: identity-service
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/keycloak}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://139.59.119.65:5432/keycloak}
     username: ${SPRING_DATASOURCE_USERNAME:admin}
     password: ${SPRING_DATASOURCE_PASSWORD:admin}
   jpa:
@@ -15,9 +15,9 @@ spring:
     show-sql: true
 
 idp:
-  url: ${KEYCLOAK_URL:http://localhost:8180}
+  url: ${KEYCLOAK_URL:http://139.59.119.65:8180}
   client-id: sketchnote
-  client-secret: jJ1gdXhJbeOXMnqe1A1jnZVmc3WKCTx3
+  client-secret: QYHYNsUNOS40S0Z28N7IytIf9bLYhtK3
 
 eureka:
   client:
@@ -26,6 +26,6 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
-  instance:
-    prefer-ip-address: true
-    ip-address: localhost
+#  instance:
+#    prefer-ip-address: true
+#    ip-address: localhost

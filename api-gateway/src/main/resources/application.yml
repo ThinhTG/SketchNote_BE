@@ -49,6 +49,6 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
-  instance:
-    prefer-ip-address: true
-    ip-address: localhost
+#  instance:
+#    prefer-ip-address: true
+#    ip-address: localhost
