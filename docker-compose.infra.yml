@@ -1,11 +1,10 @@
+version: "3.9"
+
 services:
+  # Postgres
   postgres:
     image: postgres:16-alpine
     container_name: postgres
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: usersdb
     ports:
       - "5432:5432"
     volumes:
@@ -13,6 +12,7 @@ services:
       - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
     restart: unless-stopped
 
+  # Redis
   redis:
     image: redis:7-alpine
     container_name: redis
@@ -20,6 +20,7 @@ services:
       - "6379:6379"
     restart: unless-stopped
 
+  # Kafka
   kafka:
     image: bitnami/kafka:3.7
     container_name: kafka
@@ -37,19 +38,21 @@ services:
       - "9092:9092"
     restart: unless-stopped
 
+  # Keycloak
   keycloak:
     image: quay.io/keycloak/keycloak:26.0.2
     container_name: keycloak
     command: start-dev --http-enabled=true --hostname-strict=false
-    environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://139.59.119.65:5432/keycloak
-      KC_DB_USERNAME: admin
-      KC_DB_PASSWORD: admin
     ports:
       - "8090:8080"
+    restart: unless-stopped
+
+  # Eureka
+  eureka:
+    image: ghcr.io/alarmistt/eurekaservice:latest
+    container_name: eureka
+    ports:
+      - "8761:8761"
     restart: unless-stopped
 
 volumes:

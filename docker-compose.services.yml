@@ -1,76 +1,49 @@
+version: "3.9"
 
 services:
-  eureka:
-    image: ghcr.io/alarmistt/eurekaservice:latest
-    container_name: eureka
-    ports:
-      - "8761:8761"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://139.59.119.65:5432/usersdb
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=admin
-    restart: unless-stopped
-
+  # API Gateway
   gateway:
     image: ghcr.io/alarmistt/apigateway:latest
     container_name: gateway
     ports:
       - "8888:8888"
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_HOST=http://139.59.119.65:8761/eureka/
-    depends_on:
-      - eureka
     restart: unless-stopped
 
-  paymentservice:
-    image: ghcr.io/alarmistt/paymentservice:latest
-    container_name: paymentservice
-    ports:
-      - "8084:8084"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://139.59.119.65:5432/paymentsdb
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=admin
-      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
-      - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
-      - REDIS_HOST=139.59.119.65
-      - REDIS_PORT=6379
-    depends_on:
-      - eureka
-    restart: unless-stopped
-
-  learningservice:
-    image: ghcr.io/alarmistt/learningservice:latest
-    container_name: learningservice
-    ports:
-      - "8085:8085"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://139.59.119.65:5432/learningdb
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=admin
-      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
-    depends_on:
-      - eureka
-    restart: unless-stopped
-
+  # Identity Service
   identityservice:
     image: ghcr.io/alarmistt/identityservice:latest
     container_name: identityservice
     ports:
       - "8089:8089"
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://139.59.119.65:5432/usersdb
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=admin
       - EUREKA_HOST=http://139.59.119.65:8761/eureka/
       - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
       - REDIS_HOST=139.59.119.65
       - REDIS_PORT=6379
       - KEYCLOAK_URL=http://139.59.119.65:8090
-    depends_on:
-      - eureka
+    restart: unless-stopped
+
+  # Payment Service
+  paymentservice:
+    image: ghcr.io/alarmistt/paymentservice:latest
+    container_name: paymentservice
+    ports:
+      - "8084:8084"
+    environment:
+      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
+      - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
+      - REDIS_HOST=139.59.119.65
+      - REDIS_PORT=6379
+    restart: unless-stopped
+
+  # Learning Service
+  learningservice:
+    image: ghcr.io/alarmistt/learningservice:latest
+    container_name: learningservice
+    ports:
+      - "8085:8085"
+    environment:
+      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
     restart: unless-stopped
