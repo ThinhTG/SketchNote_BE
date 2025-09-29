@@ -1,15 +1,18 @@
 package com.sketchnotes.identityservice.service;
 
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.sketchnotes.identityservice.client.IdentityClient;
-import com.sketchnotes.identityservice.dto.identity.Credential;
-import com.sketchnotes.identityservice.dto.identity.TokenExchangeParam;
-import com.sketchnotes.identityservice.dto.identity.TokenExchangeResponse;
-import com.sketchnotes.identityservice.dto.identity.UserCreationParam;
+import com.sketchnotes.identityservice.dto.identity.*;
+import com.sketchnotes.identityservice.dto.request.LoginGoogleRequest;
 import com.sketchnotes.identityservice.dto.request.LoginRequest;
 import com.sketchnotes.identityservice.dto.request.RegisterRequest;
 import com.sketchnotes.identityservice.dto.response.LoginResponse;
+import com.sketchnotes.identityservice.dto.request.TokenRequest;
 import com.sketchnotes.identityservice.enums.Role;
+import com.sketchnotes.identityservice.exception.AppException;
+import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.exception.ErrorNormalizer;
 import com.sketchnotes.identityservice.model.User;
 import com.sketchnotes.identityservice.repository.IUserRepository;
@@ -45,17 +48,112 @@ public class AuthenticationService implements  IAuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        return  null;
+        try {
+            // Gọi Keycloak để lấy token theo grant_type=password
+            LoginExchangeResponse tokenResponse = identityClient.login(
+                    LoginParam.builder()
+                            .grant_type("password")
+                            .client_id(clientId)
+                            .client_secret(clientSecret)
+                            .username(request.getEmail())
+                            .password(request.getPassword())
+                            .scope("openid")
+                            .build()
+            );
 
+            // Tìm user trong DB (nếu có)
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+            if (!user.isActive()) {
+                throw new AppException(ErrorCode.USER_INACTIVE);
+            }
+            // Trả response
+            return LoginResponse.builder()
+                    .accessToken(tokenResponse.getAccessToken())
+                    .refreshToken(tokenResponse.getRefreshToken())
+                    .build();
+
+        } catch (FeignException ex) {
+            throw errorNormalizer.handleKeyCloakException(ex);
+        }
+    }
+    @Override
+    public LoginResponse refreshToken(TokenRequest request) {
+        try {
+
+            LoginExchangeResponse tokenResponse = identityClient.refreshToken(
+                    RefreshTokenParam.builder()
+                            .grant_type("refresh_token")
+                            .client_id(clientId)
+                            .client_secret(clientSecret)
+                            .refresh_token(request.getRefreshToken())
+                            .build());
+
+            return LoginResponse.builder()
+                    .accessToken(tokenResponse.getAccessToken())
+                    .refreshToken(tokenResponse.getRefreshToken())
+                    .build();
+
+        } catch (FeignException ex) {
+            throw errorNormalizer.handleKeyCloakException(ex);
+        }
+    }
+
+    @Override
+    public LoginResponse loginWithGoogle(LoginGoogleRequest request) {
+        try {
+            // 1. Đổi code -> token
+            LoginExchangeResponse tokenResponse = identityClient.loginWithGoogle(
+                    GoogleLoginParam.builder()
+                            .grant_type("authorization_code")
+                            .client_id(clientId)
+                            .client_secret(clientSecret)
+                            .code(request.getCode())
+                            .redirect_uri(request.getRedirectUri())
+                            .build()
+            );
+
+            // 2. Giải ID Token
+            String idToken = tokenResponse.getIdToken();
+
+            DecodedJWT jwt = JWT.decode(idToken);
+
+            String keycloakId = jwt.getSubject(); // "sub" claim
+            System.out.println("KeycloakId: " + keycloakId);
+            String email = jwt.getClaim("email").asString();
+            String firstName = jwt.getClaim("given_name").asString();
+            String lastName = jwt.getClaim("family_name").asString();
+            User user = userRepository.findByEmail(email).orElse(null);
+
+            if (user == null) {
+                 userRepository.save(
+                        User.builder()
+                                .keycloakId(keycloakId)
+                                .email(email)
+                                .role(Role.CUSTOMER)
+                                .isActive(true)
+                                .firstName(firstName)
+                                .lastName(lastName)
+                                .build()
+                );
+            }
+            return LoginResponse.builder()
+                    .accessToken(tokenResponse.getAccessToken())
+                    .refreshToken(tokenResponse.getRefreshToken())
+                    .build();
+
+        } catch (FeignException ex) {
+            throw errorNormalizer.handleKeyCloakException(ex);
+        }
     }
 
     @Override
     public void register(RegisterRequest request) {
         try {
             TokenExchangeResponse token = identityClient.exchangeClientToken(TokenExchangeParam.builder()
-                    .grantType("client_credentials")
-                    .clientId(clientId)
-                    .clientSecret(clientSecret)
+                    .grant_type("client_credentials")
+                    .client_id(clientId)
+                    .client_secret(clientSecret)
                     .scope("openid")
                     .build());
             var creationResponse = identityClient.createUser(
@@ -84,6 +182,7 @@ public class AuthenticationService implements  IAuthService {
                     .lastName(request.getLastName())
                     .createAt(LocalDateTime.now())
                     .role(Role.CUSTOMER)
+                    .isActive(true)
                     .avatarUrl(request.getAvatarUrl())
                     .build();
             userRepository.save(user);

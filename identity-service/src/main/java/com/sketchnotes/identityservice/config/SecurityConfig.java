@@ -14,7 +14,7 @@ public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
             "/api/users/auth/register",
             "/api/users/auth/login",
-
+            "/api/users/auth/refresh-token",
             // swagger endpoints
             "/v3/api-docs/**",
             "/swagger-ui/**",
@@ -26,7 +26,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(PUBLIC_ENDPOINTS)
+        httpSecurity
+                . cors(Customizer.withDefaults())
+                .authorizeHttpRequests(request -> request.requestMatchers(PUBLIC_ENDPOINTS)
                 .permitAll()
                 .anyRequest()
                 .authenticated());

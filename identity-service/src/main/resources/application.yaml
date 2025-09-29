@@ -20,12 +20,13 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://${app.ip}:8089/realms/sketchnote
+          issuer-uri: http://139.59.119.65:8090/realms/sketchnote
 
 idp:
-  url: ${KEYCLOAK_URL:http://${app.ip}:8089}
+  url: ${KEYCLOAK_URL:http://${app.ip}:8090}
   client-id: sketchnote
   client-secret: QYHYNsUNOS40S0Z28N7IytIf9bLYhtK3
+
 
 eureka:
   client:

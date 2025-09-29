@@ -1,11 +1,7 @@
 package com.sketchnotes.identityservice.dto.identity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Data
@@ -13,9 +9,9 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TokenExchangeParam {
+public class RefreshTokenParam {
     String grant_type;
     String client_id;
     String client_secret;
-    String scope;
+    String refresh_token;
 }
