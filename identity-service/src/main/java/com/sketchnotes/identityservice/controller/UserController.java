@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/api/users")
+@RequestMapping(value = "/api/identity")
 public class UserController {
-    private final IUserService identityservice;
+    private final IUserService userService;
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>>getUserById(@PathVariable Long id) {
-        UserResponse response = identityservice.getUserById(id);
+        UserResponse response = userService.getUserById(id);
         return ResponseEntity.ok( ApiResponse.success( response,"Get data successful" ));
     }
 
@@ -25,7 +25,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<PagedResponse<UserResponse>>> getAllUsers(
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize) {
-        PagedResponse<UserResponse> response = identityservice.getAllUsers(pageNo, pageSize);
+        PagedResponse<UserResponse> response = userService.getAllUsers(pageNo, pageSize);
         return ResponseEntity.ok(ApiResponse.success( response,"Get data successful"));
     }
 
@@ -33,13 +33,13 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(
             @PathVariable Long id,
             @RequestBody UserRequest request) {
-        UserResponse response =  identityservice.updateUser(id, request);
+        UserResponse response =  userService.updateUser(id, request);
         return ResponseEntity.ok(ApiResponse.success( response,"Update successful"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteUser(@PathVariable Long id) {
-        identityservice.deleteUser(id);
+        userService.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.success( null,"Delete successful"));
     }
 }

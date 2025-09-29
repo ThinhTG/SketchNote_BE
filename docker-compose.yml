@@ -135,7 +135,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/usersdb
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=admin
-      - EUREKA_HOST=http://eureka:8761/eureka/
+      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - REDIS_HOST=redis
       - REDIS_PORT=6379
