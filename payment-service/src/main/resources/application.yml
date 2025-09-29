@@ -8,9 +8,9 @@ spring:
     discovery:
       enabled: true
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/paymentDB}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:Thinh123}
+    url: jdbc:postgresql://139.59.119.65:5432/5432/usersdb
+    username: admin
+    password: admin
 
   jpa:
     hibernate:
@@ -22,9 +22,7 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
-  instance:
-      prefer-ip-address: true
-      ip-address: localhost
+
 
 
       payos:
