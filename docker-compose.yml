@@ -1,0 +1,175 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: usersdb
+    ports:
+      - "5432:5432" 
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
+    networks:
+      - sketchnote-net
+    restart: unless-stopped
+
+  eureka:
+    image: ghcr.io/alarmistt/eurekaservice:latest
+    container_name: eureka
+    ports:
+      - "8761:8761"
+    depends_on:
+      - postgres
+    networks:
+      - sketchnote-net
+    restart: unless-stopped
+
+  gateway:
+    image: ghcr.io/alarmistt/apigateway:latest
+    container_name: gateway
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_HOST=http://eureka:8761/eureka/
+    depends_on:
+      - eureka
+    networks:
+      - sketchnote-net
+    restart: unless-stopped
+
+  userservice:
+    image: ghcr.io/alarmistt/userservice:latest
+    container_name: userservice
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/usersdb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin
+      - EUREKA_HOST=http://eureka:8761/eureka/
+    depends_on:
+      - postgres
+      - eureka
+    networks:
+      - sketchnote-net
+    restart: unless-stopped
+
+  paymentservice:
+    image: ghcr.io/alarmistt/paymentservice:latest
+    container_name: paymentservice
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/paymentsdb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin
+      - EUREKA_HOST=http://eureka:8761/eureka/
+    depends_on:
+      - postgres
+      - eureka
+    networks:
+      - sketchnote-net
+    restart: unless-stopped
+
+  learningservice:
+    image: ghcr.io/alarmistt/learningservice:latest
+    container_name: learningservice
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/learningdb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin
+      - EUREKA_HOST=http://eureka:8761/eureka/
+    depends_on:
+      - postgres
+      - eureka
+    networks:
+      - sketchnote-net
+    restart: unless-stopped
+
+  kafka:
+    image: bitnami/kafka:3.7
+    container_name: kafka
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://139.59.119.65:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    ports:
+      - "9092:9092" 
+    networks:
+      - sketchnote-net
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379" 
+    networks:
+      - sketchnote-net
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.2
+    container_name: keycloak
+    command: start-dev --http-enabled=true --hostname-strict=false
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: admin
+      KC_DB_PASSWORD: admin
+    ports:
+      - "8090:8080"
+    # volumes:
+    #   - ./identity-service/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    networks:
+      - sketchnote-net
+    restart: unless-stopped
+
+  identityservice:
+    image: ghcr.io/alarmistt/identityservice:latest
+    container_name: identityservice
+    ports:
+      - "8089:8089"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/userservice
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin
+      - EUREKA_HOST=http://eureka:8761/eureka/
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KEYCLOAK_URL=http://139.59.119.65:8090
+    depends_on:
+      - kafka
+      - redis
+      - keycloak
+      - eureka
+    networks:
+      - sketchnote-net
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
+networks:
+  sketchnote-net:
+    driver: bridge
