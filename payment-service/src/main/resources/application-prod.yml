@@ -8,7 +8,7 @@ spring:
     discovery:
       enabled: true
   datasource:
-    url: jdbc:postgresql://139.59.119.65:5432/5432/usersdb
+    url: jdbc:postgresql://139.59.119.65:5432/paymentsdb
     username: admin
     password: admin
 
@@ -24,7 +24,7 @@ eureka:
       defaultZone: http://139.59.119.65:8761/eureka/
   instance:
     prefer-ip-address: true
-    ip-address: 139.59.119.65
+    ip-address: 146.190.90.222
 
 
     payos:
