@@ -1,5 +1,8 @@
 package com.sketchnotes.identityservice.service;
 
+import com.sketchnotes.identityservice.exception.AppException;
+import com.sketchnotes.identityservice.exception.ErrorCode;
+import com.sketchnotes.identityservice.exception.NotFoundException;
 import com.sketchnotes.identityservice.model.User;
 import com.sketchnotes.identityservice.dto.request.UserRequest;
 import com.sketchnotes.identityservice.dto.response.UserResponse;
@@ -25,8 +28,8 @@ public class UserService implements IUserService {
 
     @Override
     public UserResponse getUserById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("Not found"));
+        User user = userRepository.findById(id).filter(User::isActive)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -40,7 +43,7 @@ public class UserService implements IUserService {
     @Override
     public PagedResponse<UserResponse> getAllUsers(int pageNo, int pageSize) {
         Pageable pageable =  PageRequest.of(pageNo, pageSize);
-        Page<User> users = userRepository.findAll(pageable);
+        Page<User> users = userRepository.findAllByIsActiveTrue(pageable);
         List<UserResponse> userResponses = users.stream().map(user -> UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -61,7 +64,7 @@ public class UserService implements IUserService {
     @Override
     public UserResponse updateUser(Long id, UserRequest request) {
         User account = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("Not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
 
         account.setFirstName(request.getFirstName());
         account.setLastName(request.getLastName());
@@ -81,7 +84,7 @@ public class UserService implements IUserService {
     @Override
     public void deleteUser(Long id) {
         User account = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("Not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
         account.setActive(false);
         account.setUpdateAt(LocalDateTime.now());
          userRepository.save(account);

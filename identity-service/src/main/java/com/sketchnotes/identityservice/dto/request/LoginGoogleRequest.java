@@ -10,5 +10,6 @@ import lombok.Setter;
 @Setter
 @Getter
 public class LoginGoogleRequest {
-    private String idToken;
+    private String code;
+    private  String redirectUri;
 }
