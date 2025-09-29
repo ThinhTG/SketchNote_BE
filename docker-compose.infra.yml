@@ -2,9 +2,14 @@ version: "3.9"
 
 services:
   # Postgres
+  services:
   postgres:
     image: postgres:16-alpine
     container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: usersdb
     ports:
       - "5432:5432"
     volumes:
@@ -34,6 +39,8 @@ services:
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CLIENT_USER=admin
+      - KAFKA_CLIENT_PASSWORD=admin
     ports:
       - "9092:9092"
     restart: unless-stopped
@@ -43,17 +50,13 @@ services:
     image: quay.io/keycloak/keycloak:26.0.2
     container_name: keycloak
     command: start-dev --http-enabled=true --hostname-strict=false
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=adminpassword
     ports:
       - "8090:8080"
     restart: unless-stopped
 
-  # Eureka
-  eureka:
-    image: ghcr.io/alarmistt/eurekaservice:latest
-    container_name: eureka
-    ports:
-      - "8761:8761"
-    restart: unless-stopped
 
 volumes:
   pgdata:

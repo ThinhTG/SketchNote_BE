@@ -8,9 +8,9 @@ spring:
   application:
     name: identity-service
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${app.ip}:5432/usersdb}
-    username: ${SPRING_DATASOURCE_USERNAME:admin}
-    password: ${SPRING_DATASOURCE_PASSWORD:admin}
+    url: jdbc:postgresql://${app.ip}:5432/usersdb
+    username: admin
+    password: admin
   jpa:
     hibernate:
       ddl-auto: create-drop
