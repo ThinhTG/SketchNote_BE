@@ -1,6 +1,18 @@
 version: "3.9"
 
 services:
+  # Eureka Service
+  eureka:
+    image: ghcr.io/alarmistt/eurekaservice:latest
+    container_name: eureka
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://139.59.119.65:5432/usersdb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin
+    restart: unless-stopped
+
   # API Gateway
   gateway:
     image: ghcr.io/alarmistt/apigateway:latest
@@ -9,6 +21,8 @@ services:
       - "8888:8888"
     environment:
       - EUREKA_HOST=http://139.59.119.65:8761/eureka/
+    depends_on:
+      - eureka
     restart: unless-stopped
 
   # Identity Service
@@ -23,6 +37,8 @@ services:
       - REDIS_HOST=139.59.119.65
       - REDIS_PORT=6379
       - KEYCLOAK_URL=http://139.59.119.65:8090
+    depends_on:
+      - eureka
     restart: unless-stopped
 
   # Payment Service
@@ -36,6 +52,8 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
       - REDIS_HOST=139.59.119.65
       - REDIS_PORT=6379
+    depends_on:
+      - eureka
     restart: unless-stopped
 
   # Learning Service
@@ -46,4 +64,6 @@ services:
       - "8085:8085"
     environment:
       - EUREKA_HOST=http://139.59.119.65:8761/eureka/
+    depends_on:
+      - eureka
     restart: unless-stopped
