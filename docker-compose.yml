@@ -42,24 +42,6 @@ services:
       - sketchnote-net
     restart: unless-stopped
 
-  userservice:
-    image: ghcr.io/alarmistt/userservice:latest
-    container_name: userservice
-    ports:
-      - "8081:8081"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/usersdb
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=admin
-      - EUREKA_HOST=http://eureka:8761/eureka/
-    depends_on:
-      - postgres
-      - eureka
-    networks:
-      - sketchnote-net
-    restart: unless-stopped
-
   paymentservice:
     image: ghcr.io/alarmistt/paymentservice:latest
     container_name: paymentservice
@@ -150,7 +132,7 @@ services:
       - "8089:8089"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/userservice
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/usersdb
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=admin
       - EUREKA_HOST=http://eureka:8761/eureka/
