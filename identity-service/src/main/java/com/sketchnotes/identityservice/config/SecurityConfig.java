@@ -12,9 +12,9 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
-            "/api/users/auth/register",
-            "/api/users/auth/login",
-            "/api/users/auth/refresh-token",
+            "/api/identity/auth/register",
+            "/api/identity/auth/login",
+            "/api/identity/auth/refresh-token",
             // swagger endpoints
             "/v3/api-docs/**",
             "/swagger-ui/**",
