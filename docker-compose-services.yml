@@ -7,6 +7,7 @@ services:
     ports:
       - "8089:8089"
     environment:
+      - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_HOST=http://139.59.119.65:8761/eureka/
       - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
       - REDIS_HOST=139.59.119.65
@@ -21,6 +22,7 @@ services:
     ports:
       - "8084:8084"
     environment:
+      - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_HOST=http://139.59.119.65:8761/eureka/
       - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
       - REDIS_HOST=139.59.119.65
@@ -35,5 +37,6 @@ services:
     ports:
       - "8085:8085"
     environment:
+      - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_HOST=http://139.59.119.65:8761/eureka/
     restart: unless-stopped

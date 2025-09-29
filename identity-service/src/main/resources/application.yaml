@@ -11,13 +11,14 @@ spring:
     discovery:
       enabled: true
   datasource:
-    url: jdbc:postgresql://139.59.119.65:5432/5432/usersdb
+    url: jdbc:postgresql://139.59.119.65:5432/usersdb
     username: admin
     password: admin
   jpa:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   security:
     oauth2:
