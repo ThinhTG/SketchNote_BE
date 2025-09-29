@@ -20,7 +20,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://${app.ip}:8090/realms/sketchnote
+          issuer-uri: http://keycloak:8090/realms/sketchnote
 
 idp:
   url: ${KEYCLOAK_URL:http://${app.ip}:8090}
