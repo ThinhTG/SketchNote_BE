@@ -1,0 +1,37 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: identity-service
+  cloud:
+    discovery:
+      enabled: true
+  datasource:
+    url: jdbc:postgresql://139.59.119.65:5432/usersdb
+    username: admin
+    password: admin
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  security:
+
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://139.59.119.65:8090/realms/sketchnote
+
+idp:
+  url: http://139.59.119.65:8090
+  client-id: sketchnote
+  client-secret: QYHYNsUNOS40S0Z28N7IytIf9bLYhtK3
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://139.59.119.65:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    ip-address: 146.190.90.222
+
