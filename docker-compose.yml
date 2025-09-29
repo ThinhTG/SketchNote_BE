@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -42,25 +40,7 @@ services:
       - sketchnote-net
     restart: unless-stopped
 
-  paymentservice:
-    image: ghcr.io/alarmistt/paymentservice:latest
-    container_name: paymentservice
-    ports:
-      - "8084:8084"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/paymentsdb
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=admin
-      - EUREKA_HOST=http://eureka:8761/eureka/
-    depends_on:
-      - postgres
-      - eureka
-    networks:
-      - sketchnote-net
-    restart: unless-stopped
-
-  learningservice:
+ 
     image: ghcr.io/alarmistt/learningservice:latest
     container_name: learningservice
     ports:
@@ -121,30 +101,6 @@ services:
       - "8090:8080"
     # volumes:
     #   - ./identity-service/realm-export.json:/opt/keycloak/data/import/realm-export.json
-    networks:
-      - sketchnote-net
-    restart: unless-stopped
-
-  identityservice:
-    image: ghcr.io/alarmistt/identityservice:latest
-    container_name: identityservice
-    ports:
-      - "8089:8089"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/usersdb
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=admin
-      - EUREKA_HOST=http://eureka:8761/eureka/
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - KEYCLOAK_URL=http://keycloak:8090
-    depends_on:
-      - kafka
-      - redis
-      - keycloak
-      - eureka
     networks:
       - sketchnote-net
     restart: unless-stopped
