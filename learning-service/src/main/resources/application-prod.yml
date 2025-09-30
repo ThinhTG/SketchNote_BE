@@ -8,22 +8,20 @@ spring:
       enabled: true
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://139.59.119.65:5432/learningdb}
-    username: ${SPRING_DATASOURCE_USERNAME:admin}
-    password: ${SPRING_DATASOURCE_PASSWORD:admin}
+    url: jdbc:postgresql://139.59.119.65:5432/learningdb
+    username: admin
+    password: admin
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 eureka:
   client:
-    enabled: true
-    register-with-eureka: true
-    fetch-registry: true
     service-url:
-      defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
+      defaultZone: http://139.59.119.65:8761/eureka/
   instance:
     prefer-ip-address: true
-    ip-address: 139.59.119.65
+    ip-address: 146.190.90.222

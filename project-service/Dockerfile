@@ -10,5 +10,5 @@ FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 COPY --from=build /app/target/*.jar projectservice.jar
 
-EXPOSE 8084
+EXPOSE 8087
 ENTRYPOINT ["java", "-jar", "projectservice.jar"]
