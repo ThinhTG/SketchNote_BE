@@ -1,4 +1,4 @@
-package com.sketchnotes.blog_service.repository;
+package com.sketchnotes.blog_service.Repository;
 
 import com.sketchnotes.blog_service.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
