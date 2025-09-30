@@ -1,6 +1,6 @@
 package com.sketchnotes.blog_service.entity;
 
-import jakarta.persistence.Entity;
+
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -9,7 +9,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import java.time.Instant;
 import java.util.List;
 
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,7 +16,8 @@ import java.util.List;
 @Builder
 @Entity
 public class Blog {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
@@ -37,3 +37,4 @@ public class Blog {
     @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
 }
+

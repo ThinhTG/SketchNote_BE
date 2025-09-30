@@ -10,9 +10,13 @@ import java.time.Instant;
 @Entity
 @Table(name = "comments")
 @Getter
-@Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Comment {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
