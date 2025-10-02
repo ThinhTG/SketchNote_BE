@@ -39,6 +39,11 @@ spring:
               predicates:
                 - Path=/api/projects/**
 
+            - id: order-service
+              uri: lb://order-service
+              predicates:
+                - Path=/api/orders/**
+
 
 
 springdoc:
@@ -56,6 +61,8 @@ springdoc:
         url: /blog-service/v3/api-docs
       - name: project-service
         url: /project-service/v3/api-docs
+      - name: order-service
+        url: /order-service/v3/api-docs
 eureka:
   client:
     service-url:
