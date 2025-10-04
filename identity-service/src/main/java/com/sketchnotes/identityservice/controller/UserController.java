@@ -11,13 +11,23 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/api/identity")
+@RequestMapping(value = "/api/users")
 public class UserController {
     private final IUserService userService;
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>>getUserById(@PathVariable Long id) {
         UserResponse response = userService.getUserById(id);
+        return ResponseEntity.ok( ApiResponse.success( response,"Get data successful" ));
+    }
+    @GetMapping("/keycloak/{sub}")
+    public ResponseEntity<ApiResponse<UserResponse>>getUserById(@PathVariable String sub) {
+        UserResponse response = userService.getUserByKeycloakId(sub);
+        return ResponseEntity.ok( ApiResponse.success( response,"Get data successful" ));
+    }
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>>getCurrentUser() {
+        UserResponse response = userService.getCurrentUser();
         return ResponseEntity.ok( ApiResponse.success( response,"Get data successful" ));
     }
 

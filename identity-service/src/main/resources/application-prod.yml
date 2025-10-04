@@ -13,7 +13,7 @@ spring:
     password: admin
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   security:
@@ -22,6 +22,9 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://139.59.119.65:8090/realms/sketchnote
+    redis:
+      host: 139.59.119.65
+      port: 6379
 
 idp:
   url: http://139.59.119.65:8090

@@ -2,18 +2,17 @@ package com.sketchnotes.identityservice.service;
 
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
-import com.sketchnotes.identityservice.exception.NotFoundException;
 import com.sketchnotes.identityservice.model.User;
 import com.sketchnotes.identityservice.dto.request.UserRequest;
 import com.sketchnotes.identityservice.dto.response.UserResponse;
 import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import com.sketchnotes.identityservice.ultils.PagedResponse;
+import com.sketchnotes.identityservice.ultils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,9 +28,10 @@ public class UserService implements IUserService {
     @Override
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id).filter(User::isActive)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return UserResponse.builder()
                 .id(user.getId())
+                .keycloakId(user.getKeycloakId())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
@@ -46,6 +46,7 @@ public class UserService implements IUserService {
         Page<User> users = userRepository.findAllByIsActiveTrue(pageable);
         List<UserResponse> userResponses = users.stream().map(user -> UserResponse.builder()
                 .id(user.getId())
+                .keycloakId(user.getKeycloakId())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
@@ -64,7 +65,7 @@ public class UserService implements IUserService {
     @Override
     public UserResponse updateUser(Long id, UserRequest request) {
         User account = userRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         account.setFirstName(request.getFirstName());
         account.setLastName(request.getLastName());
@@ -84,9 +85,39 @@ public class UserService implements IUserService {
     @Override
     public void deleteUser(Long id) {
         User account = userRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         account.setActive(false);
         account.setUpdateAt(LocalDateTime.now());
          userRepository.save(account);
+    }
+
+    @Override
+    public UserResponse getCurrentUser() {
+        User user = userRepository.findByKeycloakId(SecurityUtils.getCurrentUserId()).filter(User::isActive)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return UserResponse.builder()
+                .id(user.getId())
+                .keycloakId(user.getKeycloakId())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .role(user.getRole().toString())
+                .avatarUrl(user.getAvatarUrl())
+                .build();
+    }
+
+    @Override
+    public UserResponse getUserByKeycloakId(String sub) {
+        User user = userRepository.findByKeycloakId(sub).filter(User::isActive)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return UserResponse.builder()
+                .id(user.getId())
+                .keycloakId(user.getKeycloakId())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .role(user.getRole().toString())
+                .avatarUrl(user.getAvatarUrl())
+                .build();
     }
 }

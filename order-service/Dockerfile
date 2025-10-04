@@ -10,5 +10,5 @@ FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 COPY --from=build /app/target/*.jar orderservice.jar
 
-EXPOSE 8084
+EXPOSE 8083
 ENTRYPOINT ["java", "-jar", "orderservice.jar"]

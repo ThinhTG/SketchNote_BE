@@ -8,7 +8,7 @@ spring:
     discovery:
       enabled: true
   datasource:
-    url: jdbc:postgresql://139.59.119.65:5432/5432/blogdb
+    url: jdbc:postgresql://139.59.119.65:5432/blogdb
     username: admin
     password: admin
 

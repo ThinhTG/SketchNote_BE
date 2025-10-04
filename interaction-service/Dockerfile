@@ -10,5 +10,5 @@ FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 COPY --from=build /app/target/*.jar interactionservice.jar
 
-EXPOSE 8084
+EXPOSE 8088
 ENTRYPOINT ["java", "-jar", "interactionservice.jar"]
