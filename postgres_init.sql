@@ -5,3 +5,4 @@ CREATE DATABASE keycloak;
 CREATE DATABASE blogdb;
 CREATE DATABASE projectdb;
 CREATE DATABASE marketplacedb;
+CREATE DATABASE interactiondb;
