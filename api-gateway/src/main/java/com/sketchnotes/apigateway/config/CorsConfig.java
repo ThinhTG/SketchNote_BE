@@ -5,46 +5,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.reactive.CorsWebFilter;
-import org.springframework.web.reactive.config.CorsRegistry;
-import org.springframework.web.reactive.config.WebFluxConfigurer;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
-
 
 import java.util.Arrays;
-
 
 @Configuration
 public class CorsConfig {
     @Bean
-    public WebFluxConfigurer corsConfigurer() {
-        return new WebFluxConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOriginPatterns("*")
-                        .allowedMethods("*")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-            }
-        };
-    }
-
-    @Bean
     public CorsWebFilter corsWebFilter() {
-        CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowCredentials(true);
-        corsConfig.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://localhost:8888",
-                "http://127.0.0.1:8888"
-        ));
-        corsConfig.setAllowedHeaders(Arrays.asList("*"));
-        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOriginPattern("*"); // Cho tất cả domain
+        config.addAllowedHeader("*");        // Cho tất cả headers
+        config.addAllowedMethod("*");        // GET, POST, PUT, DELETE...
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfig);
+        source.registerCorsConfiguration("/**", config);
 
-        return new CorsWebFilter((CorsConfigurationSource) source);
+        return new CorsWebFilter(source);
     }
-
 }

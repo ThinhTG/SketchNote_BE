@@ -23,7 +23,7 @@ public class ApiExceptionHandler {
         ErrorCode errorCode = exception.getErrorCode();
         ApiResponse apiResponse = new ApiResponse();
 
-        apiResponse.setCode(errorCode.getCode());
+        apiResponse.setCode(errorCode.getStatusCode().value());
         apiResponse.setMessage(errorCode.getMessage());
 
         return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
@@ -41,7 +41,7 @@ public class ApiExceptionHandler {
                 .findFirst()
                 .orElse("Validation failed");
         ApiResponse<String> apiResponse = ApiResponse.<String>builder()
-                .code(400)
+                .code(401)
                 .message(errorMessage)
                 .result(null)
                 .build();
@@ -54,7 +54,7 @@ public class ApiExceptionHandler {
         ErrorCode errorCode = exception.getErrorCode();
         ApiResponse apiResponse = new ApiResponse();
 
-        apiResponse.setCode(errorCode.getCode());
+        apiResponse.setCode(errorCode.getStatusCode().value());
         apiResponse.setMessage(errorCode.getMessage());
 
         return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
@@ -62,7 +62,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<String>> handlingException(Exception exception) {
         ApiResponse<String> apiResponse = ApiResponse.<String>builder()
-                .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
+                .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getStatusCode().value())
                 .message(exception.getMessage())
                 .result(null)
                 .build();

@@ -6,26 +6,26 @@ import org.springframework.http.HttpStatusCode;
 import lombok.Getter;
 
 @Getter
-public enum ErrorCode {
+public enum ErrorCode{
 
     // General errors
-    UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
+    UNCATEGORIZED_EXCEPTION(500, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // Authentication / Authorization
-    UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
-    UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
+    UNAUTHENTICATED(401, "Unauthenticated", HttpStatus.UNAUTHORIZED),
+    UNAUTHORIZED(401, "You do not have permission", HttpStatus.FORBIDDEN),
     INVALID_KEY(1001, "Invalid key", HttpStatus.BAD_REQUEST),
 
     // User errors
-    INVALID_EMAIL(1003, "Email must be at least {min} characters", HttpStatus.BAD_REQUEST),
-    INVALID_PASSWORD(1004, "Password must be at least {min} characters", HttpStatus.BAD_REQUEST),
-    EMAIL_IS_MISSING(1010, "Please enter e mail", HttpStatus.BAD_REQUEST),
-    USER_EXISTED(1009, "Username already exists, please choose another one", HttpStatus.BAD_REQUEST),
-    EMAIL_EXISTED(1008, "Email already exists, please choose another one", HttpStatus.BAD_REQUEST),
-    USER_NOT_EXISTED(1011, "User does not exist", HttpStatus.BAD_REQUEST),
-    CLIENT_NOT_FOUND(2001, "Client not found", HttpStatus.BAD_REQUEST),
-    ROLE_NOT_FOUND(2002, "Role not found", HttpStatus.BAD_REQUEST),
-    USER_INACTIVE(1012, "User is inactive", HttpStatus.BAD_REQUEST),
+    INVALID_EMAIL(400, "Email must be at least {min} characters", HttpStatus.BAD_REQUEST),
+    INVALID_PASSWORD(400, "Password must be at least {min} characters", HttpStatus.BAD_REQUEST),
+    EMAIL_IS_MISSING(400, "Please enter e mail", HttpStatus.BAD_REQUEST),
+    USER_EXISTED(400, "Username already exists, please choose another one", HttpStatus.BAD_REQUEST),
+    EMAIL_EXISTED(400, "Email already exists, please choose another one", HttpStatus.BAD_REQUEST),
+    USER_NOT_EXISTED(400, "User does not exist", HttpStatus.BAD_REQUEST),
+    CLIENT_NOT_FOUND(400, "Client not found", HttpStatus.BAD_REQUEST),
+    ROLE_NOT_FOUND(400, "Role not found", HttpStatus.BAD_REQUEST),
+    USER_INACTIVE(400, "User is inactive", HttpStatus.BAD_REQUEST),
 
     // OAuth2 / Token API errors
     INVALID_GRANT(3001, "Invalid grant", HttpStatus.BAD_REQUEST),
@@ -35,7 +35,8 @@ public enum ErrorCode {
     INVALID_REQUEST(3005, "Invalid request", HttpStatus.BAD_REQUEST),
     INVALID_TOKEN(3006, "Invalid token", HttpStatus.BAD_REQUEST),
     EXPIRED_TOKEN(3007, "Expired token", HttpStatus.UNAUTHORIZED),
-    NOT_FOUND(404, "Not found", HttpStatus.BAD_REQUEST);
+    NOT_FOUND(404, "Not found", HttpStatus.BAD_REQUEST),
+    USER_NOT_FOUND(404, "User not found", HttpStatus.BAD_REQUEST);
     private final int code;
     private final HttpStatusCode statusCode;
     private final String message;

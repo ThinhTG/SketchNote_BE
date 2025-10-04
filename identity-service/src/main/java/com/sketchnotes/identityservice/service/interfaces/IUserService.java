@@ -6,8 +6,10 @@ import com.sketchnotes.identityservice.ultils.PagedResponse;
 
 
 public interface IUserService {
-    public UserResponse getUserById(Long id);
-    public PagedResponse<UserResponse> getAllUsers(int pageNo, int pageSize);
-    public UserResponse updateUser(Long id,  UserRequest request);
-    public void deleteUser(Long id);
+     UserResponse getUserById(Long id);
+     PagedResponse<UserResponse> getAllUsers(int pageNo, int pageSize);
+     UserResponse updateUser(Long id,  UserRequest request);
+     void deleteUser(Long id);
+    UserResponse getCurrentUser();
+    UserResponse getUserByKeycloakId(String sub);
 }

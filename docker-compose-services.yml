@@ -53,11 +53,40 @@ services:
       - REDIS_PORT=6379
     restart: unless-stopped
   
+  # Project Service
   projectservice:
     image: ghcr.io/alarmistt/projectservice:latest
     container_name: projectservice
     ports:
       - "8087:8087"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
+      - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
+      - REDIS_HOST=139.59.119.65
+      - REDIS_PORT=6379
+    restart: unless-stopped
+
+  # Order Service
+  orderservice:
+    image: ghcr.io/alarmistt/orderservice:latest
+    container_name: orderservice
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
+      - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
+      - REDIS_HOST=139.59.119.65
+      - REDIS_PORT=6379
+    restart: unless-stopped
+  
+  # Interaction Service
+  interactionservice:
+    image: ghcr.io/alarmistt/interactionservice:latest
+    container_name: interactionservice
+    ports:
+      - "8088:8088"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_HOST=http://139.59.119.65:8761/eureka/
