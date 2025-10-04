@@ -27,7 +27,14 @@ spring:
               uri: lb://identity-service
               predicates:
                 - Path=/api/identity/**
-
+            - id: blog-service
+              uri: lb://blog-service
+              predicates:
+                - Path=/api/blogs/**
+            - id: project-service
+              uri: lb://project-service
+              predicates:
+                - Path=/api/projects/**
 
 springdoc:
   swagger-ui:
@@ -38,6 +45,10 @@ springdoc:
         url: /payment-service/v3/api-docs
       - name: identity-service
         url: /identity-service/v3/api-docs
+      - name: blog-service
+        url: /blog-service/v3/api-docs
+      - name: project-service
+        url: /project-service/v3/api-docs
 eureka:
   client:
     service-url:

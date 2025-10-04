@@ -15,6 +15,7 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
   security:
 
     oauth2:
