@@ -1,6 +1,10 @@
 server:
   port: 8087
 
+# Microservice Configuration
+payment-service:
+  url: ${PAYMENT_SERVICE_URL:http://localhost:8081}
+
 spring:
   application:
     name: order-service
@@ -8,9 +12,9 @@ spring:
     discovery:
       enabled: true
   datasource:
-    url: jdbc:postgresql://139.59.119.65:5432/ordersdb
-    username: admin
-    password: admin
+    url: jdbc:postgresql://localhost:5432/ordersdb
+    username: postgres
+    password: Thinh123
 
   jpa:
     hibernate:
@@ -22,4 +26,3 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
-
