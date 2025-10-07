@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -27,36 +28,52 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
-        // Validate templates exist and are active
+        // 1️⃣ Validate templates tồn tại và active
         for (OrderRequestDTO.OrderDetailRequestDTO item : request.getItems()) {
-            ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndIsActiveTrue(item.getResourceTemplateId())
-                    .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found or inactive: " + item.getResourceTemplateId()));
+            resourceTemplateRepository.findByTemplateIdAndIsActiveTrue(item.getResourceTemplateId())
+                    .orElseThrow(() -> new ResourceTemplateNotFoundException(
+                            "Template not found or inactive: " + item.getResourceTemplateId()));
         }
 
+        // 2️⃣ Map DTO -> Entity
         Order order = orderMapper.toEntity(request);
-        
-        // Set order details with template prices
+
+        // 3️⃣ Gắn giá template, discount và đảm bảo không null
         for (int i = 0; i < order.getOrderDetails().size(); i++) {
             OrderDetail detail = order.getOrderDetails().get(i);
             OrderRequestDTO.OrderDetailRequestDTO requestItem = request.getItems().get(i);
-            
-            ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndIsActiveTrue(requestItem.getResourceTemplateId())
-                    .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found: " + requestItem.getResourceTemplateId()));
-            
-            detail.setUnitPrice(template.getPrice());
-            detail.setDiscount(requestItem.getDiscount() != null ? requestItem.getDiscount() : BigDecimal.ZERO);
+
+            ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndIsActiveTrue(
+                            requestItem.getResourceTemplateId())
+                    .orElseThrow(() -> new ResourceTemplateNotFoundException(
+                            "Template not found: " + requestItem.getResourceTemplateId()));
+
+            BigDecimal unitPrice = template.getPrice() != null ? template.getPrice() : BigDecimal.ZERO;
+            BigDecimal discount = requestItem.getDiscount() != null ? requestItem.getDiscount() : BigDecimal.ZERO;
+
+
+            detail.setUnitPrice(unitPrice);
+            detail.setDiscount(discount);
+
             detail.setOrder(order);
+
+            // 👇 Tính subtotalAmount ngay tại đây để đảm bảo không null
+            BigDecimal subtotal = unitPrice.subtract(discount);
+            detail.setSubtotalAmount(subtotal.max(BigDecimal.ZERO)); // tránh giá trị âm
         }
 
-        // Calculate total amount
+        // 4️⃣ Tính tổng toàn bộ chi tiết
         BigDecimal totalAmount = order.getOrderDetails().stream()
                 .map(OrderDetail::getSubtotalAmount)
+                .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         order.setTotalAmount(totalAmount);
 
-        // Generate invoice number
+        // 5️⃣ Sinh số hóa đơn
         order.setInvoiceNumber("INV-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
 
+        // 6️⃣ Lưu và trả về DTO
         Order saved = orderRepository.save(order);
         return enrichOrderResponse(orderMapper.toDto(saved));
     }

@@ -32,7 +32,7 @@ public class WalletController {
     // Lấy ví theo userId
     @GetMapping("/{userId}")
     public Wallet getWallet(@PathVariable Long userId) {
-        return walletService.getWallet(userId);
+        return walletService.getWalletByUserId(userId);
     }
 
 }

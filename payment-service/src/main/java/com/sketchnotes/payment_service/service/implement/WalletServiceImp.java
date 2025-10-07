@@ -46,6 +46,12 @@ public class WalletServiceImp implements WalletService {
     }
 
     @Override
+    public Wallet getWalletByUserId(Long userId) {
+        return walletRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Wallet not found for user"));
+    }
+
+    @Override
     @Transactional
     public Transaction deposit(Long walletId, BigDecimal amount) {
         Wallet wallet = getWallet(walletId);

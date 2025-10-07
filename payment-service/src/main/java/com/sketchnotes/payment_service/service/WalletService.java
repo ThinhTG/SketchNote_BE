@@ -9,6 +9,7 @@ import java.util.List;
 public interface WalletService {
         Wallet createWallet(Long userId);
         Wallet getWallet(Long walletId);
+        Wallet getWalletByUserId(Long userId);
 
         Transaction deposit(Long walletId, BigDecimal amount);
         Transaction withdraw(Long walletId, BigDecimal amount);
