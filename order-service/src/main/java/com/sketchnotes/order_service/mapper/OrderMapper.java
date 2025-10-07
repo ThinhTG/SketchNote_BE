@@ -26,15 +26,15 @@ public interface OrderMapper {
 
     // OrderDetailRequestDTO -> OrderDetail Entity
     @Mapping(target = "orderDetailId", ignore = true)
-    @Mapping(target = "orderId", ignore = true) // Will be set when saving
+    @Mapping(target = "order", ignore = true) // Sẽ set trong service
     @Mapping(target = "resourceTemplateId", source = "resourceTemplateId")
-    @Mapping(target = "unitPrice", ignore = true) // Will be fetched from template
+    @Mapping(target = "unitPrice", ignore = true) // Lấy từ template
     @Mapping(target = "discount", source = "discount", defaultValue = "0")
-    @Mapping(target = "subtotalAmount", ignore = true) // Will be calculated
-    @Mapping(target = "createdAt", ignore = true) // Will be set by @PrePersist
-    @Mapping(target = "updatedAt", ignore = true) // Will be set by @PrePersist
-    @Mapping(target = "order", ignore = true)
+    @Mapping(target = "subtotalAmount", ignore = true) // Tính trong entity
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     OrderDetail toEntity(OrderRequestDTO.OrderDetailRequestDTO dto);
+
 
     // Entity -> ResponseDTO
     @Mapping(target = "items", source = "orderDetails")

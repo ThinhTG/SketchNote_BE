@@ -17,8 +17,8 @@ public class OrderDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderDetailId;
 
-    @Column(name = "order_id", nullable = false)
-    private Long orderId;
+//    @Column(name = "order_id", nullable = false)
+//    private Long orderId;
 
     @Column(name = "resource_template_id", nullable = false)
     private Long resourceTemplateId;
