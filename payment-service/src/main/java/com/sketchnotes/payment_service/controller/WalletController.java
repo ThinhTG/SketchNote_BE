@@ -1,5 +1,7 @@
 package com.sketchnotes.payment_service.controller;
 
+import com.sketchnotes.payment_service.clients.IdentityClient;
+import com.sketchnotes.payment_service.dtos.UserResponse;
 import com.sketchnotes.payment_service.entity.Transaction;
 import com.sketchnotes.payment_service.entity.Wallet;
 import com.sketchnotes.payment_service.entity.enumeration.PaymentStatus;
@@ -22,17 +24,28 @@ import java.util.Map;
 public class WalletController {
 
     private final WalletService walletService;
+    private final IdentityClient  identityClient;
 
-    // Tạo ví mới cho user
     @PostMapping("/create")
-    public Wallet createWallet(@RequestParam Long userId) {
-        return walletService.createWallet(userId);
+    public Wallet createWallet() {
+        var apiResponse = identityClient.getCurrentUser();
+
+        UserResponse user = apiResponse.getResult(); // lấy user thật từ ApiResponse
+
+        if (user == null || user.getId() == null) {
+            throw new RuntimeException("User ID is null!");
+        }
+
+        return walletService.createWallet(user.getId());
     }
 
+
     // Lấy ví theo userId
-    @GetMapping("/{userId}")
-    public Wallet getWallet(@PathVariable Long userId) {
-        return walletService.getWalletByUserId(userId);
+    @GetMapping("/my-wallet")
+    public Wallet getWallet() {
+        var apiResponse = identityClient.getCurrentUser();
+        UserResponse user = apiResponse.getResult(); // lấy user thật từ ApiResponse
+        return walletService.getWalletByUserId(user.getId());
     }
 
 }
