@@ -34,6 +34,8 @@ public class Blog {
     @LastModifiedDate
     private Instant updatedAt;
 
+    private String imageurl;
+
     @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
 }

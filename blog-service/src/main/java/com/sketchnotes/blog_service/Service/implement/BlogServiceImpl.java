@@ -2,7 +2,8 @@ package com.sketchnotes.blog_service.Service.implement;
 
 import com.sketchnotes.blog_service.Repository.BlogRepository;
 import com.sketchnotes.blog_service.Service.BlogService;
-import com.sketchnotes.blog_service.client.UserClient;
+import com.sketchnotes.blog_service.client.IdentityClient;
+import com.sketchnotes.blog_service.client.IdentityClient;
 import com.sketchnotes.blog_service.dtos.*;
 import com.sketchnotes.blog_service.entity.Blog;
 import lombok.RequiredArgsConstructor;
@@ -16,15 +17,16 @@ import java.util.stream.Collectors;
 public class BlogServiceImpl implements BlogService {
 
     private final BlogRepository postRepository;
-    private final UserClient userClient;
+    private final IdentityClient userClient;
 
     @Override
-    public BlogResponse createBlog(BlogRequest request) {
-        String authorDisplay = fetchUserDisplay(request.getAuthorId());
+    public BlogResponse createBlog(BlogRequest request, Long userId) {
+        String authorDisplay = fetchUserDisplay(userId);
         Blog p = Blog.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
-                .authorId(request.getAuthorId())
+                .authorId(userId)
+                .imageurl(request.getImageurl())
                 .authorDisplay(authorDisplay)
                 .build();
         Blog saved = postRepository.save(p);
@@ -43,14 +45,14 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public BlogResponse updateBlog(Long id, BlogRequest request) {
+    public BlogResponse updateBlog(Long id, BlogRequest request,  Long userId) {
         Blog post = postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found"));
         post.setTitle(request.getTitle());
         post.setContent(request.getContent());
         // optionally update author snapshot if authorId changed
-        if (request.getAuthorId() != null && !request.getAuthorId().equals(post.getAuthorId())) {
-            post.setAuthorId(request.getAuthorId());
-            post.setAuthorDisplay(fetchUserDisplay(request.getAuthorId()));
+        if (userId != null && !userId.equals(post.getAuthorId())) {
+            post.setAuthorId(userId);
+            post.setAuthorDisplay(fetchUserDisplay(userId));
         }
         return toDto(postRepository.save(post));
     }
@@ -63,9 +65,9 @@ public class BlogServiceImpl implements BlogService {
     private String fetchUserDisplay(Long userId) {
         if (userId == null) return "Unknown";
         try {
-            var user = userClient.getUserById(userId);
+            var user = userClient.getCurrentUser().getResult();
             if (user == null) return "Unknown";
-            return user.fullName()!= null && !user.fullName().isEmpty() ? user.fullName() : user.username();
+            return user.getLastName()!= null && !user.getLastName().isEmpty() ? user.getLastName() : user.getLastName();
         } catch (Exception e) {
             return "Unknown";
         }
@@ -81,5 +83,13 @@ public class BlogServiceImpl implements BlogService {
                 .createdAt(p.getCreatedAt())
                 .updatedAt(p.getUpdatedAt())
                 .build();
+    }
+
+    @Override
+    public List<BlogResponse> getBlogsByUserId(Long userId) {
+        List<Blog> blogs = postRepository.findByAuthorId(userId);
+        return blogs.stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 }

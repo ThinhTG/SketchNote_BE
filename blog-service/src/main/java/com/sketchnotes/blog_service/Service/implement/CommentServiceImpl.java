@@ -3,7 +3,7 @@ package com.sketchnotes.blog_service.Service.implement;
 import com.sketchnotes.blog_service.Repository.BlogRepository;
 import com.sketchnotes.blog_service.Repository.CommentRepository;
 import com.sketchnotes.blog_service.Service.CommentService;
-import com.sketchnotes.blog_service.client.UserClient;
+import com.sketchnotes.blog_service.client.IdentityClient;
 import com.sketchnotes.blog_service.dtos.CommentRequest;
 import com.sketchnotes.blog_service.dtos.CommentResponse;
 import com.sketchnotes.blog_service.entity.Blog;
@@ -20,7 +20,7 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
     private final BlogRepository postRepository;
-    private final UserClient userClient;
+    private final IdentityClient userClient;
 
     @Override
     public CommentResponse addComment(Long postId, CommentRequest request) {
@@ -56,9 +56,9 @@ public class CommentServiceImpl implements CommentService {
     private String fetchUserDisplay(Long userId) {
         if (userId == null) return "Unknown";
         try {
-            var user = userClient.getUserById(userId);
+            var user = userClient.getCurrentUser().getResult();
             if (user == null) return "Unknown";
-            return user.fullName()!=null && !user.fullName().isEmpty() ? user.fullName() : user.username();
+            return user.getFirstName()!=null && !user.getLastName().isEmpty() ? user.getLastName() : user.getLastName();
         } catch (Exception e) {
             return "Unknown";
         }
