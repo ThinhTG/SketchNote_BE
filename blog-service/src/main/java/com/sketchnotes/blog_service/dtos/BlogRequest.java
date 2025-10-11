@@ -13,5 +13,5 @@ public class BlogRequest {
 
     private String title;
     private String content;
-    private Long authorId; // client cung cấp id người dùng (từ token hoặc frontend)
+    private String imageurl;
 }
