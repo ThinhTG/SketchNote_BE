@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @FeignClient(
         name = "identity-service",
-        url = "http://146.190.90.222:8089/api/users" // hoặc qua gateway nếu có
+        url = "http://146.190.90.222:8089/api/users"
 )
 public interface IdentityClient {
 

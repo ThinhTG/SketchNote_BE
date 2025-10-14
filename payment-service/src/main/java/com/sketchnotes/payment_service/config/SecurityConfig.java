@@ -1,6 +1,5 @@
 package com.sketchnotes.payment_service.config;
 
-import com.sketchnotes.payment_service.security.UserPrincipalJwtConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +27,7 @@ public class SecurityConfig {
             "/api/auth/login",
             "/api/auth/refresh-token",
             "/api/auth/login-google",
+            "/api/payment/callback",
             // swagger endpoints
             "/v3/api-docs/**",
             "/swagger-ui/**",
