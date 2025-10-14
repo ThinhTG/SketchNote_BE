@@ -1,14 +1,14 @@
 server:
-  port: 8089
+  port: 8087
 
 spring:
   application:
-    name: identity-service
+    name: project-service
   cloud:
     discovery:
       enabled: true
   datasource:
-    url: jdbc:postgresql://139.59.119.65:5432/usersdb
+    url: jdbc:postgresql://139.59.119.65:5432/projectdb
     username: admin
     password: admin
   jpa:
@@ -23,19 +23,25 @@ spring:
           issuer-uri: http://139.59.119.65:8090/realms/sketchnote
   cache:
     type: redis
+    data:
+      redis:
+        host: 139.59.119.65
+        port: 6379
 
-  data:
-    redis:
-      host: 139.59.119.65
-      port: 6379
-
+  aws:
+    s3:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+      bucket-name: ${AWS_BUCKET_NAME}
+      region: ap-southeast-1
+      presign-expiration: 10 # phút
   kafka:
     properties:
       enable.idempotence: true
       max.in.flight.requests.per.connection: 5
-    bootstrap-servers: 139.59.119.65:9092   # địa chỉ Kafka KRaft broker
+      bootstrap-servers: 139.59.119.65:9092 # địa chỉ Kafka KRaft broker
     consumer:
-      group-id: identity-service-group
+      group-id: project-service-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -46,17 +52,7 @@ spring:
       retries: 1
     listener:
       ack-mode: record
-
-idp:
-  url: http://139.59.119.65:8090
-  client-id: sketchnote
-  client-secret: QYHYNsUNOS40S0Z28N7IytIf9bLYhtK3
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://139.59.119.65:8761/eureka/
-  instance:
-    prefer-ip-address: true
-    ip-address: 146.190.90.222
-
+  eureka:
+    client:
+      service-url:
+        defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}

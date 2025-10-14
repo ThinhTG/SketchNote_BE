@@ -36,7 +36,7 @@ public class AuthenticationService implements  IAuthService {
     private final IdentityClient identityClient;
     private final IUserRepository userRepository;
     private final ErrorNormalizer errorNormalizer;
-
+    private  final KafkaProducerService kafkaProducerService;
     @Value("${idp.client-id}")
     @NonFinal
     String clientId;
@@ -185,7 +185,9 @@ public class AuthenticationService implements  IAuthService {
                     .isActive(true)
                     .avatarUrl(request.getAvatarUrl())
                     .build();
-            userRepository.save(user);
+                user = userRepository.save(user);
+            kafkaProducerService.sendMessage("user-created", user.getId().toString());
+
         } catch (FeignException exception) {
             throw errorNormalizer.handleKeyCloakException(exception);
         }

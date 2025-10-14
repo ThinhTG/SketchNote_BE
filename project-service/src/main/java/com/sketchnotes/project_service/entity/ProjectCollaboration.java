@@ -6,26 +6,23 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "page")
+@Table(name = "project_collaboration")
 @Getter
-@Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class Page {
-
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ProjectCollaboration {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long pageId;
+    private Long projectCollaborationId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     private Project project;
 
-    @Column(nullable = false)
-    private Integer pageNumber;
-
-    // URL tới file strokes đã upload cloud
-    @Column(nullable = false)
-    private String strokeUrl;
-
+    private Long userId;
+    private boolean isEdited;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;

@@ -57,6 +57,8 @@ services:
   projectservice:
     image: ghcr.io/alarmistt/projectservice:latest
     container_name: projectservice
+    env_file:
+      - .env
     ports:
       - "8087:8087"
     environment:

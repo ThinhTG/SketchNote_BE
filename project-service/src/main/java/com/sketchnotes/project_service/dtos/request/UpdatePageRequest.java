@@ -1,4 +1,4 @@
-package com.sketchnotes.project_service.dtos;
+package com.sketchnotes.project_service.dtos.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PageDTO {
-    private Long pageId;
+public class UpdatePageRequest {
     private Integer pageNumber;
     private String strokeUrl;
 }
