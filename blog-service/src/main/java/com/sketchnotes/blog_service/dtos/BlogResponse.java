@@ -15,6 +15,7 @@ public class BlogResponse {
     private String content;
     private Long authorId;
     private String authorDisplay;
+    private String imageUrl;
     private Instant createdAt;
     private Instant updatedAt;
 }
