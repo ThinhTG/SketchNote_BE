@@ -10,6 +10,8 @@ import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import com.sketchnotes.identityservice.ultils.PagedResponse;
 import com.sketchnotes.identityservice.ultils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +43,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Cacheable(value = "users", key = "#pageNo + '-' + #pageSize")
     public PagedResponse<UserResponse> getAllUsers(int pageNo, int pageSize) {
         Pageable pageable =  PageRequest.of(pageNo, pageSize);
         Page<User> users = userRepository.findAllByIsActiveTrue(pageable);
@@ -63,6 +66,7 @@ public class UserService implements IUserService {
         );
     }
     @Override
+    @CacheEvict(value = "users", allEntries = true)
     public UserResponse updateUser(Long id, UserRequest request) {
         User account = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -83,6 +87,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @CacheEvict(value = "users", allEntries = true)
     public void deleteUser(Long id) {
         User account = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -107,6 +112,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Cacheable(value = "user", key = "#sub")
     public UserResponse getUserByKeycloakId(String sub) {
         User user = userRepository.findByKeycloakId(sub).filter(User::isActive)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
