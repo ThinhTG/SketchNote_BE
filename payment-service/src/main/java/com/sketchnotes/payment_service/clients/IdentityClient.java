@@ -6,11 +6,10 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @FeignClient(
-        name = "identity-service",
-        url = "http://146.190.90.222:8089/api/users"
+        name = "identity-service"
 )
 public interface IdentityClient {
 
-    @GetMapping("/me")
+    @GetMapping("api/users/me")
     ApiResponse<UserResponse> getCurrentUser();
 }
