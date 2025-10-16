@@ -1,15 +1,14 @@
-package com.sketchnotes.identityservice.dto.response;
+package com.sketchnotes.project_service.dtos.response;
+
 
 import lombok.*;
-
-import java.io.Serializable;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Setter
 @Getter
 @Builder
-public class UserResponse  implements Serializable {
+public class UserResponse {
     private Long id;
     private  String keycloakId;
     private String email;

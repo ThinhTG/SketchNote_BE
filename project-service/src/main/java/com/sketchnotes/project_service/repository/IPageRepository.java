@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface PageRepository extends JpaRepository<Page, Long> {
+public interface IPageRepository extends JpaRepository<Page, Long> {
     List<Page> findByProject_ProjectId(Long projectId);
+    List<Page> findByProject_ProjectIdAndDeletedAtIsNullOrderByPageNumberAsc(Long projectId);
 }

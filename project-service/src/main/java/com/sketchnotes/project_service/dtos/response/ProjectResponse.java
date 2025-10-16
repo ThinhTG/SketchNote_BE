@@ -1,4 +1,4 @@
-package com.sketchnotes.project_service.dtos;
+package com.sketchnotes.project_service.dtos.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,10 +11,10 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProjectDTO {
+public class ProjectResponse {
     private Long projectId;
     private String name;
     private String description;
     private Long ownerId;
-    private List<PageDTO> pages;
+    private List<PageResponse> pages;
 }

@@ -26,11 +26,16 @@ public class Project {
 
     private Long ownerId;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "project")
     private List<Page> pages = new ArrayList<>();
+    @OneToMany(mappedBy = "project")
+    private List<ProjectCollaboration> projectCollaborations = new ArrayList<>();
+    @OneToMany(mappedBy = "project")
+    private List<ProjectVersion> projectVersions = new ArrayList<>();
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     @PrePersist
     public void prePersist() {

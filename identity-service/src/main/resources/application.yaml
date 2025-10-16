@@ -25,9 +25,13 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://139.59.119.65:8090/realms/sketchnote
-redis:
-  host: 139.59.119.65
-  port: 6379
+  cache:
+    type: redis
+
+  data:
+    redis:
+      host: 139.59.119.65
+      port: 6379
 
 idp:
   url: http://139.59.119.65:8090

@@ -5,7 +5,7 @@ target/
 !**/src/test/**/target/
 
 firebase-admin.json
-
+.env
 ### STS ###
 .apt_generated
 .classpath
