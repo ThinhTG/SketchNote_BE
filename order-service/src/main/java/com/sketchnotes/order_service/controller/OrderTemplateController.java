@@ -3,6 +3,7 @@ package com.sketchnotes.order_service.controller;
 import com.sketchnotes.order_service.dtos.PagedResponseDTO;
 import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
 import com.sketchnotes.order_service.dtos.TemplateCreateUpdateDTO;
+import com.sketchnotes.order_service.dtos.ApiResponse;
 import com.sketchnotes.order_service.service.TemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,79 +24,85 @@ public class OrderTemplateController {
      * Lấy tất cả template đang active với pagination
      */
     @GetMapping
-    public ResponseEntity<PagedResponseDTO<ResourceTemplateDTO>> getAllActiveTemplates(
+    public ResponseEntity<ApiResponse<PagedResponseDTO<ResourceTemplateDTO>>> getAllActiveTemplates(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
-        return ResponseEntity.ok(templateService.getAllActiveTemplates(page, size, sortBy, sortDir));
+        var result = templateService.getAllActiveTemplates(page, size, sortBy, sortDir);
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates"));
     }
 
     /**
      * Lấy template theo ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ResourceTemplateDTO> getTemplateById(@PathVariable Long id) {
-        return ResponseEntity.ok(templateService.getTemplateById(id));
+    public ResponseEntity<ApiResponse<ResourceTemplateDTO>> getTemplateById(@PathVariable Long id) {
+        var result = templateService.getTemplateById(id);
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched template"));
     }
 
     /**
      * Lấy template theo designer ID với pagination
      */
     @GetMapping("/designer/{designerId}")
-    public ResponseEntity<PagedResponseDTO<ResourceTemplateDTO>> getTemplatesByDesignerPaged(
+    public ResponseEntity<ApiResponse<PagedResponseDTO<ResourceTemplateDTO>>> getTemplatesByDesignerPaged(
             @PathVariable Long designerId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(templateService.getTemplatesByDesigner(designerId, page, size, "createdAt", "desc"));
+        var result = templateService.getTemplatesByDesigner(designerId, page, size, "createdAt", "desc");
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates by designer"));
     }
 
     /**
      * Lấy template theo loại với pagination
      */
     @GetMapping("/type/{type}")
-    public ResponseEntity<PagedResponseDTO<ResourceTemplateDTO>> getTemplatesByTypePaged(
+    public ResponseEntity<ApiResponse<PagedResponseDTO<ResourceTemplateDTO>>> getTemplatesByTypePaged(
             @PathVariable String type,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(templateService.getTemplatesByType(type, page, size, "createdAt", "desc"));
+        var result = templateService.getTemplatesByType(type, page, size, "createdAt", "desc");
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates by type"));
     }
 
     /**
      * Tìm kiếm template với pagination
      */
     @GetMapping("/search")
-    public ResponseEntity<PagedResponseDTO<ResourceTemplateDTO>> searchTemplates(
+    public ResponseEntity<ApiResponse<PagedResponseDTO<ResourceTemplateDTO>>> searchTemplates(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(templateService.searchTemplates(keyword, page, size, "createdAt", "desc"));
+        var result = templateService.searchTemplates(keyword, page, size, "createdAt", "desc");
+        return ResponseEntity.ok(ApiResponse.success(result, "Search results"));
     }
 
     /**
      * Lấy template phổ biến nhất
      */
     @GetMapping("/popular")
-    public ResponseEntity<List<ResourceTemplateDTO>> getPopularTemplates(
+    public ResponseEntity<ApiResponse<List<ResourceTemplateDTO>>> getPopularTemplates(
             @RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(templateService.getPopularTemplates(limit));
+        var result = templateService.getPopularTemplates(limit);
+        return ResponseEntity.ok(ApiResponse.success(result, "Popular templates"));
     }
 
     /**
      * Lấy template mới nhất
      */
     @GetMapping("/latest")
-    public ResponseEntity<List<ResourceTemplateDTO>> getLatestTemplates(
+    public ResponseEntity<ApiResponse<List<ResourceTemplateDTO>>> getLatestTemplates(
             @RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(templateService.getLatestTemplates(limit));
+        var result = templateService.getLatestTemplates(limit);
+        return ResponseEntity.ok(ApiResponse.success(result, "Latest templates"));
     }
 
 
     @PostMapping
-    public ResponseEntity<ResourceTemplateDTO> createTemplate(@RequestBody TemplateCreateUpdateDTO dto) {
+    public ResponseEntity<ApiResponse<ResourceTemplateDTO>> createTemplate(@RequestBody TemplateCreateUpdateDTO dto) {
         ResourceTemplateDTO created = templateService.createTemplate(dto);
-        // return 201 with Location header
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created, "Template created"));
     }
 
 }
