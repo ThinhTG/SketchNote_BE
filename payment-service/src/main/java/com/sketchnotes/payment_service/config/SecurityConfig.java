@@ -27,7 +27,8 @@ public class SecurityConfig {
             "/api/auth/login",
             "/api/auth/refresh-token",
             "/api/auth/login-google",
-            "/api/payment/callback",
+            "/api/payment/payos/webhook",
+
             // swagger endpoints
             "/v3/api-docs/**",
             "/swagger-ui/**",

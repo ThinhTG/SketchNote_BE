@@ -22,7 +22,19 @@ spring:
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
+# Thêm logging để debug
+logging:
+  level:
+    root: INFO
+    com.sketchnotes: DEBUG
+    org.springframework: DEBUG
+    org.hibernate: DEBUG
+
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
+
+  kafka:
+    binder:
+      brokers: http://139.59.119.65:9092

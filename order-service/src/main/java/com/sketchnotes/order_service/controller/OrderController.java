@@ -18,30 +18,28 @@ public class OrderController {
     private final OrderService orderService;
     private final OrderPaymentService orderPaymentService;
 
-    // Order management endpoints
+    /**
+     * Tạo đơn hàng mới
+     */
     @PostMapping
     public ResponseEntity<OrderResponseDTO> createOrder(@RequestBody OrderRequestDTO dto) {
         return ResponseEntity.ok(orderService.createOrder(dto));
     }
 
+    /**
+     * Lấy thông tin đơn hàng theo ID
+     */
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponseDTO> getOrder(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
 
+    /**
+     * Lấy danh sách đơn hàng của user
+     */
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<OrderResponseDTO>> getOrdersByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(orderService.getAllOrdersByUser(userId));
-    }
-
-    @PutMapping("/{id}/status")
-    public ResponseEntity<OrderResponseDTO> updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
-        return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
-    }
-
-    @PutMapping("/{id}/payment-status")
-    public ResponseEntity<OrderResponseDTO> updatePaymentStatus(@PathVariable Long id, @RequestParam String paymentStatus) {
-        return ResponseEntity.ok(orderService.updatePaymentStatus(id, paymentStatus));
     }
 
     /**
@@ -69,33 +67,5 @@ public class OrderController {
     public ResponseEntity<Boolean> cancelPayment(@PathVariable Long id) {
         boolean result = orderPaymentService.cancelOrderPayment(id);
         return ResponseEntity.ok(result);
-    }
-
-    // Template management endpoints
-    @GetMapping("/templates")
-    public ResponseEntity<List<ResourceTemplateDTO>> getAllTemplates() {
-        return ResponseEntity.ok(orderService.getAllTemplates());
-    }
-
-    @GetMapping("/templates/{id}")
-    public ResponseEntity<ResourceTemplateDTO> getTemplateById(@PathVariable Long id) {
-        return ResponseEntity.ok(orderService.getTemplateById(id));
-    }
-
-    @GetMapping("/templates/type/{type}")
-    public ResponseEntity<List<ResourceTemplateDTO>> getTemplatesByType(@PathVariable String type) {
-        return ResponseEntity.ok(orderService.getTemplatesByType(type));
-    }
-
-    @GetMapping("/templates/search")
-    public ResponseEntity<List<ResourceTemplateDTO>> searchTemplates(@RequestParam String keyword) {
-        return ResponseEntity.ok(orderService.searchTemplates(keyword));
-    }
-
-    @GetMapping("/templates/price-range")
-    public ResponseEntity<List<ResourceTemplateDTO>> getTemplatesByPriceRange(
-            @RequestParam BigDecimal minPrice, 
-            @RequestParam BigDecimal maxPrice) {
-        return ResponseEntity.ok(orderService.getTemplatesByPriceRange(minPrice, maxPrice));
     }
 }

@@ -3,18 +3,7 @@
 ## Pagination Features
 
 ### PagedResponseDTO Structure
-```json
-{
-  "content": [...],
-  "page": 0,
-  "size": 10,
-  "totalElements": 100,
-  "totalPages": 10,
-  "first": true,
-  "last": false,
-  "hasNext": true,
-  "hasPrevious": false
-}
+
 ```
 
 ### Pagination Endpoints

@@ -1,5 +1,6 @@
 package com.sketchnotes.order_service.service.implement;
 
+import com.sketchnotes.order_service.config.KafkaConfig;
 import com.sketchnotes.order_service.dtos.*;
 import com.sketchnotes.order_service.entity.*;
 import com.sketchnotes.order_service.exception.OrderNotFoundException;
@@ -11,6 +12,12 @@ import com.sketchnotes.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cloud.stream.function.StreamBridge;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sketchnotes.order_service.events.*;
+import com.sketchnotes.order_service.repository.OrderEventLogRepository;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -25,6 +33,10 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final ResourceTemplateRepository resourceTemplateRepository;
     private final OrderMapper orderMapper;
+    private final StreamBridge streamBridge;
+    private final ObjectMapper objectMapper;
+    private final OrderEventLogRepository orderEventLogRepository;
+
 
     @Override
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
@@ -75,6 +87,34 @@ public class OrderServiceImpl implements OrderService {
 
         // 6️⃣ Lưu và trả về DTO
         Order saved = orderRepository.save(order);
+        // 7️⃣ Publish OrderCreatedEvent -> PaymentService
+        OrderCreatedEvent event = OrderCreatedEvent.builder()
+                .orderId(saved.getOrderId())
+                .userId(saved.getUserId())
+                .totalAmount(saved.getTotalAmount())
+                .items(saved.getOrderDetails().stream()
+                        .map(d -> new OrderCreatedEvent.OrderItemEvent(
+                                d.getResourceTemplateId(),
+                                d.getUnitPrice(),
+                                d.getDiscount()))
+                        .toList())
+                .build();
+
+// Log event
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            orderEventLogRepository.save(OrderEventLog.builder()
+                    .orderId(saved.getOrderId())
+                    .eventType("ORDER_CREATED")
+                    .payload(payload)
+                    .build());
+        } catch (Exception e) {
+            log.error("❌ Failed to serialize OrderCreatedEvent for order {}: {}", saved.getOrderId(), e.getMessage());
+        }
+
+
+// Gửi event qua Kafka (binding name = orderCreated-out-0)
+        KafkaConfig.sendEvent(streamBridge, "orderCreated-out-0", event);
         return enrichOrderResponse(orderMapper.toDto(saved));
     }
 
