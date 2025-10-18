@@ -40,8 +40,8 @@ public class PayOSServiceImpl implements PaymentGatewayService {
                     .orderCode(orderCode)
                     .amount(amount.intValue()) // PayOS dùng int (VND)
                     .description(description)
-                    .returnUrl("sketchnote://payment/success")
-                    .cancelUrl("sketchnote://payment/cancel")
+                    .returnUrl("https://mystic-blind-box.web.app/wallet-success")
+                    .cancelUrl("https://mystic-blind-box.web.app/wallet-fail")
                     .items(Collections.singletonList(
                             ItemData.builder()
                                     .name("Deposit to wallet " + walletId)
