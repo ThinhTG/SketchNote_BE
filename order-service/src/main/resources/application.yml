@@ -22,6 +22,13 @@ spring:
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://139.59.119.65:8090/realms/sketchnote
+
 # Thêm logging để debug
 logging:
   level:
@@ -36,5 +43,19 @@ eureka:
       defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
 
   kafka:
-    binder:
-      brokers: http://139.59.119.65:9092
+    properties:
+      enable.idempotence: true
+      max.in.flight.requests.per.connection: 5
+    bootstrap-servers: 139.59.119.65:9092   # địa chỉ Kafka KRaft broker
+    consumer:
+      group-id: identity-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 1
+    listener:
+      ack-mode: record

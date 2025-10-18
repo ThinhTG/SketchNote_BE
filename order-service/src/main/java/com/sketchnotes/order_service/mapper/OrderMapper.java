@@ -48,9 +48,56 @@ public interface OrderMapper {
     List<OrderResponseDTO> toDtoList(List<Order> orders);
 
     // ResourceTemplate mappings
+    @org.mapstruct.Mapping(target = "resourceTemplateId", source = "templateId")
+    @org.mapstruct.Mapping(target = "type", expression = "java(template.getType() != null ? template.getType().name() : null)")
+    @org.mapstruct.Mapping(target = "images", source = "images")
     ResourceTemplateDTO toDto(ResourceTemplate template);
     ResourceTemplate toEntity(ResourceTemplateDTO dto);
     List<ResourceTemplateDTO> toTemplateDtoList(List<ResourceTemplate> templates);
+
+    // ResourceTemplateItem <-> ResourceItemDTO
+    default com.sketchnotes.order_service.dtos.ResourceItemDTO toItemDto(com.sketchnotes.order_service.entity.ResourceTemplateItem item) {
+        if (item == null) return null;
+        return com.sketchnotes.order_service.dtos.ResourceItemDTO.builder()
+                .resourceItemId(item.getResourceItemId())
+                .itemIndex(item.getItemIndex())
+                .itemUrl(item.getItemUrl())
+                .build();
+    }
+
+    default java.util.List<com.sketchnotes.order_service.dtos.ResourceItemDTO> mapItems(java.util.List<com.sketchnotes.order_service.entity.ResourceTemplateItem> items) {
+        if (items == null) return null;
+        return items.stream().map(this::toItemDto).toList();
+    }
+
+    default com.sketchnotes.order_service.entity.ResourceTemplateItem toItemEntity(com.sketchnotes.order_service.dtos.ResourceItemDTO dto) {
+        if (dto == null) return null;
+        return com.sketchnotes.order_service.entity.ResourceTemplateItem.builder()
+                .resourceItemId(dto.getResourceItemId())
+                .itemIndex(dto.getItemIndex())
+                .itemUrl(dto.getItemUrl())
+                .build();
+    }
+
+    default java.util.List<com.sketchnotes.order_service.entity.ResourceTemplateItem> mapItemEntities(java.util.List<com.sketchnotes.order_service.dtos.ResourceItemDTO> dtos) {
+        if (dtos == null) return null;
+        return dtos.stream().map(this::toItemEntity).toList();
+    }
+
+    // ResourcesTemplateImage -> ResourceImageDTO mapping
+    default com.sketchnotes.order_service.dtos.ResourceImageDTO toImageDto(com.sketchnotes.order_service.entity.ResourcesTemplateImage image) {
+        if (image == null) return null;
+        return com.sketchnotes.order_service.dtos.ResourceImageDTO.builder()
+                .id(image.getId())
+                .imageUrl(image.getImageUrl())
+                .isThumbnail(image.getIsThumbnail())
+                .build();
+    }
+
+    default java.util.List<com.sketchnotes.order_service.dtos.ResourceImageDTO> mapImages(java.util.List<com.sketchnotes.order_service.entity.ResourcesTemplateImage> images) {
+        if (images == null) return null;
+        return images.stream().map(this::toImageDto).toList();
+    }
     
     // TemplateCreateUpdateDTO mappings
     ResourceTemplate toEntity(TemplateCreateUpdateDTO dto);

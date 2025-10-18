@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class TemplateCreateUpdateDTO {
+    private Long templateId;
     private Long designerId;
     private String name;
     private String description;
@@ -17,4 +18,6 @@ public class TemplateCreateUpdateDTO {
     private BigDecimal price;
     private LocalDate expiredTime;
     private LocalDate releaseDate;
+    private java.util.List<ResourceImageDTO> images;
+    private java.util.List<ResourceItemDTO> items;
 }

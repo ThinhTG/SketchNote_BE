@@ -89,4 +89,13 @@ public class OrderTemplateController {
             @RequestParam(defaultValue = "10") int limit) {
         return ResponseEntity.ok(templateService.getLatestTemplates(limit));
     }
+
+
+    @PostMapping
+    public ResponseEntity<ResourceTemplateDTO> createTemplate(@RequestBody TemplateCreateUpdateDTO dto) {
+        ResourceTemplateDTO created = templateService.createTemplate(dto);
+        // return 201 with Location header
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
 }
