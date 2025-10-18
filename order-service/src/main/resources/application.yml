@@ -34,3 +34,7 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
+
+  kafka:
+    binder:
+      brokers: http://139.59.119.65:9092

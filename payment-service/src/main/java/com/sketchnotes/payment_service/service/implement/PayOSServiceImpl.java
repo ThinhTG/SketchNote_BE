@@ -9,6 +9,7 @@ import com.sketchnotes.payment_service.repository.WalletRepository;
 import com.sketchnotes.payment_service.service.PaymentGatewayService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.payos.PayOS;
 import vn.payos.type.*;
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 
+@Slf4j
 @Service("payosService")
 @RequiredArgsConstructor
 public class PayOSServiceImpl implements PaymentGatewayService {
@@ -72,39 +74,53 @@ public class PayOSServiceImpl implements PaymentGatewayService {
     @Transactional
     public void handleCallback(Webhook webhook) {
         try {
-            // 1. Verify callback
+            // 1️⃣ Verify callback với SDK PayOS
             WebhookData data = payOS.verifyPaymentWebhookData(webhook);
 
-            // 2. Lấy thông tin từ callback
             Long orderCode = data.getOrderCode();
             int amount = data.getAmount();
-            String code = data.getCode(); // theo PayOS docs: "00" = success, "01" = fail
+            String code = data.getCode(); // "00" = success, "01" = fail
 
-            // 3. Tìm transaction tương ứng
-            Transaction tx = transactionRepository.findByOrderCode(orderCode)
-                    .orElseThrow(() -> new RuntimeException("Transaction not found for orderCode " + orderCode));
+            log.info("📩 Received PayOS webhook: orderCode={}, amount={}, code={}", orderCode, amount, code);
 
-            // 4. Idempotent: nếu đã xử lý thì bỏ qua
+            // 2️⃣ Tìm transaction tương ứng
+            Transaction tx = transactionRepository.findByOrderCode(orderCode).orElse(null);
+            if (tx == null) {
+                log.warn("⚠️ Transaction not found for orderCode {}", orderCode);
+                return; // KHÔNG throw để PayOS nhận 200 OK
+            }
+
+            // 3️⃣ Idempotent: nếu đã xử lý thì bỏ qua
             if (tx.getStatus() == PaymentStatus.SUCCESS || tx.getStatus() == PaymentStatus.FAILED) {
+                log.info("ℹ️ Transaction {} already processed with status {}", orderCode, tx.getStatus());
                 return;
             }
 
-            if ("00".equals(code)) { // thành công
+            // 4️⃣ Cập nhật trạng thái thanh toán
+            if ("00".equals(code)) {
                 tx.setStatus(PaymentStatus.SUCCESS);
-
-                // Cộng tiền vào ví
                 Wallet wallet = tx.getWallet();
-                wallet.setBalance(wallet.getBalance().add(tx.getAmount()));
-                walletRepository.save(wallet);
-
-            } else { // thất bại
+                if (wallet != null) {
+                    wallet.setBalance(wallet.getBalance().add(tx.getAmount()));
+                    walletRepository.save(wallet);
+                }
+                log.info("✅ Payment SUCCESS for orderCode={}, amount={}", orderCode, tx.getAmount());
+            } else {
                 tx.setStatus(PaymentStatus.FAILED);
+                log.info("❌ Payment FAILED for orderCode={}", orderCode);
             }
 
+//            tx.(LocalDateTime.now());
             transactionRepository.save(tx);
 
+            // 5️⃣ (Tuỳ chọn) gửi sự kiện sang Order-Service nếu bạn dùng SAGA
+            // orderEventProducer.publishPaymentEvent(tx);
+
         } catch (Exception e) {
-            throw new RuntimeException("Error verifying PayOS callback: " + e.getMessage(), e);
+            // ❗ Không throw để tránh trả lỗi 500 cho PayOS
+            log.error("🚨 Error verifying PayOS callback: {}", e.getMessage(), e);
         }
     }
+
+
 }
