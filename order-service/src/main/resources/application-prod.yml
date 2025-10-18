@@ -25,3 +25,9 @@ eureka:
   instance:
     prefer-ip-address: true
     ip-address: 146.190.90.222
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://139.59.119.65:8090/realms/sketchnote

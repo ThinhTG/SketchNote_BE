@@ -40,8 +40,8 @@ public class PayOSServiceImpl implements PaymentGatewayService {
                     .orderCode(orderCode)
                     .amount(amount.intValue()) // PayOS dùng int (VND)
                     .description(description)
-                    .returnUrl("http://localhost:3000/payment/success") // FE sẽ handle
-                    .cancelUrl("http://localhost:3000/payment/cancel")
+                    .returnUrl("sketchnote://payment/success")
+                    .cancelUrl("sketchnote://payment/cancel")
                     .items(Collections.singletonList(
                             ItemData.builder()
                                     .name("Deposit to wallet " + walletId)
@@ -110,7 +110,7 @@ public class PayOSServiceImpl implements PaymentGatewayService {
                 log.info("❌ Payment FAILED for orderCode={}", orderCode);
             }
 
-//            tx.(LocalDateTime.now());
+            //    tx.(LocalDateTime.now());
             transactionRepository.save(tx);
 
             // 5️⃣ (Tuỳ chọn) gửi sự kiện sang Order-Service nếu bạn dùng SAGA

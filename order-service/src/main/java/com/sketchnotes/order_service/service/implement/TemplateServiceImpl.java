@@ -4,6 +4,8 @@ import com.sketchnotes.order_service.dtos.PagedResponseDTO;
 import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
 import com.sketchnotes.order_service.dtos.TemplateCreateUpdateDTO;
 import com.sketchnotes.order_service.entity.ResourceTemplate;
+import com.sketchnotes.order_service.entity.ResourcesTemplateImage;
+import com.sketchnotes.order_service.entity.ResourceTemplateItem;
 import com.sketchnotes.order_service.exception.ResourceTemplateNotFoundException;
 import com.sketchnotes.order_service.mapper.OrderMapper;
 import com.sketchnotes.order_service.repository.ResourceTemplateRepository;
@@ -125,6 +127,34 @@ public class TemplateServiceImpl implements TemplateService {
     public ResourceTemplateDTO createTemplate(TemplateCreateUpdateDTO templateDTO) {
         ResourceTemplate template = orderMapper.toEntity(templateDTO);
         template.setIsActive(true);
+
+        // Attach images from DTO (if any) - ensure bidirectional relation
+        if (templateDTO.getImages() != null && !templateDTO.getImages().isEmpty()) {
+            java.util.List<ResourcesTemplateImage> imageEntities = templateDTO.getImages().stream()
+                    .map(imgDto -> {
+                        ResourcesTemplateImage img = new ResourcesTemplateImage();
+                        img.setImageUrl(imgDto.getImageUrl());
+                        img.setIsThumbnail(imgDto.getIsThumbnail());
+                        img.setResourceTemplate(template);
+                        return img;
+                    }).toList();
+            template.getImages().clear();
+            template.getImages().addAll(imageEntities);
+        }
+
+        // Attach items from DTO (if any)
+        if (templateDTO.getItems() != null && !templateDTO.getItems().isEmpty()) {
+            java.util.List<ResourceTemplateItem> itemEntities = templateDTO.getItems().stream()
+                    .map(itemDto -> {
+                        ResourceTemplateItem it = new ResourceTemplateItem();
+                        it.setItemIndex(itemDto.getItemIndex());
+                        it.setItemUrl(itemDto.getItemUrl());
+                        it.setResourceTemplate(template);
+                        return it;
+                    }).toList();
+            template.getItems().clear();
+            template.getItems().addAll(itemEntities);
+        }
         
         // Set type if provided
         if (templateDTO.getType() != null) {

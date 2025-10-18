@@ -6,6 +6,8 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -48,6 +50,12 @@ public class ResourceTemplate {
 
     @Column(name = "is_active")
     private Boolean isActive = true;
+
+    @OneToMany(mappedBy = "resourceTemplate", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ResourcesTemplateImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "resourceTemplate", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ResourceTemplateItem> items = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
