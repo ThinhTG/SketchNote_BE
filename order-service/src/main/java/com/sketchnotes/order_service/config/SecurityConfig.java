@@ -16,6 +16,7 @@ public class SecurityConfig {
             "/api/auth/login",
             "/api/auth/refresh-token",
             "/api/auth/login-google",
+            "/api/orders/template",
             // swagger endpoints
             "/v3/api-docs/**",
             "/swagger-ui/**",
