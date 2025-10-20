@@ -15,7 +15,7 @@ services:
       - sketchnote-net
     restart: unless-stopped
   
-    pgbouncer:
+  pgbouncer:
     image: edoburu/pgbouncer:latest
     container_name: pgbouncer
     ports:
