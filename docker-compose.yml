@@ -59,24 +59,6 @@ services:
       - sketchnote-net
     restart: unless-stopped
 
- 
-    image: ghcr.io/alarmistt/learningservice:latest
-    container_name: learningservice
-    ports:
-      - "8085:8085"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/learningdb
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=admin
-      - EUREKA_HOST=http://eureka:8761/eureka/
-    depends_on:
-      - postgres
-      - eureka
-    networks:
-      - sketchnote-net
-    restart: unless-stopped
-
   kafka:
     image: bitnami/kafka:3.7
     container_name: kafka
