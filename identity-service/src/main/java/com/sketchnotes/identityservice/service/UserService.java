@@ -68,7 +68,7 @@ public class UserService implements IUserService {
     @Override
     @CacheEvict(value = "users", allEntries = true)
     public UserResponse updateUser(Long id, UserRequest request) {
-        User account = userRepository.findById(id)
+        User account = userRepository.findById(id).filter(User::isActive)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         account.setFirstName(request.getFirstName());
@@ -89,7 +89,7 @@ public class UserService implements IUserService {
     @Override
     @CacheEvict(value = "users", allEntries = true)
     public void deleteUser(Long id) {
-        User account = userRepository.findById(id)
+        User account = userRepository.findById(id).filter(User::isActive)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         account.setActive(false);
         account.setUpdateAt(LocalDateTime.now());

@@ -12,6 +12,8 @@ import com.sketchnotes.project_service.exception.ErrorCode;
 import com.sketchnotes.project_service.repository.IProjectRepository;
 import com.sketchnotes.project_service.service.IProjectService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,6 +26,7 @@ public class ProjectService implements IProjectService {
     private final IUserClient userClient;
 
     @Override
+    @CacheEvict(value = "projects", allEntries = true)
     public ProjectResponse createProject(ProjectRequest dto) {
         ApiResponse<UserResponse>  user = userClient.getCurrentUser();
 
@@ -37,6 +40,7 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
+    @Cacheable(value = "projects", key = "#id")
     public ProjectResponse getProject(Long id) {
         Project project = projectRepository.findById(id).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
@@ -44,6 +48,7 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
+    @Cacheable(value = "projects", key = "#ownerId")
     public List<ProjectResponse> getProjectsByOwner(Long ownerId) {
         List<Project> projects = projectRepository.findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(ownerId);
         if (projects.isEmpty()) {
@@ -66,6 +71,7 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
+    @CacheEvict(value = "projects", allEntries = true)
     public ProjectResponse updateProject(Long id, ProjectRequest dto) {
         Project project = projectRepository.findById(id).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
@@ -76,6 +82,7 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
+    @CacheEvict(value = "projects", allEntries = true)
     public void deleteProject(Long id) {
         Project project = projectRepository.findById(id).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));

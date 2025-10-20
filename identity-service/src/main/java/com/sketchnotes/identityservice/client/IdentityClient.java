@@ -1,15 +1,15 @@
 package com.sketchnotes.identityservice.client;
 
 import com.sketchnotes.identityservice.dto.identity.*;
+import com.sketchnotes.identityservice.dto.request.RoleKeycloakRequest;
+import com.sketchnotes.identityservice.dto.response.RoleResponseKeycloak;
 import feign.Headers;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.*;
 
-import feign.QueryMap;
+import java.util.List;
 
 @FeignClient(name = "identity-client", url = "${idp.url}")
 public interface IdentityClient {
@@ -36,4 +36,27 @@ public interface IdentityClient {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     @Headers("Content-Type: application/x-www-form-urlencoded")
     LoginExchangeResponse loginWithGoogle(GoogleLoginParam param);
+
+    /**
+     * Lấy danh sách role của user (realm-level)
+     */
+    @GetMapping("/admin/realms/${idp.client-id}/users/{userId}/role-mappings/realm")
+   List<RoleResponseKeycloak> getUserRoles(
+            @RequestHeader("authorization") String token,
+            @PathVariable("userId") String userId
+    );
+    @GetMapping("/admin/realms/${idp.client-id}/roles")
+   List<RoleResponseKeycloak> getRealmRoles(
+            @RequestHeader("authorization") String token
+    );
+    /**
+     * Gán role mới cho user (realm-level)
+     */
+    @PostMapping(value = "/admin/realms/${idp.client-id}/users/{userId}/role-mappings/realm",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<?> assignRolesToUser(
+            @RequestHeader("authorization") String token,
+            @PathVariable("userId") String userId,
+            @RequestBody List<RoleKeycloakRequest> roles
+    );
 }

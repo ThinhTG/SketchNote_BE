@@ -8,6 +8,12 @@ spring:
     discovery:
       enabled: true
   datasource:
+    hikari:
+      maximum-pool-size: 5         
+      minimum-idle: 2
+      idle-timeout: 30000
+      connection-timeout: 20000
+      max-lifetime: 600000
     url: jdbc:postgresql://139.59.119.65:5432/usersdb
     username: admin
     password: admin
