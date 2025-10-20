@@ -8,7 +8,13 @@ spring:
     discovery:
       enabled: true
   datasource:
-    url: jdbc:postgresql://139.59.119.65:5432/blogdb
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      idle-timeout: 30000
+      connection-timeout: 20000
+      max-lifetime: 600000
+    url: jdbc:postgresql://139.59.119.65:6432/blogdb
     username: admin
     password: admin
 
