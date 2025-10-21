@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -144,7 +145,7 @@ public class TemplateServiceImpl implements TemplateService {
 
         // Attach items from DTO (if any)
         if (templateDTO.getItems() != null && !templateDTO.getItems().isEmpty()) {
-            java.util.List<ResourceTemplateItem> itemEntities = templateDTO.getItems().stream()
+            List<ResourceTemplateItem> itemEntities = templateDTO.getItems().stream()
                     .map(itemDto -> {
                         ResourceTemplateItem it = new ResourceTemplateItem();
                         it.setItemIndex(itemDto.getItemIndex());
@@ -152,10 +153,10 @@ public class TemplateServiceImpl implements TemplateService {
                         it.setResourceTemplate(template);
                         return it;
                     }).toList();
-            template.getItems().clear();
-            template.getItems().addAll(itemEntities);
+            template.setItems(itemEntities);
         }
-        
+
+
         // Set type if provided
         if (templateDTO.getType() != null) {
             try {

@@ -24,4 +24,6 @@ public class ResourceTemplateDTO {
     private Boolean isActive;
     // Images associated with this template
     private java.util.List<ResourceImageDTO> images;
+    private java.util.List<ResourceItemDTO> items;
+
 }

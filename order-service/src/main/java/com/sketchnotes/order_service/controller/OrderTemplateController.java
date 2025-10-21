@@ -1,9 +1,7 @@
 package com.sketchnotes.order_service.controller;
 
-import com.sketchnotes.order_service.dtos.PagedResponseDTO;
-import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
-import com.sketchnotes.order_service.dtos.TemplateCreateUpdateDTO;
-import com.sketchnotes.order_service.dtos.ApiResponse;
+import com.sketchnotes.order_service.client.IdentityClient;
+import com.sketchnotes.order_service.dtos.*;
 import com.sketchnotes.order_service.service.TemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +17,7 @@ import java.util.List;
 public class OrderTemplateController {
 
     private final TemplateService templateService;
+    private final IdentityClient  identityClient;
 
     /**
      * Lấy tất cả template đang active với pagination
@@ -101,8 +100,14 @@ public class OrderTemplateController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<ResourceTemplateDTO>> createTemplate(@RequestBody TemplateCreateUpdateDTO dto) {
+        ApiResponse<UserResponse> apiResponse = identityClient.getCurrentUser();
+        UserResponse user = apiResponse.getResult();
+        dto.setDesignerId(user.getId());
         ResourceTemplateDTO created = templateService.createTemplate(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created, "Template created"));
     }
+
+
+
 
 }
