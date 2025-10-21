@@ -51,6 +51,7 @@ public interface OrderMapper {
     @org.mapstruct.Mapping(target = "resourceTemplateId", source = "templateId")
     @org.mapstruct.Mapping(target = "type", expression = "java(template.getType() != null ? template.getType().name() : null)")
     @org.mapstruct.Mapping(target = "images", source = "images")
+    @Mapping(target = "items", source = "items")
     ResourceTemplateDTO toDto(ResourceTemplate template);
     ResourceTemplate toEntity(ResourceTemplateDTO dto);
     List<ResourceTemplateDTO> toTemplateDtoList(List<ResourceTemplate> templates);
