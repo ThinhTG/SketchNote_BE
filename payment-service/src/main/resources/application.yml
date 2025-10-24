@@ -7,6 +7,20 @@ spring:
   cloud:
     discovery:
       enabled: true
+    stream:
+      kafka:
+        binder:
+          brokers: ${KAFKA_BOOTSTRAP_SERVERS:139.59.119.65:9092}
+      bindings:
+        # consume OrderCreatedEvent
+        orderCreated-in-0:
+          destination: order-created
+          group: payment-service-group
+        # publish payment results
+        paymentSucceeded-out-0:
+          destination: payment-succeeded
+        paymentFailed-out-0:
+          destination: payment-failed
   datasource:
     hikari:
       maximum-pool-size: 5

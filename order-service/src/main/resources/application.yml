@@ -11,6 +11,24 @@ spring:
   cloud:
     discovery:
       enabled: true
+    stream:
+      bindings:
+        orderCreated-out-0:
+          contentType: application/json
+        paymentSucceededConsumer-in-0:
+          contentType: application/json
+          destination: payment-succeeded
+        paymentFailedConsumer-in-0:
+          contentType: application/json
+          destination: payment-failed
+      kafka:
+        binder:
+          brokers: ${KAFKA_BOOTSTRAP_SERVERS:139.59.119.65:9092}
+        bindings:
+          orderCreated-out-0:
+            producer:
+              configuration:
+                value.serializer: org.apache.kafka.common.serialization.ByteArraySerializer
   datasource:
     hikari:
       maximum-pool-size: 5
@@ -21,6 +39,25 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://139.59.119.65:6432/ordersdb}
     username: ${SPRING_DATASOURCE_USERNAME:admin}
     password: ${SPRING_DATASOURCE_PASSWORD:admin}
+
+  kafka:
+    properties:
+      enable.idempotence: true
+      max.in.flight.requests.per.connection: 5
+    bootstrap-servers: 139.59.119.65:9092   # địa chỉ Kafka KRaft broker
+    producer:
+      # If your payloads are already byte[] (as seen in logs), use ByteArraySerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+      acks: all
+      retries: 1
+    consumer:
+      group-id: identity-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: record
 
   jpa:
     hibernate:
@@ -48,20 +85,3 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
 
-  kafka:
-    properties:
-      enable.idempotence: true
-      max.in.flight.requests.per.connection: 5
-    bootstrap-servers: 139.59.119.65:9092   # địa chỉ Kafka KRaft broker
-    consumer:
-      group-id: identity-service-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-      acks: all
-      retries: 1
-    listener:
-      ack-mode: record
