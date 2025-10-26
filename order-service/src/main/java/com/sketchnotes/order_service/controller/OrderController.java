@@ -55,4 +55,16 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(result, "User orders"));
     }
 
+    /**
+     * Cập nhật trạng thái đơn hàng
+     */
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+        var result = orderService.updateOrderStatus(id, status);
+        return ResponseEntity.ok(ApiResponse.success(result, "Order status updated"));
+    }
+    
+
 }
