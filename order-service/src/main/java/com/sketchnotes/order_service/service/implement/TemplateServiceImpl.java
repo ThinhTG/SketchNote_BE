@@ -62,12 +62,20 @@ public class TemplateServiceImpl implements TemplateService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponseDTO<ResourceTemplateDTO> getTemplatesByDesigner(Long designerId, int page, int size, String sortBy, String sortDir) {
-        Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+    public PagedResponseDTO<ResourceTemplateDTO> getTemplatesByDesigner(
+            Long designerId, int page, int size, String sortBy, String sortDir) {
+
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByDesignerIdAndIsActiveTrue(designerId, pageable);
-        return convertToPagedResponse(templatePage);
+        Page<ResourceTemplate> templatePage =
+                resourceTemplateRepository.findByDesignerIdAndIsActiveTrue(designerId, pageable);
+
+        PagedResponseDTO<ResourceTemplateDTO> response = convertToPagedResponse(templatePage);
+        return response;
     }
+
 
     @Override
     @Transactional(readOnly = true)

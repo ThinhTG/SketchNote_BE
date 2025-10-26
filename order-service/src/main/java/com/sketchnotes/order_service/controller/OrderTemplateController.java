@@ -29,6 +29,20 @@ public class OrderTemplateController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
         var result = templateService.getAllActiveTemplates(page, size, sortBy, sortDir);
+
+        //  Gán thông tin designer vào từng ResourceTemplateDTO
+        if (result != null && result.getContent() != null && !result.getContent().isEmpty()) {
+            result.getContent().forEach(template -> {
+                var apiResponse = identityClient.getUser(template.getDesignerId());
+                UserResponse user = apiResponse.getResult();
+                DesignerInfoDTO designerInfo = new DesignerInfoDTO();
+                designerInfo.setEmail(user.getEmail());
+                designerInfo.setFirstName(user.getFirstName());
+                designerInfo.setLastName(user.getLastName());
+                designerInfo.setAvatarUrl(user.getAvatarUrl());
+                template.setDesignerInfo(designerInfo);
+            });
+        }
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates"));
     }
 
@@ -43,6 +57,7 @@ public class OrderTemplateController {
 
     /**
      * Lấy template theo designer ID với pagination
+     * chức năng này cho Customer muốn xem các design của 1 designer nào đó
      */
     @GetMapping("/designer/{designerId}")
     public ResponseEntity<ApiResponse<PagedResponseDTO<ResourceTemplateDTO>>> getTemplatesByDesignerPaged(
@@ -52,6 +67,38 @@ public class OrderTemplateController {
         var result = templateService.getTemplatesByDesigner(designerId, page, size, "createdAt", "desc");
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates by designer"));
     }
+
+    /**
+     * Lấy template theo designer ID với pagination
+     * Chức năng này để Designer xem các design cuủa bản thân
+     */
+    @GetMapping("/my-template")
+    public ResponseEntity<ApiResponse<PagedResponseDTO<ResourceTemplateDTO>>> getMyTemplatesPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        // Lấy thông tin user hiện tại từ Identity Service
+        var apiResponse = identityClient.getCurrentUser();
+        UserResponse user = apiResponse.getResult();
+
+        // Gọi service để lấy danh sách template theo designerId
+        var result = templateService.getTemplatesByDesigner(user.getId(), page, size, "createdAt", "desc");
+
+        //  Gán thông tin designer vào từng ResourceTemplateDTO
+        if (result != null && result.getContent() != null && !result.getContent().isEmpty()) {
+            result.getContent().forEach(template -> {
+                DesignerInfoDTO designerInfo = new DesignerInfoDTO();
+                designerInfo.setEmail(user.getEmail());
+                designerInfo.setFirstName(user.getFirstName());
+                designerInfo.setLastName(user.getLastName());
+                designerInfo.setAvatarUrl(user.getAvatarUrl());
+                template.setDesignerInfo(designerInfo);
+            });
+        }
+        // Trả về kết quả
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched My templates"));
+    }
+
 
     /**
      * Lấy template theo loại với pagination
