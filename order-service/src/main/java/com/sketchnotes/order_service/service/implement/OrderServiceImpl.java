@@ -1,5 +1,6 @@
 package com.sketchnotes.order_service.service.implement;
 
+import com.sketchnotes.order_service.client.IdentityClient;
 import com.sketchnotes.order_service.config.KafkaConfig;
 import com.sketchnotes.order_service.dtos.*;
 import com.sketchnotes.order_service.entity.*;
@@ -36,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
     private final StreamBridge streamBridge;
     private final ObjectMapper objectMapper;
     private final OrderEventLogRepository orderEventLogRepository;
+
 
 
     @Override

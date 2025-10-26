@@ -1,10 +1,12 @@
 package com.sketchnotes.order_service.controller;
 
+import com.sketchnotes.order_service.client.IdentityClient;
 import com.sketchnotes.order_service.dtos.*;
 import com.sketchnotes.order_service.service.OrderPaymentService;
 import com.sketchnotes.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -17,12 +19,17 @@ public class OrderController {
 
     private final OrderService orderService;
     private final OrderPaymentService orderPaymentService;
+    private final IdentityClient identityClient;
+
 
     /**
      * Tạo đơn hàng mới
      */
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponseDTO>> createOrder(@RequestBody OrderRequestDTO dto) {
+        var apiResponse = identityClient.getCurrentUser();
+        UserResponse user = apiResponse.getResult();
+        dto.setUserId(user.getId());
         var result = orderService.createOrder(dto);
         return ResponseEntity.ok(ApiResponse.success(result, "Order created"));
     }
@@ -31,6 +38,7 @@ public class OrderController {
      * Lấy thông tin đơn hàng theo ID
      */
     @GetMapping("/{id}")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<OrderResponseDTO>> getOrder(@PathVariable Long id) {
         var result = orderService.getOrderById(id);
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched order"));
@@ -39,36 +47,12 @@ public class OrderController {
     /**
      * Lấy danh sách đơn hàng của user
      */
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<ApiResponse<List<OrderResponseDTO>>> getOrdersByUser(@PathVariable Long userId) {
-        var result = orderService.getAllOrdersByUser(userId);
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<OrderResponseDTO>>> getOrdersByUser() {
+        var apiResponse = identityClient.getCurrentUser();
+        UserResponse user = apiResponse.getResult();
+        var result = orderService.getAllOrdersByUser(user.getId());
         return ResponseEntity.ok(ApiResponse.success(result, "User orders"));
     }
 
-    /**
-     * Tạo payment link cho đơn hàng
-     */
-    @PostMapping("/{id}/payment")
-    public ResponseEntity<ApiResponse<PaymentResponseDTO>> createPaymentForOrder(@PathVariable Long id) {
-        PaymentResponseDTO paymentResponse = orderPaymentService.createPaymentForOrder(id);
-        return ResponseEntity.ok(ApiResponse.success(paymentResponse, "Payment created"));
-    }
-
-    /**
-     * Kiểm tra trạng thái payment của đơn hàng
-     */
-    @GetMapping("/{id}/payment-status")
-    public ResponseEntity<ApiResponse<PaymentResponseDTO>> getPaymentStatus(@PathVariable Long id) {
-        PaymentResponseDTO paymentStatus = orderPaymentService.getOrderPaymentStatus(id);
-        return ResponseEntity.ok(ApiResponse.success(paymentStatus, "Payment status"));
-    }
-
-    /**
-     * Hủy payment link của đơn hàng
-     */
-    @PostMapping("/{id}/cancel-payment")
-    public ResponseEntity<ApiResponse<Boolean>> cancelPayment(@PathVariable Long id) {
-        boolean result = orderPaymentService.cancelOrderPayment(id);
-        return ResponseEntity.ok(ApiResponse.success(result, "Payment canceled"));
-    }
 }

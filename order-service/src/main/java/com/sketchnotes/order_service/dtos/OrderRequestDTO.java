@@ -1,6 +1,7 @@
 package com.sketchnotes.order_service.dtos;
 
 import lombok.*;
+import net.minidev.json.annotate.JsonIgnore;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -10,7 +11,8 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class OrderRequestDTO {
-    private Long userId;
+    @JsonIgnore
+    private  Long userId;
     private Long subscriptionId; // Optional for subscription orders
     private List<OrderDetailRequestDTO> items;
     
