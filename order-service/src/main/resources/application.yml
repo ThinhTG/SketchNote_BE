@@ -36,9 +36,9 @@ spring:
       idle-timeout: 30000
       connection-timeout: 20000
       max-lifetime: 600000
-    url: jdbc:postgresql://localhost:5432/ordersdb
-    username: postgres
-    password: Thinh123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://139.59.119.65:6432/ordersdb}
+    username: ${SPRING_DATASOURCE_USERNAME:admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin}
 
   kafka:
     properties:

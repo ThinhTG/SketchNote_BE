@@ -15,14 +15,14 @@ import java.util.List;
 @RequestMapping(value = "/api/roles")
 public class RoleController {
     private  final IRoleService roleService;
-    @GetMapping("/{id}")
+    @GetMapping("")
     public ResponseEntity<ApiResponse<List<RoleResponseKeycloak>>> getAllRoles() {
         List<RoleResponseKeycloak> response = roleService.getAllRoles();
         return ResponseEntity.ok( ApiResponse.success( response,"Get data successful" ));
     }
-    @PostMapping("/{id}")
-    public ResponseEntity<ApiResponse<List<RoleResponseKeycloak>>> updateRoleUser(@RequestBody RoleRequest request) {
-        List<RoleResponseKeycloak> response = roleService.getAllRoles();
-        return ResponseEntity.ok( ApiResponse.success( response,"Get data successful" ));
+    @PostMapping("")
+    public ResponseEntity<ApiResponse<String>> updateRoleUser(@RequestBody RoleRequest request) {
+        roleService.updateRolesForUser(request);
+        return ResponseEntity.ok( ApiResponse.success( null,"Get data successful" ));
     }
 }
