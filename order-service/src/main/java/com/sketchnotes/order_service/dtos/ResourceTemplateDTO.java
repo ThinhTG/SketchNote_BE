@@ -21,7 +21,7 @@ public class ResourceTemplateDTO {
     private LocalDate releaseDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Boolean isActive;
+    private String status;
     // Images associated with this template
     private java.util.List<ResourceImageDTO> images;
     private java.util.List<ResourceItemDTO> items;
