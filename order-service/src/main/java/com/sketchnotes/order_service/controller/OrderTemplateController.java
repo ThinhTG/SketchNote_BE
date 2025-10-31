@@ -20,7 +20,7 @@ public class OrderTemplateController {
     private final IdentityClient  identityClient;
 
     /**
-     * Lấy tất cả template đang active với pagination
+     * Lấy tất cả template đang active và đã được PUBLISHED với pagination
      */
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponseDTO<ResourceTemplateDTO>>> getAllActiveTemplates(
@@ -70,10 +70,13 @@ public class OrderTemplateController {
 
     /**
      * Lấy template theo designer ID với pagination
-     * Chức năng này để Designer xem các design cuủa bản thân
+     * Chức năng này để Designer xem các design của bản thân
+     * Có thể lọc theo status: PENDING_REVIEW, PUBLISHED, REJECTED
+     * Nếu không truyền status sẽ lấy tất cả
      */
     @GetMapping("/my-template")
     public ResponseEntity<ApiResponse<PagedResponseDTO<ResourceTemplateDTO>>> getMyTemplatesPaged(
+            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
@@ -81,8 +84,8 @@ public class OrderTemplateController {
         var apiResponse = identityClient.getCurrentUser();
         UserResponse user = apiResponse.getResult();
 
-        // Gọi service để lấy danh sách template theo designerId
-        var result = templateService.getTemplatesByDesigner(user.getId(), page, size, "createdAt", "desc");
+        // Gọi service để lấy danh sách template theo designerId và status
+        var result = templateService.getTemplatesByDesignerAndStatus(user.getId(), status, page, size, "createdAt", "desc");
 
         //  Gán thông tin designer vào từng ResourceTemplateDTO
         if (result != null && result.getContent() != null && !result.getContent().isEmpty()) {
@@ -151,10 +154,43 @@ public class OrderTemplateController {
         UserResponse user = apiResponse.getResult();
         dto.setDesignerId(user.getId());
         ResourceTemplateDTO created = templateService.createTemplate(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created, "Template created"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created, "Template created and pending review"));
     }
 
+    /**
+     * Xác nhận template và chuyển trạng thái từ PENDING_REVIEW sang PUBLISHED
+     * Chỉ staff mới có quyền thực hiện chức năng này ( chua co )
+     */
+    @PostMapping("/{id}/confirm")
+    public ResponseEntity<ApiResponse<ResourceTemplateDTO>> confirmTemplate(@PathVariable Long id) {
+        // TODO: Add staff role check here
+        ResourceTemplateDTO confirmed = templateService.confirmTemplate(id);
+        return ResponseEntity.ok(ApiResponse.success(confirmed, "Template confirmed and published"));
+    }
 
+    /**
+     * Từ chối template và chuyển trạng thái sang REJECTED
+     * Chỉ staff mới có quyền thực hiện chức năng này ( chua co )
+     */
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<ApiResponse<ResourceTemplateDTO>> rejectTemplate(@PathVariable Long id) {
+        // TODO: Add staff role check here
+        ResourceTemplateDTO rejected = templateService.rejectTemplate(id);
+        return ResponseEntity.ok(ApiResponse.success(rejected, "Template rejected"));
+    }
 
-
+    /**
+     * Lấy template theo trạng thái review (PENDING_REVIEW, PUBLISHED, REJECTED)
+     */
+    @GetMapping("/review-status/{status}")
+    public ResponseEntity<ApiResponse<PagedResponseDTO<ResourceTemplateDTO>>> getTemplatesByReviewStatus(
+            @PathVariable String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        // TODO: Add staff role check here
+        var result = templateService.getTemplatesByReviewStatus(status, page, size, sortBy, sortDir);
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates by review status"));
+    }
 }

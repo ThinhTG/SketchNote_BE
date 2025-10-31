@@ -43,11 +43,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
         // 1️⃣ Validate templates tồn tại và active
-        for (OrderRequestDTO.OrderDetailRequestDTO item : request.getItems()) {
-            resourceTemplateRepository.findByTemplateIdAndIsActiveTrue(item.getResourceTemplateId())
-                    .orElseThrow(() -> new ResourceTemplateNotFoundException(
-                            "Template not found or inactive: " + item.getResourceTemplateId()));
-        }
+    for (OrderRequestDTO.OrderDetailRequestDTO item : request.getItems()) {
+        resourceTemplateRepository.findByTemplateIdAndStatus(item.getResourceTemplateId(), ResourceTemplate.TemplateStatus.PUBLISHED)
+            .orElseThrow(() -> new ResourceTemplateNotFoundException(
+                "Template not found or inactive: " + item.getResourceTemplateId()));
+    }
 
         // 2️⃣ Map DTO -> Entity
         Order order = orderMapper.toEntity(request);
@@ -57,10 +57,10 @@ public class OrderServiceImpl implements OrderService {
             OrderDetail detail = order.getOrderDetails().get(i);
             OrderRequestDTO.OrderDetailRequestDTO requestItem = request.getItems().get(i);
 
-            ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndIsActiveTrue(
-                            requestItem.getResourceTemplateId())
-                    .orElseThrow(() -> new ResourceTemplateNotFoundException(
-                            "Template not found: " + requestItem.getResourceTemplateId()));
+        ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndStatus(
+                requestItem.getResourceTemplateId(), ResourceTemplate.TemplateStatus.PUBLISHED)
+            .orElseThrow(() -> new ResourceTemplateNotFoundException(
+                "Template not found: " + requestItem.getResourceTemplateId()));
 
             BigDecimal unitPrice = template.getPrice() != null ? template.getPrice() : BigDecimal.ZERO;
             BigDecimal discount = requestItem.getDiscount() != null ? requestItem.getDiscount() : BigDecimal.ZERO;
@@ -162,7 +162,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getAllTemplates() {
-        return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByIsActiveTrue());
+        return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED));
     }
 
     @Override
@@ -170,7 +170,7 @@ public class OrderServiceImpl implements OrderService {
     public List<ResourceTemplateDTO> getTemplatesByType(String type) {
         try {
             ResourceTemplate.TemplateType templateType = ResourceTemplate.TemplateType.valueOf(type.toUpperCase());
-            return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByTypeAndIsActiveTrue(templateType));
+            return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByTypeAndStatus(templateType, ResourceTemplate.TemplateStatus.PUBLISHED));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid template type: " + type);
         }
@@ -179,21 +179,21 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> searchTemplates(String keyword) {
-        return orderMapper.toTemplateDtoList(resourceTemplateRepository.searchByKeyword(keyword));
+    return orderMapper.toTemplateDtoList(resourceTemplateRepository.searchByKeyword(keyword, ResourceTemplate.TemplateStatus.PUBLISHED));
     }
 
     @Override
     @Transactional(readOnly = true)
     public ResourceTemplateDTO getTemplateById(Long id) {
-        ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndIsActiveTrue(id)
-                .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
+    ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndStatus(id, ResourceTemplate.TemplateStatus.PUBLISHED)
+        .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
         return orderMapper.toDto(template);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getTemplatesByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
-        return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByPriceRange(minPrice, maxPrice));
+    return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByPriceRange(minPrice, maxPrice, ResourceTemplate.TemplateStatus.PUBLISHED));
     }
 
     // Helper method to enrich order response with template information
@@ -201,8 +201,8 @@ public class OrderServiceImpl implements OrderService {
         if (orderResponse.getItems() != null) {
             for (OrderDetailDTO detail : orderResponse.getItems()) {
                 try {
-                    ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndIsActiveTrue(detail.getResourceTemplateId())
-                            .orElse(null);
+            ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndStatus(detail.getResourceTemplateId(), ResourceTemplate.TemplateStatus.PUBLISHED)
+                .orElse(null);
                     if (template != null) {
                         detail.setTemplateName(template.getName());
                         detail.setTemplateDescription(template.getDescription());

@@ -48,9 +48,6 @@ public class ResourceTemplate {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "is_active")
-    private Boolean isActive = true;
-
     @OneToMany(mappedBy = "resourceTemplate", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ResourcesTemplateImage> images = new ArrayList<>();
 
@@ -80,4 +77,14 @@ public class ResourceTemplate {
         CERTIFICATE,
         OTHER
     }
+
+    public enum TemplateStatus {
+        PENDING_REVIEW,
+        PUBLISHED,
+        REJECTED
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private TemplateStatus status = TemplateStatus.PENDING_REVIEW;
 }

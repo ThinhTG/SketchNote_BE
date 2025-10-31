@@ -34,7 +34,8 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getAllActiveTemplates() {
-        return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByIsActiveTrue());
+        return orderMapper.toTemplateDtoList(
+            resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED));
     }
 
     @Override
@@ -42,38 +43,57 @@ public class TemplateServiceImpl implements TemplateService {
     public PagedResponseDTO<ResourceTemplateDTO> getAllActiveTemplates(int page, int size, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByIsActiveTrue(pageable);
+        Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByStatus(
+            ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
         return convertToPagedResponse(templatePage);
     }
 
     @Override
     @Transactional(readOnly = true)
     public ResourceTemplateDTO getTemplateById(Long id) {
-        ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndIsActiveTrue(id)
-                .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
+    ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndStatus(id, ResourceTemplate.TemplateStatus.PUBLISHED)
+        .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
         return orderMapper.toDto(template);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getTemplatesByDesigner(Long designerId) {
-        return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByDesignerIdAndIsActiveTrue(designerId));
+        return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByDesignerIdAndStatus(designerId, ResourceTemplate.TemplateStatus.PUBLISHED));
     }
 
     @Override
     @Transactional(readOnly = true)
     public PagedResponseDTO<ResourceTemplateDTO> getTemplatesByDesigner(
             Long designerId, int page, int size, String sortBy, String sortDir) {
+        return getTemplatesByDesignerAndStatus(designerId, null, page, size, sortBy, sortDir);
+    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponseDTO<ResourceTemplateDTO> getTemplatesByDesignerAndStatus(
+            Long designerId, String status, int page, int size, String sortBy, String sortDir) {
+        
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<ResourceTemplate> templatePage =
-                resourceTemplateRepository.findByDesignerIdAndIsActiveTrue(designerId, pageable);
+        
+        Page<ResourceTemplate> templatePage;
+        
+        if (status != null) {
+            try {
+                ResourceTemplate.TemplateStatus templateStatus = ResourceTemplate.TemplateStatus.valueOf(status.toUpperCase());
+                templatePage = resourceTemplateRepository.findByDesignerIdAndStatus(designerId, templateStatus, pageable);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid template status: " + status);
+            }
+        } else {
+            // If no status is provided, get all templates regardless of status
+            templatePage = resourceTemplateRepository.findByDesignerId(designerId, pageable);
+        }
 
-        PagedResponseDTO<ResourceTemplateDTO> response = convertToPagedResponse(templatePage);
-        return response;
+        return convertToPagedResponse(templatePage);
     }
 
 
@@ -82,7 +102,7 @@ public class TemplateServiceImpl implements TemplateService {
     public List<ResourceTemplateDTO> getTemplatesByType(String type) {
         try {
             ResourceTemplate.TemplateType templateType = ResourceTemplate.TemplateType.valueOf(type.toUpperCase());
-            return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByTypeAndIsActiveTrue(templateType));
+            return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByTypeAndStatus(templateType, ResourceTemplate.TemplateStatus.PUBLISHED));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid template type: " + type);
         }
@@ -95,7 +115,7 @@ public class TemplateServiceImpl implements TemplateService {
             ResourceTemplate.TemplateType templateType = ResourceTemplate.TemplateType.valueOf(type.toUpperCase());
             Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
             Pageable pageable = PageRequest.of(page, size, sort);
-            Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByTypeAndIsActiveTrue(templateType, pageable);
+            Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByTypeAndStatus(templateType, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
             return convertToPagedResponse(templatePage);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid template type: " + type);
@@ -105,7 +125,7 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> searchTemplates(String keyword) {
-        return orderMapper.toTemplateDtoList(resourceTemplateRepository.searchByKeyword(keyword));
+        return orderMapper.toTemplateDtoList(resourceTemplateRepository.searchByKeyword(keyword, ResourceTemplate.TemplateStatus.PUBLISHED));
     }
 
     @Override
@@ -113,14 +133,14 @@ public class TemplateServiceImpl implements TemplateService {
     public PagedResponseDTO<ResourceTemplateDTO> searchTemplates(String keyword, int page, int size, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<ResourceTemplate> templatePage = resourceTemplateRepository.searchByKeyword(keyword, pageable);
+    Page<ResourceTemplate> templatePage = resourceTemplateRepository.searchByKeyword(keyword, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
         return convertToPagedResponse(templatePage);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getTemplatesByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
-        return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByPriceRange(minPrice, maxPrice));
+        return orderMapper.toTemplateDtoList(resourceTemplateRepository.findByPriceRange(minPrice, maxPrice, ResourceTemplate.TemplateStatus.PUBLISHED));
     }
 
     @Override
@@ -128,14 +148,14 @@ public class TemplateServiceImpl implements TemplateService {
     public PagedResponseDTO<ResourceTemplateDTO> getTemplatesByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page, int size, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByPriceRange(minPrice, maxPrice, pageable);
+    Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByPriceRange(minPrice, maxPrice, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
         return convertToPagedResponse(templatePage);
     }
 
     @Override
     public ResourceTemplateDTO createTemplate(TemplateCreateUpdateDTO templateDTO) {
         ResourceTemplate template = orderMapper.toEntity(templateDTO);
-        template.setIsActive(true);
+        template.setStatus(ResourceTemplate.TemplateStatus.PENDING_REVIEW);
 
         // Attach images from DTO (if any) - ensure bidirectional relation
         if (templateDTO.getImages() != null && !templateDTO.getImages().isEmpty()) {
@@ -206,7 +226,8 @@ public class TemplateServiceImpl implements TemplateService {
     public void deleteTemplate(Long id) {
         ResourceTemplate template = resourceTemplateRepository.findById(id)
                 .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
-        template.setIsActive(false);
+        // Instead of setting isActive to false, we'll mark it as REJECTED
+        template.setStatus(ResourceTemplate.TemplateStatus.REJECTED);
         resourceTemplateRepository.save(template);
     }
 
@@ -214,7 +235,9 @@ public class TemplateServiceImpl implements TemplateService {
     public ResourceTemplateDTO toggleTemplateStatus(Long id) {
         ResourceTemplate template = resourceTemplateRepository.findById(id)
                 .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
-        template.setIsActive(!template.getIsActive());
+        // Toggle between PUBLISHED and REJECTED
+        template.setStatus(template.getStatus() == ResourceTemplate.TemplateStatus.PUBLISHED ? 
+            ResourceTemplate.TemplateStatus.REJECTED : ResourceTemplate.TemplateStatus.PUBLISHED);
         ResourceTemplate saved = resourceTemplateRepository.save(template);
         return orderMapper.toDto(saved);
     }
@@ -223,9 +246,9 @@ public class TemplateServiceImpl implements TemplateService {
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getTemplatesByStatus(Boolean isActive) {
         List<ResourceTemplate> templates = isActive ? 
-                resourceTemplateRepository.findByIsActiveTrue() : 
+                resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED) :
                 resourceTemplateRepository.findAll().stream()
-                        .filter(t -> !t.getIsActive())
+                        .filter(t -> !t.getStatus().equals(ResourceTemplate.TemplateStatus.PUBLISHED))
                         .toList();
         return orderMapper.toTemplateDtoList(templates);
     }
@@ -234,7 +257,7 @@ public class TemplateServiceImpl implements TemplateService {
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getTemplatesExpiringSoon(int days) {
         LocalDate expiryDate = LocalDate.now().plusDays(days);
-        List<ResourceTemplate> templates = resourceTemplateRepository.findByIsActiveTrue().stream()
+        List<ResourceTemplate> templates = resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED).stream()
                 .filter(t -> t.getExpiredTime() != null && t.getExpiredTime().isBefore(expiryDate))
                 .toList();
         return orderMapper.toTemplateDtoList(templates);
@@ -244,7 +267,7 @@ public class TemplateServiceImpl implements TemplateService {
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getLatestTemplates(int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        List<ResourceTemplate> templates = resourceTemplateRepository.findByIsActiveTrue().stream()
+        List<ResourceTemplate> templates = resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED).stream()
                 .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()))
                 .limit(limit)
                 .toList();
@@ -256,7 +279,7 @@ public class TemplateServiceImpl implements TemplateService {
     public List<ResourceTemplateDTO> getPopularTemplates(int limit) {
         // For now, return templates sorted by price (as a simple popularity metric)
         // In a real implementation, this would be based on order count or views
-        List<ResourceTemplate> templates = resourceTemplateRepository.findByIsActiveTrue().stream()
+        List<ResourceTemplate> templates = resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED).stream()
                 .sorted((t1, t2) -> t2.getPrice().compareTo(t1.getPrice()))
                 .limit(limit)
                 .toList();
@@ -264,6 +287,50 @@ public class TemplateServiceImpl implements TemplateService {
     }
 
     // Helper method to convert Page to PagedResponseDTO
+    @Override
+    public ResourceTemplateDTO confirmTemplate(Long id) {
+        ResourceTemplate template = resourceTemplateRepository.findById(id)
+                .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
+        
+        // Validate current status
+        if (template.getStatus() != ResourceTemplate.TemplateStatus.PENDING_REVIEW) {
+            throw new IllegalStateException("Template with id " + id + " is not in PENDING_REVIEW status");
+        }
+        
+        template.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
+        ResourceTemplate saved = resourceTemplateRepository.save(template);
+        return orderMapper.toDto(saved);
+    }
+
+    @Override
+    public ResourceTemplateDTO rejectTemplate(Long id) {
+        ResourceTemplate template = resourceTemplateRepository.findById(id)
+                .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
+        
+        // Validate current status
+        if (template.getStatus() != ResourceTemplate.TemplateStatus.PENDING_REVIEW) {
+            throw new IllegalStateException("Template with id " + id + " is not in PENDING_REVIEW status");
+        }
+        
+        template.setStatus(ResourceTemplate.TemplateStatus.REJECTED);
+        ResourceTemplate saved = resourceTemplateRepository.save(template);
+        return orderMapper.toDto(saved);
+    }
+
+    @Override
+    public PagedResponseDTO<ResourceTemplateDTO> getTemplatesByReviewStatus(String status, int page, int size, String sortBy, String sortDir) {
+        try {
+            ResourceTemplate.TemplateStatus templateStatus = ResourceTemplate.TemplateStatus.valueOf(status.toUpperCase());
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+            
+            Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByStatus(templateStatus, pageable);
+            return convertToPagedResponse(templatePage);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid template status: " + status);
+        }
+    }
+
     private PagedResponseDTO<ResourceTemplateDTO> convertToPagedResponse(Page<ResourceTemplate> page) {
         List<ResourceTemplateDTO> content = orderMapper.toTemplateDtoList(page.getContent());
         

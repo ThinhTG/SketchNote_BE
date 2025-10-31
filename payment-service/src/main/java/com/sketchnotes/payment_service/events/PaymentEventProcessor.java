@@ -27,13 +27,13 @@ public class PaymentEventProcessor {
                 if (wallet.getBalance().compareTo(event.getTotalAmount()) >= 0) {
                     // perform payment
                     var tx = walletService.pay(wallet.getWalletId(), event.getTotalAmount());
-                    log.info("✅ Payment processed for order {} txId={}", event.getOrderId(), tx.getId());
+                    log.info("✅ Payment processed for order {} txId={}", event.getOrderId(), tx.getOrderId());
 
                     PaymentSucceededEvent success = PaymentSucceededEvent.builder()
                             .orderId(event.getOrderId())
                             .userId(event.getUserId())
                             .amount(event.getTotalAmount())
-                            .transactionId(String.valueOf(tx.getId()))
+                            .transactionId(String.valueOf(tx.getTransactionId()))
                             .build();
 
                     streamBridge.send("paymentSucceeded-out-0", success);
