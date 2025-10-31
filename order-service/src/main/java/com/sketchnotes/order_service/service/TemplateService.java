@@ -34,6 +34,11 @@ public interface TemplateService {
      * Lấy template theo designer ID với pagination
      */
     PagedResponseDTO<ResourceTemplateDTO> getTemplatesByDesigner(Long designerId, int page, int size, String sortBy, String sortDir);
+
+    /**
+     * Lấy template theo designer ID và status với pagination
+     */
+    PagedResponseDTO<ResourceTemplateDTO> getTemplatesByDesignerAndStatus(Long designerId, String status, int page, int size, String sortBy, String sortDir);
     
     /**
      * Lấy template theo loại
@@ -91,6 +96,11 @@ public interface TemplateService {
     List<ResourceTemplateDTO> getTemplatesByStatus(Boolean isActive);
     
     /**
+     * Lấy template theo trạng thái review (PENDING_REVIEW, PUBLISHED, REJECTED)
+     */
+    PagedResponseDTO<ResourceTemplateDTO> getTemplatesByReviewStatus(String status, int page, int size, String sortBy, String sortDir);
+    
+    /**
      * Lấy template sắp hết hạn
      */
     List<ResourceTemplateDTO> getTemplatesExpiringSoon(int days);
@@ -104,4 +114,16 @@ public interface TemplateService {
      * Lấy template phổ biến nhất (có thể dựa trên số lượng order)
      */
     List<ResourceTemplateDTO> getPopularTemplates(int limit);
+
+    /**
+     * Xác nhận template và chuyển trạng thái từ PENDING_REVIEW sang PUBLISHED
+     * Chỉ staff mới có quyền thực hiện chức năng này
+     */
+    ResourceTemplateDTO confirmTemplate(Long id);
+
+    /**
+     * Từ chối template và chuyển trạng thái sang REJECTED
+     * Chỉ staff mới có quyền thực hiện chức năng này
+     */
+    ResourceTemplateDTO rejectTemplate(Long id);
 }
