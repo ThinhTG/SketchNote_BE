@@ -1,7 +1,7 @@
 package com.sketchnotes.blog_service.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sketchnotes.blog_service.dtos.ApiResponse;
+import com.sketchnotes.blog_service.dtos.response.ApiResponse;
 import com.sketchnotes.blog_service.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

@@ -1,7 +1,7 @@
 package com.sketchnotes.blog_service.Service;
 
-import com.sketchnotes.blog_service.dtos.CommentRequest;
-import com.sketchnotes.blog_service.dtos.*;
+import com.sketchnotes.blog_service.dtos.request.CommentRequest;
+import com.sketchnotes.blog_service.dtos.response.CommentResponse;
 
 import java.util.List;
 

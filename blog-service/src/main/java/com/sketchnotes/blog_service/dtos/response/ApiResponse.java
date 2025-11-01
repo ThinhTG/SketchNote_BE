@@ -1,4 +1,4 @@
-package com.sketchnotes.blog_service.dtos;
+package com.sketchnotes.blog_service.dtos.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;

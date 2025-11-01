@@ -1,9 +1,11 @@
-package com.sketchnotes.blog_service.dtos;
+package com.sketchnotes.blog_service.dtos.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -12,6 +14,7 @@ import lombok.Setter;
 public class BlogRequest {
 
     private String title;
-    private String content;
-    private String imageurl;
+    private String summary;
+    private String imageUrl;
+    private List<ContentRequest> contents;
 }

@@ -56,7 +56,7 @@ public class UserService implements IUserService {
                 .role(user.getRole().toString())
                 .avatarUrl(user.getAvatarUrl())
                 .build()).toList();
-        return new PagedResponse(
+        return new PagedResponse<>(
                 userResponses,
                 users.getNumber(),
                 users.getSize(),
