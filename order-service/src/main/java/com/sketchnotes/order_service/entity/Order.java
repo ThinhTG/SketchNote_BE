@@ -9,10 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "orderDetails")
+@EqualsAndHashCode(exclude = "orderDetails")
 @Table(name = "orders")
 public class Order {
     @Id

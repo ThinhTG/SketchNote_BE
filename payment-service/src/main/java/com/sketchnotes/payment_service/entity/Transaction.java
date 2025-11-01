@@ -45,7 +45,9 @@ public class Transaction {
 
 
 
-    @Column(unique = true, nullable = false)
+    // orderCode is only required for gateway callbacks (PayOS). Make it nullable
+    // so other transaction types (DEPOSIT, WITHDRAW, PAYMENT from wallet) can be saved.
+    @Column(unique = true)
     private Long orderCode;    // orderCode mapping với PayOS.
 
     @ManyToOne

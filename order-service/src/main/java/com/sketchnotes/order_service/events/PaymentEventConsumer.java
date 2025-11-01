@@ -28,27 +28,21 @@ public class PaymentEventConsumer {
     @Bean
     public Consumer<PaymentSucceededEvent> paymentSucceededConsumer() {
         return event -> {
-            log.info("✅ Payment succeeded for order {}", event.getOrderId());
-
-            Order order = orderRepository.findById(event.getOrderId())
-                    .orElseThrow(() -> new OrderNotFoundException("Order not found: " + event.getOrderId()));
-            order.setPaymentStatus("PAID");
-            order.setOrderStatus("CONFIRMED");
-            orderRepository.save(order);
-
-            // Ghi log
             try {
-                orderEventLogRepository.save(OrderEventLog.builder()
-                        .orderId(order.getOrderId())
-                        .eventType("PAYMENT_SUCCEEDED")
-                        .payload(objectMapper.writeValueAsString(event))
-                        .build());
-            } catch (Exception e) {
-                log.error("Error logging payment success event: {}", e.getMessage());
+                orderRepository.findById(event.getOrderId()).ifPresentOrElse(order -> {
+                    if ("PAID".equalsIgnoreCase(order.getPaymentStatus())) {
+                        return;
+                    }
+                    order.setPaymentStatus("PAID");
+                    order.setOrderStatus("CONFIRMED");
+                    orderRepository.save(order);
+                    log.info("Order {} - Payment succeeded", order.getOrderId());
+                }, () -> {
+                    log.warn("Order {} not found", event.getOrderId());
+                });
+            } catch (Exception ex) {
+                log.error("Order {} - Payment processing error: {}", event.getOrderId(), ex.getMessage());
             }
-
-            // 👉 Grant quyền template cho user (nếu có logic riêng, implement tại đây)
-            log.info("🎁 Granting resource templates to user {}", order.getUserId());
         };
     }
 
@@ -56,24 +50,24 @@ public class PaymentEventConsumer {
     @Bean
     public Consumer<PaymentFailedEvent> paymentFailedConsumer() {
         return event -> {
-            log.warn("❌ Payment failed for order {}", event.getOrderId());
-
-            Order order = orderRepository.findById(event.getOrderId())
-                    .orElseThrow(() -> new OrderNotFoundException("Order not found: " + event.getOrderId()));
-            order.setPaymentStatus("FAILED");
-            order.setOrderStatus("CANCELLED");
-            orderRepository.save(order);
-
-            // Ghi log event
             try {
-                orderEventLogRepository.save(OrderEventLog.builder()
-                        .orderId(order.getOrderId())
-                        .eventType("PAYMENT_FAILED")
-                        .payload(objectMapper.writeValueAsString(event))
-                        .build());
-            } catch (Exception e) {
-                log.error("Error logging payment failed event: {}", e.getMessage());
+                orderRepository.findById(event.getOrderId()).ifPresentOrElse(order -> {
+                    String current = order.getPaymentStatus();
+                    if (current != null && ("FAILED".equalsIgnoreCase(current) || "CANCELLED".equalsIgnoreCase(current))) {
+                        return;
+                    }
+                    order.setPaymentStatus("FAILED");
+                    order.setOrderStatus("CANCELLED");
+                    orderRepository.save(order);
+                    log.info("Order {} - Payment failed: {}", order.getOrderId(), event.getReason());
+                }, () -> {
+                    log.warn("Order {} not found", event.getOrderId());
+                });
+            } catch (Exception ex) {
+                log.error("Order {} - Payment failure processing error: {}", event.getOrderId(), ex.getMessage());
             }
+
+
         };
     }
 }

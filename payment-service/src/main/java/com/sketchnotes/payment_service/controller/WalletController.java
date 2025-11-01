@@ -1,6 +1,7 @@
 package com.sketchnotes.payment_service.controller;
 
 import com.sketchnotes.payment_service.clients.IdentityClient;
+import com.sketchnotes.payment_service.dtos.ApiResponse;
 import com.sketchnotes.payment_service.dtos.UserResponse;
 import com.sketchnotes.payment_service.entity.Transaction;
 import com.sketchnotes.payment_service.entity.Wallet;
@@ -27,7 +28,7 @@ public class WalletController {
     private final IdentityClient  identityClient;
 
     @PostMapping("/create")
-    public Wallet createWallet() {
+    public ApiResponse<Wallet> createWallet() {
         var apiResponse = identityClient.getCurrentUser();
 
         UserResponse user = apiResponse.getResult(); // lấy user thật từ ApiResponse
@@ -36,16 +37,18 @@ public class WalletController {
             throw new RuntimeException("User ID is null!");
         }
 
-        return walletService.createWallet(user.getId());
+        Wallet wallet = walletService.createWallet(user.getId());
+        return ApiResponse.success(wallet, "Wallet created successfully");
     }
 
 
     // Lấy ví theo userId
     @GetMapping("/my-wallet")
-    public Wallet getWallet() {
+    public ApiResponse<Wallet> getWallet() {
         var apiResponse = identityClient.getCurrentUser();
         UserResponse user = apiResponse.getResult(); // lấy user thật từ ApiResponse
-        return walletService.getWalletByUserId(user.getId());
+        Wallet wallet = walletService.getWalletByUserId(user.getId());
+        return ApiResponse.success(wallet, "Wallet retrieved successfully");
     }
 
 }
