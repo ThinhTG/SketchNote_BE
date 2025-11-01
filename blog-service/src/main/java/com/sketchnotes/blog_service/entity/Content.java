@@ -1,6 +1,5 @@
 package com.sketchnotes.blog_service.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -8,39 +7,32 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.List;
 
+@Entity
+@Table(name = "contents")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity
-public class Blog {
+public class Content {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
 
-    private String title;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "blog_id", nullable = false)
+    private Blog blog;
 
+   private String sectionTitle;
     @Column(columnDefinition = "TEXT")
-    private String summary;
-
-    private Long authorId;
-
+   private String content;
+   private String contentUrl;
+   private Integer index;
     @CreatedDate
     private Instant createdAt;
 
     @LastModifiedDate
     private Instant updatedAt;
     private LocalDateTime deletedAt;
-
-    private String imageUrl;
-
-    @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Content> contents;
-
-    @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments;
 }
-

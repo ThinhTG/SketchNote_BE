@@ -2,8 +2,8 @@ package com.sketchnotes.blog_service.controller;
 
 
 import com.sketchnotes.blog_service.Service.CommentService;
-import com.sketchnotes.blog_service.dtos.CommentRequest;
-import com.sketchnotes.blog_service.dtos.CommentResponse;
+import com.sketchnotes.blog_service.dtos.request.CommentRequest;
+import com.sketchnotes.blog_service.dtos.response.CommentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

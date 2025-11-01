@@ -1,8 +1,9 @@
-package com.sketchnotes.blog_service.dtos;
+package com.sketchnotes.blog_service.dtos.response;
 
 import lombok.*;
 
 import java.time.Instant;
+import java.util.List;
 
 @Getter
 @Setter
@@ -12,10 +13,11 @@ import java.time.Instant;
 public class BlogResponse {
     private Long id;
     private String title;
-    private String content;
     private Long authorId;
+    private  String summary;
     private String authorDisplay;
     private String imageUrl;
     private Instant createdAt;
     private Instant updatedAt;
+    private List<ContentResponse> contents;
 }

@@ -1,6 +1,6 @@
 package com.sketchnotes.blog_service.exception;
 
-import com.sketchnotes.blog_service.dtos.ApiResponse;
+import com.sketchnotes.blog_service.dtos.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;

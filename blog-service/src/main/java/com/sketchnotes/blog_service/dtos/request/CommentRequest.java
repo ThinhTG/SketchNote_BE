@@ -1,4 +1,4 @@
-package com.sketchnotes.blog_service.dtos;
+package com.sketchnotes.blog_service.dtos.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

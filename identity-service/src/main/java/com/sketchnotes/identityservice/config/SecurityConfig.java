@@ -14,6 +14,7 @@ import org.springframework.http.HttpMethod;
 public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
             "/api/auth/register",
+            "/api/users/*",
             "/api/auth/login",
             "/api/auth/refresh-token",
             "/api/auth/login-google",
