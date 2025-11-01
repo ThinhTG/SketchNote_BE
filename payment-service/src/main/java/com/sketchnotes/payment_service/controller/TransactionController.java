@@ -1,5 +1,6 @@
 package com.sketchnotes.payment_service.controller;
 
+import com.sketchnotes.payment_service.dtos.ApiResponse;
 import com.sketchnotes.payment_service.entity.Transaction;
 import com.sketchnotes.payment_service.entity.enumeration.PaymentStatus;
 import com.sketchnotes.payment_service.service.implement.TransactionServiceImp;
@@ -19,12 +20,13 @@ public class TransactionController {
     private final TransactionServiceImp transactionServiceImp;
 
     @GetMapping("/filter")
-    public List<Transaction> filterTransactions(
+    public ApiResponse<List<Transaction>> filterTransactions(
             @RequestParam(required = false) Long walletId,
             @RequestParam(required = false) PaymentStatus status,
             @RequestParam(required = false) String type
     ) {
-        return transactionServiceImp.filterTransactions(walletId, status, type);
+        List<Transaction> transactions = transactionServiceImp.filterTransactions(walletId, status, type);
+        return ApiResponse.success(transactions, "Transactions retrieved successfully");
     }
 
 }

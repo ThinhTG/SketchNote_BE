@@ -9,18 +9,23 @@ spring:
   application:
     name: order-service
   cloud:
+    function:
+      definition: paymentSucceededConsumer;paymentFailedConsumer
     discovery:
       enabled: true
     stream:
       bindings:
         orderCreated-out-0:
           contentType: application/json
+          destination: order-created
         paymentSucceededConsumer-in-0:
           contentType: application/json
           destination: payment-succeeded
+          group: order-service-group
         paymentFailedConsumer-in-0:
           contentType: application/json
           destination: payment-failed
+          group: order-service-group
       kafka:
         binder:
           brokers: ${KAFKA_BOOTSTRAP_SERVERS:139.59.119.65:9092}
@@ -29,6 +34,13 @@ spring:
             producer:
               configuration:
                 value.serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+          # Per-binding consumer settings to ensure new consumer groups read existing messages
+          paymentSucceededConsumer-in-0:
+            consumer:
+              auto-offset-reset: earliest
+          paymentFailedConsumer-in-0:
+            consumer:
+              auto-offset-reset: earliest
   datasource:
     hikari:
       maximum-pool-size: 5
@@ -52,7 +64,7 @@ spring:
       acks: all
       retries: 1
     consumer:
-      group-id: identity-service-group
+      group-id: order-service-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer

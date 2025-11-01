@@ -6,11 +6,14 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "order")
+@EqualsAndHashCode(exclude = "order")
 @Table(name = "order_details")
 public class OrderDetail {
     @Id

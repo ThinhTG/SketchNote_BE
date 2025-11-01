@@ -29,7 +29,7 @@ public class PaymentController {
     private final WalletService walletService;
 
     @PostMapping("/deposit")
-    public String deposit(@RequestParam BigDecimal amount) {
+    public ApiResponse<String> deposit(@RequestParam BigDecimal amount) {
         var apiResponse = identityClient.getCurrentUser();
         UserResponse user = apiResponse.getResult();
 
@@ -42,8 +42,8 @@ public class PaymentController {
             throw new RuntimeException("Wallet not found for this user!");
         }
 
-
-        return payOSService.createPaymentLink(wallet.getWalletId(), amount, "Deposit to wallet " + wallet.getWalletId());
+        String paymentLink = payOSService.createPaymentLink(wallet.getWalletId(), amount, "Deposit to wallet " + wallet.getWalletId());
+        return ApiResponse.success(paymentLink, "Payment link created successfully");
     }
 
     @PostMapping("/payos/webhook")
