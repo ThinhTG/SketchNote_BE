@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: identity-service
+    name: account-service
   cloud:
     discovery:
       enabled: true

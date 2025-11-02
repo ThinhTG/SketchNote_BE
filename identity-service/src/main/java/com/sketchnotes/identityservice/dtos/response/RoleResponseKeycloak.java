@@ -1,0 +1,19 @@
+package com.sketchnotes.identityservice.dtos.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class RoleResponseKeycloak {
+    private String id;
+    private String name;
+    private String description;
+    private boolean composite;
+    private boolean clientRole;
+    private String containerId;
+}

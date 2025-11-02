@@ -1,11 +1,11 @@
 package com.sketchnotes.identityservice.service.interfaces;
 
 
-import com.sketchnotes.identityservice.dto.request.LoginGoogleRequest;
-import com.sketchnotes.identityservice.dto.request.LoginRequest;
-import com.sketchnotes.identityservice.dto.request.RegisterRequest;
-import com.sketchnotes.identityservice.dto.request.TokenRequest;
-import com.sketchnotes.identityservice.dto.response.LoginResponse;
+import com.sketchnotes.identityservice.dtos.request.LoginGoogleRequest;
+import com.sketchnotes.identityservice.dtos.request.LoginRequest;
+import com.sketchnotes.identityservice.dtos.request.RegisterRequest;
+import com.sketchnotes.identityservice.dtos.request.TokenRequest;
+import com.sketchnotes.identityservice.dtos.response.LoginResponse;
 
 
 public interface IAuthService {

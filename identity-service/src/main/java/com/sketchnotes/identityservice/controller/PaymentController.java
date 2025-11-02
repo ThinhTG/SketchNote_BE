@@ -1,7 +1,7 @@
 package com.sketchnotes.identityservice.controller;
 
 
-import com.sketchnotes.identityservice.dto.ApiResponse;
+import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.model.Wallet;
 import com.sketchnotes.identityservice.service.interfaces.IPaymentGatewayService;
 import com.sketchnotes.identityservice.service.interfaces.IUserService;

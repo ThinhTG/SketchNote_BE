@@ -1,8 +1,8 @@
 package com.sketchnotes.identityservice.controller;
 
-import com.sketchnotes.identityservice.dto.ApiResponse;
-import com.sketchnotes.identityservice.dto.request.RoleRequest;
-import com.sketchnotes.identityservice.dto.response.RoleResponseKeycloak;
+import com.sketchnotes.identityservice.dtos.ApiResponse;
+import com.sketchnotes.identityservice.dtos.request.RoleRequest;
+import com.sketchnotes.identityservice.dtos.response.RoleResponseKeycloak;
 import com.sketchnotes.identityservice.service.interfaces.IRoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,8 +1,8 @@
 package com.sketchnotes.identityservice.client;
 
-import com.sketchnotes.identityservice.dto.identity.*;
-import com.sketchnotes.identityservice.dto.request.RoleKeycloakRequest;
-import com.sketchnotes.identityservice.dto.response.RoleResponseKeycloak;
+import com.sketchnotes.identityservice.dtos.identity.*;
+import com.sketchnotes.identityservice.dtos.request.RoleKeycloakRequest;
+import com.sketchnotes.identityservice.dtos.response.RoleResponseKeycloak;
 import feign.Headers;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;

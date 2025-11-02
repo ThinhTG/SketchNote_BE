@@ -3,14 +3,13 @@ package com.sketchnotes.identityservice.exception;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sketchnotes.identityservice.dto.identity.KeyCloakError;
+import com.sketchnotes.identityservice.dtos.identity.KeyCloakError;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 @Component
 @Slf4j

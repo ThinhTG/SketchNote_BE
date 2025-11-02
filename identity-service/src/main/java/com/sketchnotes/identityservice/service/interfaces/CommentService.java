@@ -1,0 +1,15 @@
+package com.sketchnotes.identityservice.service.interfaces;
+
+import com.sketchnotes.identityservice.dtos.request.CommentRequest;
+import com.sketchnotes.identityservice.dtos.response.CommentResponse;
+
+import java.util.List;
+
+public interface CommentService {
+    CommentResponse addComment(Long postId, CommentRequest request);
+    List<CommentResponse> getCommentsForPost(Long postId);
+    List<CommentResponse> getReplies(Long commentId);
+    void deleteComment(Long commentId);
+
+}
+

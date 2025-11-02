@@ -1,9 +1,8 @@
 package com.sketchnotes.identityservice.controller;
 
-import com.sketchnotes.identityservice.dto.ApiResponse;
+import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.model.Transaction;
 import com.sketchnotes.identityservice.enums.PaymentStatus;
-import com.sketchnotes.identityservice.repository.ITransactionRepository;
 import com.sketchnotes.identityservice.service.interfaces.ITransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

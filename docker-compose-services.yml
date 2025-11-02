@@ -67,6 +67,9 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
       - REDIS_HOST=139.59.119.65
       - REDIS_PORT=6379
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
     restart: unless-stopped
 
   # Order Service
