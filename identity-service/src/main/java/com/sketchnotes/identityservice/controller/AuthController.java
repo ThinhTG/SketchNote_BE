@@ -1,12 +1,11 @@
 package com.sketchnotes.identityservice.controller;
 
-import com.sketchnotes.identityservice.dto.ApiResponse;
-import com.sketchnotes.identityservice.dto.identity.GoogleLoginParam;
-import com.sketchnotes.identityservice.dto.request.LoginGoogleRequest;
-import com.sketchnotes.identityservice.dto.request.LoginRequest;
-import com.sketchnotes.identityservice.dto.request.RegisterRequest;
-import com.sketchnotes.identityservice.dto.request.TokenRequest;
-import com.sketchnotes.identityservice.dto.response.LoginResponse;
+import com.sketchnotes.identityservice.dtos.ApiResponse;
+import com.sketchnotes.identityservice.dtos.request.LoginGoogleRequest;
+import com.sketchnotes.identityservice.dtos.request.LoginRequest;
+import com.sketchnotes.identityservice.dtos.request.RegisterRequest;
+import com.sketchnotes.identityservice.dtos.request.TokenRequest;
+import com.sketchnotes.identityservice.dtos.response.LoginResponse;
 import com.sketchnotes.identityservice.service.interfaces.IAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

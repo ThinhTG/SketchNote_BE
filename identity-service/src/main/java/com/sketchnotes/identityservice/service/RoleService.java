@@ -1,12 +1,11 @@
 package com.sketchnotes.identityservice.service;
 
 import com.sketchnotes.identityservice.client.IdentityClient;
-import com.sketchnotes.identityservice.dto.identity.Credential;
-import com.sketchnotes.identityservice.dto.identity.TokenExchangeParam;
-import com.sketchnotes.identityservice.dto.identity.TokenExchangeResponse;
-import com.sketchnotes.identityservice.dto.request.RoleKeycloakRequest;
-import com.sketchnotes.identityservice.dto.request.RoleRequest;
-import com.sketchnotes.identityservice.dto.response.RoleResponseKeycloak;
+import com.sketchnotes.identityservice.dtos.identity.TokenExchangeParam;
+import com.sketchnotes.identityservice.dtos.identity.TokenExchangeResponse;
+import com.sketchnotes.identityservice.dtos.request.RoleKeycloakRequest;
+import com.sketchnotes.identityservice.dtos.request.RoleRequest;
+import com.sketchnotes.identityservice.dtos.response.RoleResponseKeycloak;
 import com.sketchnotes.identityservice.enums.Role;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;

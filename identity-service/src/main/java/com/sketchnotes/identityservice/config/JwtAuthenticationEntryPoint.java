@@ -2,7 +2,7 @@ package com.sketchnotes.identityservice.config;
 
 import java.io.IOException;
 
-import com.sketchnotes.identityservice.dto.ApiResponse;
+import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

@@ -19,36 +19,40 @@ spring:
               uri: lb://learning-service
               predicates:
                 - Path=/api/learning/**
-            - id: payment-service
-              uri: lb://payment-service
+
+            - id: account-service
+              uri: lb://account-service
               predicates:
-                - Path=/api/payment/**
-            - id: identity-service
-              uri: lb://identity-service
-              predicates:
-                - Path=/api/users/**, /api/auth/**, /api/roles/**
-            - id: blog-service
-              uri: lb://blog-service
-              predicates:
-                - Path=/api/blogs/**
+                - Path=/api/users/**, /api/auth/**, /api/roles/**,/api/blogs/**,/api/payment/**
+
             - id: project-service
               uri: lb://project-service
               predicates:
                 - Path=/api/projects/**
+
+            - id: order-service
+              uri: lb://order-service
+              predicates:
+                - Path=/api/orders/**
+
+            - id: interaction-service
+              uri: lb://interaction-service
+              predicates:
+                - Path=/api/interactions/**
 
 springdoc:
   swagger-ui:
     urls:
       - name: learning-service
         url: /learning-service/v3/api-docs
-      - name: payment-service
-        url: /payment-service/v3/api-docs
-      - name: identity-service
-        url: /identity-service/v3/api-docs
-      - name: blog-service
-        url: /blog-service/v3/api-docs
+      - name: account-service
+        url: /account-service/v3/api-docs
       - name: project-service
         url: /project-service/v3/api-docs
+      - name: order-service
+        url: /order-service/v3/api-docs
+      - name: interaction-service
+        url: /interaction-service/v3/api-docs
 eureka:
   client:
     service-url:

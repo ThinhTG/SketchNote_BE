@@ -1,8 +1,8 @@
 package com.sketchnotes.identityservice.controller;
 
-import com.sketchnotes.identityservice.dto.ApiResponse;
-import com.sketchnotes.identityservice.dto.request.UserRequest;
-import com.sketchnotes.identityservice.dto.response.UserResponse;
+import com.sketchnotes.identityservice.dtos.ApiResponse;
+import com.sketchnotes.identityservice.dtos.request.UserRequest;
+import com.sketchnotes.identityservice.dtos.response.UserResponse;
 import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import com.sketchnotes.identityservice.ultils.PagedResponse;
 import lombok.RequiredArgsConstructor;
