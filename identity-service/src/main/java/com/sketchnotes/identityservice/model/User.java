@@ -1,5 +1,6 @@
 package com.sketchnotes.identityservice.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.sketchnotes.identityservice.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,4 +31,8 @@ public class User{
     private String avatarUrl;
     private LocalDateTime createAt;
     private  LocalDateTime  updateAt;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Wallet wallet;
 }
