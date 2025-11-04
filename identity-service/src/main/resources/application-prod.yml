@@ -7,6 +7,21 @@ spring:
   cloud:
     discovery:
       enabled: true
+    stream:
+      kafka:
+        binder:
+          brokers: ${KAFKA_BOOTSTRAP_SERVERS:139.59.119.65:9092}
+      bindings:
+        # consume OrderCreatedEvent (function bean name: orderCreatedConsumer -> binding: orderCreatedConsumer-in-0)
+        orderCreatedConsumer-in-0:
+          destination: order-created
+          contentType: application/json
+          group: payment-service-group
+        # publish payment results
+        paymentSucceeded-out-0:
+          destination: payment-succeeded
+        paymentFailed-out-0:
+          destination: payment-failed
   datasource:
     hikari:
       maximum-pool-size: 5
@@ -35,23 +50,23 @@ spring:
       host: 139.59.119.65
       port: 6379
 
-  kafka:
-    properties:
-      enable.idempotence: true
-      max.in.flight.requests.per.connection: 5
-    bootstrap-servers: 139.59.119.65:9092   # địa chỉ Kafka KRaft broker
-    consumer:
-      group-id: identity-service-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-      acks: all
-      retries: 1
-    listener:
-      ack-mode: record
+#  kafka:
+#    properties:
+#      enable.idempotence: true
+#      max.in.flight.requests.per.connection: 5
+#    bootstrap-servers: 139.59.119.65:9092   # địa chỉ Kafka KRaft broker
+#    consumer:
+#      group-id: identity-service-group
+#      auto-offset-reset: earliest
+#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      acks: all
+#      retries: 1
+#    listener:
+#      ack-mode: record
 
 idp:
   url: http://139.59.119.65:8090
