@@ -1,12 +1,16 @@
 server:
   port: 8087
 
+cors:
+  allowed-origins: "http://139.59.119.65:8888"
+
 spring:
   application:
     name: project-service
   cloud:
     discovery:
       enabled: true
+
   datasource:
     hikari:
       maximum-pool-size: 5
@@ -17,22 +21,27 @@ spring:
     url: jdbc:postgresql://139.59.119.65:6432/projectdb
     username: admin
     password: admin
+
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: http://139.59.119.65:8090/realms/sketchnote
+
   cache:
     type: redis
-    data:
-      redis:
-        host: 139.59.119.65
-        port: 6379
+
+  data:
+    redis:
+      host: 139.59.119.65
+      port: 6379
+      # password: your_password (nếu có bật password)
 
   aws:
     s3:
@@ -41,11 +50,12 @@ spring:
       bucket-name: ${AWS_BUCKET_NAME}
       region: ap-southeast-1
       presign-expiration: 10 # phút
+
   kafka:
     properties:
       enable.idempotence: true
       max.in.flight.requests.per.connection: 5
-      bootstrap-servers: 139.59.119.65:9092 # địa chỉ Kafka KRaft broker
+      bootstrap-servers: 139.59.119.65:9092
     consumer:
       group-id: project-service-group
       auto-offset-reset: earliest
@@ -58,7 +68,8 @@ spring:
       retries: 1
     listener:
       ack-mode: record
-  eureka:
-    client:
-      service-url:
-        defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}

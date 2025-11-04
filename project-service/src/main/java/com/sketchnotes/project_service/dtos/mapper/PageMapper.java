@@ -1,5 +1,6 @@
 package com.sketchnotes.project_service.dtos.mapper;
 
+import com.sketchnotes.project_service.dtos.request.PageDto;
 import com.sketchnotes.project_service.dtos.request.PageRequest;
 import com.sketchnotes.project_service.dtos.response.PageResponse;
 import com.sketchnotes.project_service.entity.Page;
@@ -16,6 +17,13 @@ public class PageMapper {
     }
 
     public static Page toEntity(PageRequest dto, Project project) {
+        return Page.builder()
+                .pageNumber(dto.getPageNumber())
+                .strokeUrl(dto.getStrokeUrl())
+                .project(project)
+                .build();
+    }
+    public static Page toEntity(PageDto dto, Project project) {
         return Page.builder()
                 .pageNumber(dto.getPageNumber())
                 .strokeUrl(dto.getStrokeUrl())

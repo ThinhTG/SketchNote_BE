@@ -1,20 +1,25 @@
 package com.sketchnotes.project_service.service.implement;
 
+import com.sketchnotes.project_service.dtos.request.ListPageRequest;
+import com.sketchnotes.project_service.dtos.request.PageDto;
 import com.sketchnotes.project_service.dtos.request.PageRequest;
 import com.sketchnotes.project_service.dtos.response.PageResponse;
 import com.sketchnotes.project_service.dtos.mapper.PageMapper;
 import com.sketchnotes.project_service.dtos.request.UpdatePageRequest;
 import com.sketchnotes.project_service.entity.Page;
 import com.sketchnotes.project_service.entity.Project;
+import com.sketchnotes.project_service.entity.ProjectVersion;
 import com.sketchnotes.project_service.exception.AppException;
 import com.sketchnotes.project_service.exception.ErrorCode;
 import com.sketchnotes.project_service.repository.IPageRepository;
 import com.sketchnotes.project_service.repository.IProjectRepository;
+import com.sketchnotes.project_service.repository.IProjectVersionRepository;
 import com.sketchnotes.project_service.service.IPageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -22,6 +27,42 @@ import java.util.List;
 public class PageService implements IPageService {
     private final IProjectRepository projectRepository;
     private final IPageRepository pageRepository;
+    private  final IProjectVersionRepository projectVersionRepository;
+
+    @Override
+    public List<PageResponse> addPages(ListPageRequest dtos) {
+        Project project = projectRepository.findById(dtos.getProjectId()).filter(p -> p.getDeletedAt() == null)
+                .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
+        ProjectVersion lastVersion = project.getProjectVersions().stream()
+                .max(Comparator.comparing(ProjectVersion::getVersionNumber))
+                .orElse(null);
+
+        if(project.getPages() != null) {
+            for (Page page : project.getPages()) {
+                page.setProject(null);
+                pageRepository.save(page);
+            }
+        }
+
+        ProjectVersion version = new ProjectVersion();
+        if (lastVersion == null) {
+            version.setVersionNumber(1L);
+        } else {
+            version.setVersionNumber(lastVersion.getVersionNumber() + 1);
+        }
+        version.setCreatedAt(LocalDateTime.now());
+        version.setNote(project.getName() + " - Version " + version.getVersionNumber());
+        version.setProject(project);
+        project.getProjectVersions().add(version);
+        projectRepository.save(project);
+        projectVersionRepository.save(version);
+        for (PageDto dto : dtos.getPages()) {
+            Page page = PageMapper.toEntity(dto, project);
+            page.setProjectVersion(version);
+            pageRepository.save(page);
+        }
+        return getPagesByProject(dtos.getProjectId());
+    }
 
     @Override
     public PageResponse addPage(PageRequest dto) {

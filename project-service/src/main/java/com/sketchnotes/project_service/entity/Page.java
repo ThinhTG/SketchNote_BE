@@ -19,6 +19,10 @@ public class Page {
     @JoinColumn(name = "project_id")
     private Project project;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_version_id")
+    private ProjectVersion projectVersion;
+
     @Column(nullable = false)
     private Integer pageNumber;
 
