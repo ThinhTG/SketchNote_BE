@@ -3,6 +3,7 @@ package com.sketchnotes.identityservice.dtos.response;
 import lombok.*;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -17,7 +18,7 @@ public class BlogResponse {
     private  String summary;
     private String authorDisplay;
     private String imageUrl;
-    private Instant createdAt;
-    private Instant updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private List<ContentResponse> contents;
 }

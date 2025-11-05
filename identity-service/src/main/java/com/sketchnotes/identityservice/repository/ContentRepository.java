@@ -9,6 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface ContentRepository extends JpaRepository<Content, Long> {
-List<Content> findByBlogIdOrderByIndexAsc(Long blogId);
+    List<Content> findByBlogIdAndDeletedAtIsNullOrderByIndexAsc(Long blogId);
 Optional<Content> findByIdAndDeletedAtIsNull(Long id);
 }

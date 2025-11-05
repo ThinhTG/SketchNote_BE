@@ -3,6 +3,7 @@ package com.sketchnotes.identityservice.dtos.response;
 import lombok.*;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -16,5 +17,5 @@ public class CommentResponse {
     private Long authorId;
     private String authorDisplay;
     private Long parentCommentId;
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 }
