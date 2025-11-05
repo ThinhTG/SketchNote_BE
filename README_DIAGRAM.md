@@ -12,6 +12,7 @@ Quick notes about components shown:
 - Redis: cache used by multiple services.
 - Microservices: identity, payment, order, project, blog, learning, interaction — each with configured ports in `docker-compose-services.yml`.
 
+
 How to import into draw.io (diagrams.net):
 1. Open https://app.diagrams.net/ (or the desktop app).
 2. File -> Import From -> Device and choose `architecture.drawio` from this repository.
