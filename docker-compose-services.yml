@@ -15,20 +15,6 @@ services:
       - KEYCLOAK_URL=http://139.59.119.65:8090
     restart: unless-stopped
 
-  # Payment Service
-  paymentservice:
-    image: ghcr.io/alarmistt/paymentservice:latest
-    container_name: paymentservice
-    ports:
-      - "8084:8084"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
-      - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
-      - REDIS_HOST=139.59.119.65
-      - REDIS_PORT=6379
-    restart: unless-stopped
-
   # Learning Service
   learningservice:
     image: ghcr.io/alarmistt/learningservice:latest
@@ -38,19 +24,6 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_HOST=http://139.59.119.65:8761/eureka/
-    restart: unless-stopped
-
-  blogservice:
-    image: ghcr.io/alarmistt/blogservice:latest
-    container_name: blogservice
-    ports:
-      - "8086:8086"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
-      - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
-      - REDIS_HOST=139.59.119.65
-      - REDIS_PORT=6379
     restart: unless-stopped
   
   # Project Service
@@ -86,16 +59,3 @@ services:
       - REDIS_PORT=6379
     restart: unless-stopped
   
-  # Interaction Service
-  interactionservice:
-    image: ghcr.io/alarmistt/interactionservice:latest
-    container_name: interactionservice
-    ports:
-      - "8088:8088"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
-      - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
-      - REDIS_HOST=139.59.119.65
-      - REDIS_PORT=6379
-    restart: unless-stopped

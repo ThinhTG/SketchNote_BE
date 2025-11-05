@@ -23,7 +23,7 @@ public class Project {
 
     @Column(length = 1000)
     private String description;
-
+    private String imageUrl;
     private Long ownerId;
 
     @OneToMany(mappedBy = "project")

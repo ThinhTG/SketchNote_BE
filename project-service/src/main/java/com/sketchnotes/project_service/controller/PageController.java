@@ -1,6 +1,7 @@
 package com.sketchnotes.project_service.controller;
 
 import com.sketchnotes.project_service.dtos.ApiResponse;
+import com.sketchnotes.project_service.dtos.request.ListPageRequest;
 import com.sketchnotes.project_service.dtos.request.PageRequest;
 import com.sketchnotes.project_service.dtos.request.UpdatePageRequest;
 import com.sketchnotes.project_service.dtos.response.PageResponse;
@@ -12,14 +13,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/projects/{projectId}/pages")
+@RequestMapping("/api/pages")
 @RequiredArgsConstructor
 public class PageController {
     private final IPageService pageService;
-
+//    @PostMapping
+//    public ResponseEntity<ApiResponse<PageResponse>> addPage( @RequestBody PageRequest dto) {
+//        PageResponse response = pageService.addPage(dto);
+//        return ResponseEntity.ok(ApiResponse.success(response, "Page added successfully"));
+//    }
     @PostMapping
-    public ResponseEntity<ApiResponse<PageResponse>> addPage( @RequestBody PageRequest dto) {
-        PageResponse response = pageService.addPage(dto);
+    public ResponseEntity<ApiResponse<List<PageResponse>>> addPageOfProject( @RequestBody ListPageRequest dto) {
+        List<PageResponse> response = pageService.addPages(dto);
         return ResponseEntity.ok(ApiResponse.success(response, "Page added successfully"));
     }
 

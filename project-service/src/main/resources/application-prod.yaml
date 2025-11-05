@@ -1,6 +1,7 @@
 server:
   port: 8087
-
+cors:
+  allowed-origins: "http://139.59.119.65:8888"
 spring:
   application:
     name: project-service
@@ -29,11 +30,11 @@ spring:
           issuer-uri: http://139.59.119.65:8090/realms/sketchnote
   cache:
     type: redis
-    data:
-      redis:
-        host: 139.59.119.65
-        port: 6379
 
+  data:
+    redis:
+      host: 139.59.119.65
+      port: 6379
   aws:
     s3:
       access-key: ${AWS_ACCESS_KEY}

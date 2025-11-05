@@ -186,7 +186,6 @@ public class AuthenticationService implements  IAuthService {
                     .avatarUrl(request.getAvatarUrl())
                     .build();
                 user = userRepository.save(user);
-            kafkaProducerService.sendMessage("user-created", user.getId().toString());
 
         } catch (FeignException exception) {
             throw errorNormalizer.handleKeyCloakException(exception);

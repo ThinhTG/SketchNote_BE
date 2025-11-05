@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "project_version")
@@ -16,12 +17,12 @@ public class ProjectVersion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long projectVersionId;
-    private Long versionNumer;
+    private Long versionNumber;
     private String note;
 
 
     @OneToMany(mappedBy = "projectVersion")
-    private java.util.List<PageVersion> pageVersions = new java.util.ArrayList<>();
+    private List<Page> pages = new java.util.ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")

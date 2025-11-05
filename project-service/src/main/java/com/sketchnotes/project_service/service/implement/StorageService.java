@@ -30,13 +30,13 @@ public class StorageService implements IStorageService {
                 .contentType(contentType.getMimeType())
                 .build();
 
-        PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(r -> r
+        PresignedPutObjectRequest preSigned = s3Presigner.presignPutObject(r -> r
                 .signatureDuration(Duration.ofMinutes(s3Properties.getPresignExpiration()))
                 .putObjectRequest(objectRequest)
         );
 
         return Map.of(
-                "uploadUrl", presigned.url().toString(),
+                "uploadUrl", preSigned.url().toString(),
                 "strokeUrl", "https://" + s3Properties.getBucketName() + ".s3." +
                         s3Properties.getRegion() + ".amazonaws.com/" + key
         );

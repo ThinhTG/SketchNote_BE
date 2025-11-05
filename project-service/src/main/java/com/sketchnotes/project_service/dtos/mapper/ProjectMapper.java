@@ -12,6 +12,7 @@ public class ProjectMapper {
                         .name(project.getName())
                         .description(project.getDescription())
                         .ownerId(project.getOwnerId())
+                        .imageUrl(project.getImageUrl())
                         .pages(null)
                         .build();
             }
@@ -30,6 +31,7 @@ public class ProjectMapper {
         return Project.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
+                .imageUrl(dto.getImageUrl())
                 .build();
     }
 }

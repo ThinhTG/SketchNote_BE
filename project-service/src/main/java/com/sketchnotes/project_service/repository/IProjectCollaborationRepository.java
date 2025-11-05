@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface IProjectCollaboration extends JpaRepository<ProjectCollaboration, Long> {
+public interface IProjectCollaborationRepository extends JpaRepository<ProjectCollaboration, Long> {
 }

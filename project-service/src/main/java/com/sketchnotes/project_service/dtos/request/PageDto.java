@@ -9,8 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
-public class ProjectRequest {
-    private String name;
-    private String description;
-    private String imageUrl;
+public class PageDto {
+    private Integer pageNumber;
+    private String strokeUrl;
 }

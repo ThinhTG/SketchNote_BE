@@ -15,6 +15,7 @@ public class ProjectResponse {
     private Long projectId;
     private String name;
     private String description;
+    private String imageUrl;
     private Long ownerId;
     private List<PageResponse> pages;
 }

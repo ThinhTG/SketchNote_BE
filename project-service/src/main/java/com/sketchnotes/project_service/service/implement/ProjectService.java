@@ -34,6 +34,7 @@ public class ProjectService implements IProjectService {
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .ownerId(user.getResult().getId())
+                .imageUrl(dto.getImageUrl())
                 .build();
         Project saved = projectRepository.save(project);
         return ProjectMapper.toDTO(saved);

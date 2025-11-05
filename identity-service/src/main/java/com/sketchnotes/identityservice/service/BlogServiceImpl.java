@@ -93,7 +93,7 @@ public class BlogServiceImpl implements BlogService {
         Blog blog = blogRepository.findBlogsByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BLOG_NOT_FOUND));
         blog.setDeletedAt(java.time.LocalDateTime.now());
-        List<Content> contents = contentRepository.findByBlogIdOrderByIndexAsc(blog.getId());
+        List<Content> contents = contentRepository.findByBlogIdAndDeletedAtIsNullOrderByIndexAsc(blog.getId());
         for(Content c : contents){
             c.setDeletedAt(java.time.LocalDateTime.now());
             contentRepository.save(c);
@@ -102,7 +102,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     private BlogResponse toDto(Blog p){
-        List<ContentResponse> contents = contentRepository.findByBlogIdOrderByIndexAsc(p.getId())
+        List<ContentResponse> contents = contentRepository.findByBlogIdAndDeletedAtIsNullOrderByIndexAsc(p.getId())
                 .stream().map(this::toDto).collect(Collectors.toList());
         String userName =p.getAuthor().getFirstName() + " " + p.getAuthor().getLastName();
         return BlogResponse.builder()
