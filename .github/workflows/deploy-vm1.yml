@@ -1,0 +1,46 @@
+name: 🚀 Deploy Gateway & Eureka to VM1
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout source code
+        uses: actions/checkout@v4
+
+      - name: 🔑 Login to GitHub Container Registry (GHCR)
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u alarmistt --password-stdin
+
+      # ===================== BUILD & PUSH =====================
+      - name: 🏗️ Build & Push API Gateway
+        if: contains(join(github.event.commits.*.modified), 'api-gateway/')
+        run: |
+          docker build -t ghcr.io/alarmistt/apigateway:latest ./api-gateway
+          docker push ghcr.io/alarmistt/apigateway:latest
+
+      - name: 🏗️ Build & Push Eureka Server
+        if: contains(join(github.event.commits.*.modified), 'eureka-server/')
+        run: |
+          docker build -t ghcr.io/alarmistt/eurekaservice:latest ./eureka-server
+          docker push ghcr.io/alarmistt/eurekaservice:latest
+
+      # ===================== DEPLOY TO VM1 =====================
+      - name: 🚀 Deploy to VM1
+        if: |
+          contains(join(github.event.commits.*.modified), 'api-gateway/') ||
+          contains(join(github.event.commits.*.modified), 'eureka-server/')
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.VM1_HOST }}
+          username: ${{ secrets.VM1_USER }}
+          key: ${{ secrets.VM1_KEY }}
+          script: |
+            echo "🔁 Pulling latest images on VM1..."
+            cd /root/SketchNote_BE
+            docker compose -f docker-compose-vm1.yml pull
+            docker compose -f docker-compose-vm1.yml up -d
