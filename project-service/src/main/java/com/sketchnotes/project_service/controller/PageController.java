@@ -46,4 +46,8 @@ public class PageController {
         pageService.deletePage(pageId);
         return ResponseEntity.ok(ApiResponse.success("Page deleted successfully"));
     }
+    @DeleteMapping("/test-cicd")
+    public ResponseEntity<ApiResponse<String>> test() {
+        return ResponseEntity.ok(ApiResponse.success(" successfully"));
+    }
 }
