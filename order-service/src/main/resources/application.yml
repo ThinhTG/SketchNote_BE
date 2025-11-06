@@ -1,6 +1,7 @@
 server:
   port: 8087
-
+cors:
+  allowed-origins: "http://139.59.119.65:8888"
 # Microservice Configuration
 payment-service:
   url: ${PAYMENT_SERVICE_URL:http://localhost:8081}
