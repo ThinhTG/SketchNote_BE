@@ -20,6 +20,12 @@ public class UserController {
         UserResponse response = userService.getUserById(id);
         return ResponseEntity.ok( ApiResponse.success( response,"Get data successful" ));
     }
+
+    @GetMapping("/public/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>>getUserByIdPublic(@PathVariable Long id) {
+        UserResponse response = userService.getUserById(id);
+        return ResponseEntity.ok( ApiResponse.success( response,"Get data successful" ));
+    }
     @GetMapping("/keycloak/{sub}")
     public ResponseEntity<ApiResponse<UserResponse>>getUserById(@PathVariable String sub) {
         UserResponse response = userService.getUserByKeycloakId(sub);

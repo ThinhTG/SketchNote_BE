@@ -14,6 +14,6 @@ public interface IdentityClient {
     @GetMapping("api/users/me")
     ApiResponse<UserResponse> getCurrentUser();
 
-    @GetMapping("api/users/{id}")
+    @GetMapping("api/users/public/{id}")
     ApiResponse<UserResponse> getUser(@PathVariable Long id);
 }
