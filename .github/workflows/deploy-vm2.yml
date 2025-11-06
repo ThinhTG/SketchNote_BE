@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 2  # cần 2 commit để so sánh diff
 
       - name: 🔑 Login to GitHub Container Registry
-        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u alarmistt --password-stdin
 
       - name: 🕵️ Detect changed files
         id: changes
@@ -32,29 +32,29 @@ jobs:
         if: contains(env.CHANGED_FILES, 'identity-service/')
         run: |
           echo "✅ identity-service changed, building image..."
-          docker build -t ghcr.io/${{ github.repository_owner }}/identityservice:latest ./identity-service
-          docker push ghcr.io/${{ github.repository_owner }}/identityservice:latest
+          docker build -t ghcr.io/alarmistt/identityservice:latest ./identity-service
+          docker push ghcr.io/alarmistt/identityservice:latest
 
       - name: 🏗️ Build & Push Learning Service
         if: contains(env.CHANGED_FILES, 'learning-service/')
         run: |
           echo "✅ learning-service changed, building image..."
-          docker build -t ghcr.io/${{ github.repository_owner }}/learningservice:latest ./learning-service
-          docker push ghcr.io/${{ github.repository_owner }}/learningservice:latest
+          docker build -t ghcr.io/alarmistt/learningservice:latest ./learning-service
+          docker push ghcr.io/alarmistt/learningservice:latest
 
       - name: 🏗️ Build & Push Project Service
         if: contains(env.CHANGED_FILES, 'project-service/')
         run: |
           echo "✅ project-service changed, building image..."
-          docker build -t ghcr.io/${{ github.repository_owner }}/projectservice:latest ./project-service
-          docker push ghcr.io/${{ github.repository_owner }}/projectservice:latest
+          docker build -t ghcr.io/alarmistt/projectservice:latest ./project-service
+          docker push ghcr.io/alarmistt/projectservice:latest
 
       - name: 🏗️ Build & Push Order Service
         if: contains(env.CHANGED_FILES, 'order-service/')
         run: |
           echo "✅ order-service changed, building image..."
-          docker build -t ghcr.io/${{ github.repository_owner }}/orderservice:latest ./order-service
-          docker push ghcr.io/${{ github.repository_owner }}/orderservice:latest
+          docker build -t ghcr.io/alarmistt/orderservice:latest ./order-service
+          docker push ghcr.io/alarmistt/orderservice:latest
 
       # ===================== DEPLOY =====================
       - name: 🚀 Deploy to VM2
