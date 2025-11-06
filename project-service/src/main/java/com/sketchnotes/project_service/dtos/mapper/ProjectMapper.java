@@ -21,6 +21,7 @@ public class ProjectMapper {
                 .name(project.getName())
                 .description(project.getDescription())
                 .ownerId(project.getOwnerId())
+                .imageUrl(project.getImageUrl())
                 .pages(project.getPages().stream()
                         .map(PageMapper::toDTO)
                         .toList())
