@@ -35,7 +35,6 @@ public class PaymentClient {
                     url, request, PaymentResponseDTO.class);
             
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                log.info("Payment link created successfully for order: {}", paymentRequest.getOrderId());
                 return response.getBody();
             }
             
