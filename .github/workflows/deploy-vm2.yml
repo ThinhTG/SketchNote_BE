@@ -1,0 +1,60 @@
+name: 🚀 Deploy Services to VM2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout source code
+        uses: actions/checkout@v4
+
+      - name: 🔑 Login to GitHub Container Registry (GHCR)
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u alarmistt --password-stdin
+
+      # ===================== BUILD & PUSH =====================
+      - name: 🏗️ Build & Push Identity Service
+        if: contains(join(github.event.commits.*.modified), 'identity-service/')
+        run: |
+          docker build -t ghcr.io/alarmistt/identityservice:latest ./identity-service
+          docker push ghcr.io/alarmistt/identityservice:latest
+
+      - name: 🏗️ Build & Push Learning Service
+        if: contains(join(github.event.commits.*.modified), 'learning-service/')
+        run: |
+          docker build -t ghcr.io/alarmistt/learningservice:latest ./learning-service
+          docker push ghcr.io/alarmistt/learningservice:latest
+
+      - name: 🏗️ Build & Push Project Service
+        if: contains(join(github.event.commits.*.modified), 'project-service/')
+        run: |
+          docker build -t ghcr.io/alarmistt/projectservice:latest ./project-service
+          docker push ghcr.io/alarmistt/projectservice:latest
+
+      - name: 🏗️ Build & Push Order Service
+        if: contains(join(github.event.commits.*.modified), 'order-service/')
+        run: |
+          docker build -t ghcr.io/alarmistt/orderservice:latest ./order-service
+          docker push ghcr.io/alarmistt/orderservice:latest
+
+      # ===================== DEPLOY TO VM2 =====================
+      - name: 🚀 Deploy to VM2
+        if: |
+          contains(join(github.event.commits.*.modified), 'identity-service/') ||
+          contains(join(github.event.commits.*.modified), 'learning-service/') ||
+          contains(join(github.event.commits.*.modified), 'project-service/') ||
+          contains(join(github.event.commits.*.modified), 'order-service/')
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.VM2_HOST }}
+          username: ${{ secrets.VM2_USER }}
+          key: ${{ secrets.VM2_KEY }}
+          script: |
+            echo "🔁 Pulling latest images on VM2..."
+            cd /root/SketchNote_BE
+            docker compose -f docker-compose-vm2.yml pull
+            docker compose -f docker-compose-vm2.yml up -d
