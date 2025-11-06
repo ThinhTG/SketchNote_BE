@@ -39,9 +39,6 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
                 .build();
         
         PaymentResponseDTO paymentResponse = paymentClient.createPaymentLink(paymentRequest);
-        
-        log.info("Payment link created for order {}: {}", orderId, paymentResponse.getPaymentUrl());
-        
         return paymentResponse;
     }
 
@@ -64,7 +61,6 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
         boolean result = paymentClient.cancelPaymentLink(orderCode);
         
         if (result) {
-            log.info("Payment cancelled for order {}", orderId);
             // Cập nhật trạng thái order
             orderService.updateOrderStatus(orderId, "CANCELLED");
             orderService.updatePaymentStatus(orderId, "CANCELLED");
@@ -75,7 +71,6 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
 
     @Override
     public void handlePaymentCallback(Long orderId, String paymentStatus) {
-        log.info("Handling payment callback for order {}: status={}", orderId, paymentStatus);
         
         // Cập nhật trạng thái payment của order
         orderService.updatePaymentStatus(orderId, paymentStatus);
@@ -84,15 +79,13 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
         switch (paymentStatus) {
             case "PAID":
                 orderService.updateOrderStatus(orderId, "CONFIRMED");
-                log.info("Order {} confirmed after successful payment", orderId);
                 break;
             case "FAILED":
             case "CANCELLED":
                 orderService.updateOrderStatus(orderId, "CANCELLED");
-                log.info("Order {} cancelled due to payment failure", orderId);
                 break;
             default:
-                log.warn("Unknown payment status: {}", paymentStatus);
+                log.error("Unknown payment status: {}", paymentStatus);
         }
     }
     

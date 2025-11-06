@@ -24,12 +24,7 @@ public class PaymentService {
 
     @Transactional
     public void handlePaymentSuccess(PaymentSucceededEvent event) {
-        log.info("Received PaymentSucceededEvent - orderId={}, txId={}, method={}",
-                event.getOrderId(), event.getTransactionId(), event.getPaymentMethod());
-
         orderRepository.findById(event.getOrderId()).ifPresentOrElse(order -> {
-            log.info("Processing order {} - current paymentStatus={}, orderStatus={}",
-                    order.getOrderId(), order.getPaymentStatus(), order.getOrderStatus());
             boolean alreadyPaid = "PAID".equalsIgnoreCase(order.getPaymentStatus());
 
             try {
@@ -47,9 +42,7 @@ public class PaymentService {
                 var detailIds = orderDetailRepository.findTemplateIdsByOrderId(order.getOrderId());
                 if (detailIds != null) resourceTemplateIds.addAll(detailIds);
 
-                log.info("Collected {} templateIds for order {}: {}",
-                        resourceTemplateIds.size(), order.getOrderId(), resourceTemplateIds);
-
+                
                 // Tạo UserResource cho tất cả các resource templates (idempotent)
                 if (!resourceTemplateIds.isEmpty()) {
                     int successCount = 0;
@@ -72,11 +65,6 @@ public class PaymentService {
                             errorCount++;
                         }
                     }
-                    
-                    if (successCount > 0 || skipCount > 0 || errorCount > 0) {
-                        log.info("Order {} - Payment succeeded{} . UserResources: {} created, {} skipped, {} errors",
-                            order.getOrderId(), alreadyPaid ? " (already PAID)" : "", successCount, skipCount, errorCount);
-                    }
                 }
             } catch (Exception e) {
                 log.error("Error processing payment success for Order {}: {}", order.getOrderId(), e.getMessage(), e);
@@ -97,7 +85,6 @@ public class PaymentService {
             order.setOrderStatus("CANCELLED");
             orderRepository.save(order);
 
-            log.info("Order {} - Payment failed: {}", order.getOrderId(), event.getReason());
-        }, () -> log.warn(" Order {} not found", event.getOrderId()));
+        }, () -> log.error("Order {} not found when processing PaymentFailedEvent", event.getOrderId()));
     }
 }
