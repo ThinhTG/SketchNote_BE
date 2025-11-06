@@ -1,11 +1,9 @@
-name: 🚀 Deploy Services to VM2
+name: 🚀 Smart Deploy Services to VM2
 
 on:
   push:
     branches:
-      - main
-  repository_dispatch:
-    types: [sync_now]  # để sau này có thể trigger từ repo khác (fork)
+      - main  # Chạy khi merge/push vào nhánh main
 
 jobs:
   build-and-deploy:
@@ -18,42 +16,50 @@ jobs:
       - name: 🔑 Login to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # ===================== BUILD & PUSH =====================
+      # ===================== BUILD & PUSH (CHỈ NHỮNG SERVICE CÓ THAY ĐỔI) =====================
 
       - name: 🏗️ Build & Push Identity Service
-        if: github.ref == 'refs/heads/main'
+        if: contains(join(github.event.commits.*.modified), 'identity-service/')
         run: |
+          echo "✅ identity-service changed, building image..."
           docker build -t ghcr.io/${{ github.repository_owner }}/identityservice:latest ./identity-service
           docker push ghcr.io/${{ github.repository_owner }}/identityservice:latest
 
       - name: 🏗️ Build & Push Learning Service
-        if: github.ref == 'refs/heads/main'
+        if: contains(join(github.event.commits.*.modified), 'learning-service/')
         run: |
+          echo "✅ learning-service changed, building image..."
           docker build -t ghcr.io/${{ github.repository_owner }}/learningservice:latest ./learning-service
           docker push ghcr.io/${{ github.repository_owner }}/learningservice:latest
 
       - name: 🏗️ Build & Push Project Service
-        if: github.ref == 'refs/heads/main'
+        if: contains(join(github.event.commits.*.modified), 'project-service/')
         run: |
+          echo "✅ project-service changed, building image..."
           docker build -t ghcr.io/${{ github.repository_owner }}/projectservice:latest ./project-service
           docker push ghcr.io/${{ github.repository_owner }}/projectservice:latest
 
       - name: 🏗️ Build & Push Order Service
-        if: github.ref == 'refs/heads/main'
+        if: contains(join(github.event.commits.*.modified), 'order-service/')
         run: |
+          echo "✅ order-service changed, building image..."
           docker build -t ghcr.io/${{ github.repository_owner }}/orderservice:latest ./order-service
           docker push ghcr.io/${{ github.repository_owner }}/orderservice:latest
 
       # ===================== DEPLOY TO VM2 =====================
       - name: 🚀 Deploy to VM2
-        if: github.ref == 'refs/heads/main'
+        if: |
+          contains(join(github.event.commits.*.modified), 'identity-service/') ||
+          contains(join(github.event.commits.*.modified), 'learning-service/') ||
+          contains(join(github.event.commits.*.modified), 'project-service/') ||
+          contains(join(github.event.commits.*.modified), 'order-service/')
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.VM2_HOST }}
           username: ${{ secrets.VM2_USER }}
           key: ${{ secrets.VM2_KEY }}
           script: |
-            echo "🔁 Pulling latest images..."
+            echo "🔁 Pulling latest images on VM2..."
             cd /root/SketchNote_BE
             docker compose -f docker-compose-services.yml pull
             docker compose -f docker-compose-services.yml up -d
