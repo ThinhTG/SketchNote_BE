@@ -3,33 +3,45 @@ name: 🚀 Deploy Gateway & Eureka to VM1
 on:
   push:
     branches:
-      - main
+      - main  # Trigger only when pushing or merging into the main branch
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # ===================== CHECKOUT SOURCE CODE =====================
       - name: 🧾 Checkout source code
         uses: actions/checkout@v4
 
+      # ===================== DEBUG INFORMATION =====================
+      - name: 🧠 Debug info (branch & changed files)
+        run: |
+          echo "🔹 Current branch: ${{ github.ref }}"
+          echo "🔹 Commit message: ${{ github.event.head_commit.message }}"
+          echo "🔹 Files changed:"
+          echo "${{ toJson(github.event.commits.*.modified) }}"
+
+      # ===================== LOGIN TO GHCR =====================
       - name: 🔑 Login to GitHub Container Registry (GHCR)
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u alarmistt --password-stdin
 
-      # ===================== BUILD & PUSH =====================
+      # ===================== BUILD & PUSH (ONLY IF CHANGED) =====================
       - name: 🏗️ Build & Push API Gateway
         if: contains(join(github.event.commits.*.modified), 'api-gateway/')
         run: |
+          echo "🧱 Detected changes in api-gateway/, building image..."
           docker build -t ghcr.io/alarmistt/apigateway:latest ./api-gateway
           docker push ghcr.io/alarmistt/apigateway:latest
 
       - name: 🏗️ Build & Push Eureka Server
         if: contains(join(github.event.commits.*.modified), 'eureka-server/')
         run: |
+          echo "🧱 Detected changes in eureka-server/, building image..."
           docker build -t ghcr.io/alarmistt/eurekaservice:latest ./eureka-server
           docker push ghcr.io/alarmistt/eurekaservice:latest
 
-      # ===================== DEPLOY TO VM1 =====================
+      # ===================== DEPLOY TO VM1 (ONLY IF CHANGED) =====================
       - name: 🚀 Deploy to VM1
         if: |
           contains(join(github.event.commits.*.modified), 'api-gateway/') ||
@@ -40,7 +52,8 @@ jobs:
           username: ${{ secrets.VM1_USER }}
           key: ${{ secrets.VM1_KEY }}
           script: |
-            echo "🔁 Pulling latest images on VM1..."
+            echo "🔁 Pulling the latest images on VM1..."
             cd /root/SketchNote_BE
             docker compose -f docker-compose-vm1.yml pull
             docker compose -f docker-compose-vm1.yml up -d
+            echo "✅ Deployment complete!"
