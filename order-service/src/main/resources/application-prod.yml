@@ -1,6 +1,7 @@
 server:
   port: 8083
-
+cors:
+  allowed-origins: "http://139.59.119.65:8888"
 spring:
   application:
     name: order-service
