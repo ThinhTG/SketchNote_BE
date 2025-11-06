@@ -1,73 +1,46 @@
 package com.sketchnotes.order_service.events;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sketchnotes.order_service.entity.Order;
-import com.sketchnotes.order_service.entity.OrderEventLog;
-import com.sketchnotes.order_service.exception.OrderNotFoundException;
-import com.sketchnotes.order_service.repository.OrderEventLogRepository;
-import com.sketchnotes.order_service.repository.OrderRepository;
+import com.sketchnotes.order_service.service.implement.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Consumer;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentEventConsumer {
 
-    private final OrderRepository orderRepository;
-    private final OrderEventLogRepository orderEventLogRepository;
-    private final ObjectMapper objectMapper;
-    private final StreamBridge streamBridge;
+    private final PaymentService paymentService;
 
-    // Consumer cho PaymentSucceededEvent
     @Bean
     public Consumer<PaymentSucceededEvent> paymentSucceededConsumer() {
+        log.info("Registering paymentSucceededConsumer bean");
         return event -> {
+            log.info("PaymentSucceededEvent received: orderId={}, txId={}, method={}",
+                    event.getOrderId(), event.getTransactionId(), event.getPaymentMethod());
             try {
-                orderRepository.findById(event.getOrderId()).ifPresentOrElse(order -> {
-                    if ("PAID".equalsIgnoreCase(order.getPaymentStatus())) {
-                        return;
-                    }
-                    order.setPaymentStatus("PAID");
-                    order.setOrderStatus("CONFIRMED");
-                    orderRepository.save(order);
-                    log.info("Order {} - Payment succeeded", order.getOrderId());
-                }, () -> {
-                    log.warn("Order {} not found", event.getOrderId());
-                });
-            } catch (Exception ex) {
-                log.error("Order {} - Payment processing error: {}", event.getOrderId(), ex.getMessage());
+                paymentService.handlePaymentSuccess(event);
+            } catch (Exception e) {
+                log.error("Error processing PaymentSucceededEvent: {}", e.getMessage(), e);
+                throw e;
             }
         };
     }
 
-    // Consumer cho PaymentFailedEvent
     @Bean
     public Consumer<PaymentFailedEvent> paymentFailedConsumer() {
+        log.info("Registering paymentFailedConsumer bean");
         return event -> {
+            log.info("PaymentFailedEvent received: orderId={}, reason={}", event.getOrderId(), event.getReason());
             try {
-                orderRepository.findById(event.getOrderId()).ifPresentOrElse(order -> {
-                    String current = order.getPaymentStatus();
-                    if (current != null && ("FAILED".equalsIgnoreCase(current) || "CANCELLED".equalsIgnoreCase(current))) {
-                        return;
-                    }
-                    order.setPaymentStatus("FAILED");
-                    order.setOrderStatus("CANCELLED");
-                    orderRepository.save(order);
-                    log.info("Order {} - Payment failed: {}", order.getOrderId(), event.getReason());
-                }, () -> {
-                    log.warn("Order {} not found", event.getOrderId());
-                });
-            } catch (Exception ex) {
-                log.error("Order {} - Payment failure processing error: {}", event.getOrderId(), ex.getMessage());
+                paymentService.handlePaymentFailed(event);
+            } catch (Exception e) {
+                log.error("Error processing PaymentFailedEvent: {}", e.getMessage(), e);
+                throw e;
             }
-
-
         };
     }
 }
