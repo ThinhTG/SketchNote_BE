@@ -7,8 +7,10 @@ import com.sketchnotes.order_service.entity.*;
 import com.sketchnotes.order_service.exception.OrderNotFoundException;
 import com.sketchnotes.order_service.exception.ResourceTemplateNotFoundException;
 import com.sketchnotes.order_service.mapper.OrderMapper;
+import com.sketchnotes.order_service.repository.OrderDetailRepository;
 import com.sketchnotes.order_service.repository.OrderRepository;
 import com.sketchnotes.order_service.repository.ResourceTemplateRepository;
+import com.sketchnotes.order_service.repository.UserResourceRepository;
 import com.sketchnotes.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sketchnotes.order_service.events.*;
 import com.sketchnotes.order_service.repository.OrderEventLogRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 
 import java.math.BigDecimal;
@@ -37,11 +41,20 @@ public class OrderServiceImpl implements OrderService {
     private final StreamBridge streamBridge;
     private final ObjectMapper objectMapper;
     private final OrderEventLogRepository orderEventLogRepository;
+    private final UserResourceRepository userResourceRepository;
+    private final OrderDetailRepository orderDetailRepository;
 
 
 
     @Override
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
+        Long userId = request.getUserId();
+        if (userId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User id is required to create order");
+        }
+
+        validateOrderDuplicates(userId, request.getItems());
+
         // 1️⃣ Validate templates tồn tại và active
     for (OrderRequestDTO.OrderDetailRequestDTO item : request.getItems()) {
         resourceTemplateRepository.findByTemplateIdAndStatus(item.getResourceTemplateId(), ResourceTemplate.TemplateStatus.PUBLISHED)
@@ -118,6 +131,32 @@ public class OrderServiceImpl implements OrderService {
 // Gửi event qua Kafka (binding name = orderCreated-out-0)
         KafkaConfig.sendEvent(streamBridge, "orderCreated-out-0", event);
         return enrichOrderResponse(orderMapper.toDto(saved));
+    }
+
+    private void validateOrderDuplicates(Long userId, List<OrderRequestDTO.OrderDetailRequestDTO> items) {
+        if (items == null || items.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Order must contain at least one template item");
+        }
+
+        List<String> orderStatuses = List.of("PENDING", "CONFIRMED");
+        List<String> paymentStatuses = List.of("PENDING", "PAID");
+
+        for (OrderRequestDTO.OrderDetailRequestDTO item : items) {
+            Long templateId = item.getResourceTemplateId();
+            if (templateId == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Template id is required for each order item");
+            }
+
+            if (userResourceRepository.existsByUserIdAndResourceTemplateIdAndActiveTrue(userId, templateId)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        String.format("You already own template %d", templateId));
+            }
+
+            if (orderDetailRepository.existsByUserAndTemplateWithStatuses(userId, templateId, orderStatuses, paymentStatuses)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        String.format("You already have a pending order for template %d", templateId));
+            }
+        }
     }
 
     @Override

@@ -20,6 +20,7 @@ public interface UserResourceRepository  extends JpaRepository<UserResource,Long
 
     List<UserResource> findByUserIdAndActiveTrue(Long userId);
     boolean existsByUserIdAndResourceTemplateId(Long userId, Long resourceTemplateId);
+    boolean existsByUserIdAndResourceTemplateIdAndActiveTrue(Long userId, Long resourceTemplateId);
     Optional<UserResource> findFirstByUserIdAndResourceTemplateId(Long userId, Long resourceTemplateId);
 
     @Query("select ur.resourceTemplateId from UserResource ur where ur.userId = ?1 and ur.active = true")
