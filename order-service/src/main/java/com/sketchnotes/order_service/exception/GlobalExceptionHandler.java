@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ResponseStatusException;
 
 
 
@@ -16,40 +17,41 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(OrderNotFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleOrderNotFoundException(
             OrderNotFoundException ex, WebRequest request) {
-        ApiResponse<Object> response = ApiResponse.<Object>builder()
-                .code(HttpStatus.NOT_FOUND.value())
-                .message(ex.getMessage())
-                .build();
+        ApiResponse<Object> response = ApiResponse.error(HttpStatus.NOT_FOUND.value(), ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(ResourceTemplateNotFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleResourceTemplateNotFoundException(
             ResourceTemplateNotFoundException ex, WebRequest request) {
-        ApiResponse<Object> response = ApiResponse.<Object>builder()
-                .code(HttpStatus.NOT_FOUND.value())
-                .message(ex.getMessage())
-                .build();
+        ApiResponse<Object> response = ApiResponse.error(HttpStatus.NOT_FOUND.value(), ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Object>> handleIllegalArgumentException(
             IllegalArgumentException ex, WebRequest request) {
-        ApiResponse<Object> response = ApiResponse.<Object>builder()
-                .code(HttpStatus.BAD_REQUEST.value())
-                .message(ex.getMessage())
-                .build();
+        ApiResponse<Object> response = ApiResponse.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ApiResponse<Object>> handleResponseStatusException(ResponseStatusException ex) {
+        HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
+        if (status == null) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        String message = ex.getReason() != null ? ex.getReason() : ex.getMessage();
+        ApiResponse<Object> response = ApiResponse.error(status.value(), message);
+        return new ResponseEntity<>(response, status);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGenericException(
             Exception ex, WebRequest request) {
-        ApiResponse<Object> response = ApiResponse.<Object>builder()
-                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message("An unexpected error occurred: " + ex.getMessage())
-                .build();
+        ApiResponse<Object> response = ApiResponse.error(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "An unexpected error occurred: " + ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
