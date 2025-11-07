@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -152,6 +153,9 @@ public class OrderTemplateController {
     public ResponseEntity<ApiResponse<ResourceTemplateDTO>> createTemplate(@RequestBody TemplateCreateUpdateDTO dto) {
         ApiResponse<UserResponse> apiResponse = identityClient.getCurrentUser();
         UserResponse user = apiResponse.getResult();
+        if (user == null || user.getRole() == null || !"DESIGNER".equalsIgnoreCase(user.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only designers can create templates");
+        }
         dto.setDesignerId(user.getId());
         ResourceTemplateDTO created = templateService.createTemplate(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created, "Template created and pending review"));

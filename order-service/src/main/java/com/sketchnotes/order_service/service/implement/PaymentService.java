@@ -1,15 +1,20 @@
 package com.sketchnotes.order_service.service.implement;
 
+import com.sketchnotes.order_service.client.IdentityClient;
+import com.sketchnotes.order_service.entity.OrderDetail;
+import com.sketchnotes.order_service.entity.ResourceTemplate;
 import com.sketchnotes.order_service.events.PaymentFailedEvent;
 import com.sketchnotes.order_service.events.PaymentSucceededEvent;
 import com.sketchnotes.order_service.repository.OrderRepository;
 import com.sketchnotes.order_service.repository.OrderDetailRepository;
+import com.sketchnotes.order_service.repository.ResourceTemplateRepository;
 import com.sketchnotes.order_service.service.UserResourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,6 +26,8 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final UserResourceService userResourceService;
+    private final ResourceTemplateRepository resourceTemplateRepository;
+    private final IdentityClient identityClient;
 
     @Transactional
     public void handlePaymentSuccess(PaymentSucceededEvent event) {
@@ -63,6 +70,39 @@ public class PaymentService {
                             log.error("Failed to create UserResource for Order {} and ResourceTemplate {}: {}", 
                                 order.getOrderId(), resourceTemplateId, e.getMessage(), e);
                             errorCount++;
+                        }
+                    }
+                }
+
+                // Cộng tiền cho designer từ mỗi OrderDetail
+                if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
+                    for (OrderDetail detail : order.getOrderDetails()) {
+                        try {
+                            // Lấy ResourceTemplate để biết designerId
+                            ResourceTemplate template = resourceTemplateRepository
+                                    .findByTemplateIdAndStatus(detail.getResourceTemplateId(), ResourceTemplate.TemplateStatus.PUBLISHED)
+                                    .orElse(null);
+                            
+                            if (template != null && template.getDesignerId() != null) {
+                                Long designerId = template.getDesignerId();
+                                BigDecimal amountToDeposit = detail.getSubtotalAmount();
+                                
+                                if (amountToDeposit != null && amountToDeposit.compareTo(BigDecimal.ZERO) > 0) {
+                                    // Gọi identity service để cộng tiền cho designer
+                                    String description = String.format("Payment from order %d for template %d", 
+                                            order.getOrderId(), detail.getResourceTemplateId());
+                                    identityClient.depositForDesigner(designerId, amountToDeposit, description);
+                                    log.info("Deposited {} to designer {} for order {} template {}", 
+                                            amountToDeposit, designerId, order.getOrderId(), detail.getResourceTemplateId());
+                                }
+                            } else {
+                                log.warn("Template {} not found or has no designerId for order {}", 
+                                        detail.getResourceTemplateId(), order.getOrderId());
+                            }
+                        } catch (Exception e) {
+                            // Log error nhưng không throw để không ảnh hưởng đến các designer khác
+                            log.error("Failed to deposit money to designer for OrderDetail {} in Order {}: {}", 
+                                    detail.getOrderDetailId(), order.getOrderId(), e.getMessage(), e);
                         }
                     }
                 }
