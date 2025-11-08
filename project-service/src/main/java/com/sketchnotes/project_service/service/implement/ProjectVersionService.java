@@ -34,8 +34,11 @@ public class ProjectVersionService implements IProjectVersionService {
 
     @Override
     public List<ProjectVersionResponse> getRecentVersions(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .filter(p -> p.getDeletedAt() == null)
+                .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
         List<ProjectVersion> versions = projectVersionRepository
-                .findByProject_ProjectIdAndDeletedAtIsNullOrderByCreatedAtDesc(projectId);
+                .findByProjectAndDeletedAtIsNullOrderByCreatedAtDesc(project);
         
         return versions.stream()
                 .limit(MAX_VERSIONS)

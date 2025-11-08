@@ -10,7 +10,7 @@ public class PageMapper {
     public static PageResponse toDTO(Page page) {
         return PageResponse.builder()
                 .pageId(page.getPageId())
-                .projectId(page.getProject().getProjectId())
+                .projectId(page.getProject() != null ? page.getProject().getProjectId() : null)
                 .pageNumber(page.getPageNumber())
                 .strokeUrl(page.getStrokeUrl())
                 .build();

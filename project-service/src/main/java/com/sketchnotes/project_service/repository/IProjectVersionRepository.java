@@ -11,7 +11,6 @@ import java.util.List;
 public interface IProjectVersionRepository extends JpaRepository<ProjectVersion, Long> {
     ProjectVersion findFirstByProjectAndDeletedAtIsNullOrderByVersionNumberDesc(Project project);
     List<ProjectVersion> findByProjectAndDeletedAtIsNullOrderByCreatedAtDesc(Project project);
-    List<ProjectVersion> findByProject_ProjectIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long projectId);
     Long countByProjectAndDeletedAtIsNull(Project project);
     ProjectVersion findFirstByProjectAndDeletedAtIsNullOrderByCreatedAtAsc(Project project);
 }
