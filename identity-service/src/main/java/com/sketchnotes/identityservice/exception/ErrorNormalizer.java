@@ -40,13 +40,22 @@ public class ErrorNormalizer {
     public AppException handleKeyCloakException(FeignException exception) {
         String responseBody = exception.contentUTF8();
         log.warn("Keycloak request failed. Status: {}, Body: {}", exception.status(), responseBody);
+        log.warn("Response body length: {}, isEmpty: {}", responseBody != null ? responseBody.length() : 0, responseBody == null || responseBody.isEmpty());
+
+        // If response body is empty and status is 401, assume invalid credentials
+        if ((responseBody == null || responseBody.isEmpty()) && exception.status() == 401) {
+            log.info("Empty response body with 401 status - treating as invalid credentials");
+            return new AppException(ErrorCode.INVALID_GRANT);
+        }
 
         try {
             // 1. Try parse Admin API error
             KeyCloakError kcError = tryParseAdminError(responseBody);
             if (kcError != null && kcError.getErrorMessage() != null) {
+                log.debug("Parsed Admin API error: {}", kcError.getErrorMessage());
                 ErrorCode code = errorCodeMap.get(kcError.getErrorMessage());
                 if (code != null) {
+                    log.info("Mapped Admin API error to: {}", code);
                     return new AppException(code);
                 }
             }
@@ -54,16 +63,23 @@ public class ErrorNormalizer {
             // 2. Try parse OAuth2 / Token API error
             String oauthError = tryParseOAuthError(responseBody);
             if (oauthError != null) {
+                log.debug("Parsed OAuth2 error: {}", oauthError);
                 ErrorCode code = errorCodeMap.get(oauthError);
                 if (code != null) {
+                    log.info("Mapped OAuth2 error '{}' to: {}", oauthError, code);
                     return new AppException(code);
+                } else {
+                    log.warn("OAuth2 error '{}' not found in errorCodeMap", oauthError);
                 }
+            } else {
+                log.warn("Could not parse OAuth2 error from response body");
             }
 
         } catch (Exception e) {
             log.error("Unexpected error handling Keycloak exception", e);
         }
 
+        log.warn("Returning UNCATEGORIZED_EXCEPTION - no matching error code found");
         return new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
     }
 
@@ -77,11 +93,17 @@ public class ErrorNormalizer {
 
     private String tryParseOAuthError(String body) {
         try {
+            log.debug("Attempting to parse OAuth error from body: {}", body);
             JsonNode node = objectMapper.readTree(body);
             if (node.has("error")) {
-                return node.get("error").asText();
+                String errorValue = node.get("error").asText();
+                log.debug("Successfully extracted OAuth error field: {}", errorValue);
+                return errorValue;
+            } else {
+                log.debug("Response body does not contain 'error' field");
             }
-        } catch (JsonProcessingException ignored) {
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to parse OAuth error JSON: {}", e.getMessage());
         }
         return null;
     }

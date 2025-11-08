@@ -15,6 +15,7 @@ public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
             "/api/auth/register",
             "/api/auth/login",
+            "/api/blogs",
             "/api/auth/refresh-token",
             "/api/auth/login-google",
             "/api/payment/payos/webhook",

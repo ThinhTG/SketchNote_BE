@@ -17,9 +17,10 @@ import com.sketchnotes.identityservice.exception.ErrorNormalizer;
 import com.sketchnotes.identityservice.model.User;
 import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.service.interfaces.IAuthService;
+import com.sketchnotes.identityservice.service.KafkaProducerService;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
-
+import lombok.extern.slf4j.Slf4j;
 
 import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService implements  IAuthService {
     private final IdentityClient identityClient;
     private final IUserRepository userRepository;
@@ -74,7 +76,11 @@ public class AuthenticationService implements  IAuthService {
                     .build();
 
         } catch (FeignException ex) {
+            log.error("FeignException caught during login: Status={}, Message={}", ex.status(), ex.getMessage());
             throw errorNormalizer.handleKeyCloakException(ex);
+        } catch (Exception ex) {
+            log.error("Unexpected exception during login", ex);
+            throw ex;
         }
     }
     @Override
