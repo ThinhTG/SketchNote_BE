@@ -17,5 +17,6 @@ public class CORSConfig implements WebMvcConfigurer {
                 .allowedOrigins(allowedOrigins,"http://localhost:8888/") // chính domain service
                 .allowedMethods("*")
                 .allowedHeaders("*");
+
     }
 }
