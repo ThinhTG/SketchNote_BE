@@ -16,6 +16,7 @@ import com.sketchnotes.project_service.repository.IProjectRepository;
 import com.sketchnotes.project_service.repository.IProjectVersionRepository;
 import com.sketchnotes.project_service.service.IPageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -28,8 +29,10 @@ public class PageService implements IPageService {
     private final IProjectRepository projectRepository;
     private final IPageRepository pageRepository;
     private  final IProjectVersionRepository projectVersionRepository;
+    private final ProjectVersionService projectVersionService;
 
     @Override
+    @CacheEvict(value = "projects", key = "#dtos.projectId")
     public List<PageResponse> addPages(ListPageRequest dtos) {
         Project project = projectRepository.findById(dtos.getProjectId()).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
@@ -61,6 +64,10 @@ public class PageService implements IPageService {
             page.setProjectVersion(version);
             pageRepository.save(page);
         }
+        
+        // Clean up old versions if more than 10 exist
+        projectVersionService.cleanupOldVersions(dtos.getProjectId());
+        
         return getPagesByProject(dtos.getProjectId());
     }
 

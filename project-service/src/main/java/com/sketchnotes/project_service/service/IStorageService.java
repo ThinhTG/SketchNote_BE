@@ -6,5 +6,5 @@ import java.util.Map;
 
 public interface IStorageService {
     Map<String, String> generatePresignedUrl(String fileName, FileContentType contentType);
-
+    void deleteFile(String fileUrl);
 }
