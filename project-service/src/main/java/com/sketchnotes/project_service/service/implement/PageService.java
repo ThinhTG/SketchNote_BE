@@ -40,10 +40,13 @@ public class PageService implements IPageService {
                 .max(Comparator.comparing(ProjectVersion::getVersionNumber))
                 .orElse(null);
 
+        // Soft delete old pages before creating new version
         if(project.getPages() != null) {
             for (Page page : project.getPages()) {
-                page.setProject(null);
-                pageRepository.save(page);
+                if (page.getDeletedAt() == null) {
+                    page.setDeletedAt(LocalDateTime.now());
+                    pageRepository.save(page);
+                }
             }
         }
 
