@@ -28,7 +28,7 @@ public enum ErrorCode{
     USER_INACTIVE(400, "User is inactive", HttpStatus.BAD_REQUEST),
 
     // OAuth2 / Token API errors
-    INVALID_GRANT(3001, "Invalid grant", HttpStatus.BAD_REQUEST),
+    INVALID_GRANT(400, "Invalid email or password", HttpStatus.BAD_REQUEST),
     INVALID_CLIENT(3002, "Invalid client", HttpStatus.BAD_REQUEST),
     INVALID_SCOPE(3003, "Invalid scope", HttpStatus.BAD_REQUEST),
     UNAUTHORIZED_CLIENT(3004, "Unauthorized client", HttpStatus.BAD_REQUEST),
