@@ -26,7 +26,8 @@ public class Course {
 
     private double price;   // giá tiền
 
-    private int student_count; // số người đã enroll vào khóa học
+    @Column(name = "student_count")
+    private int studentCount; // số người đã enroll vào khóa học
 
     private String description;  // mô tả ngắn về khóa học
 
