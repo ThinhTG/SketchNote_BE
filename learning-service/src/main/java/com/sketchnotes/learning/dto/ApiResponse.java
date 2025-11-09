@@ -1,23 +1,34 @@
 package com.sketchnotes.learning.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Data
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
-    private int status;
+    @Builder.Default
+    private int code = 200;
     private String message;
-    private T data;
-    private Object errors;
+    private T result;
 
-    public static <T> ApiResponse<T> success(T data, String message) {
-        return new ApiResponse<>(200, message, data, null);
+    public static <T> ApiResponse<T> success(T result, String message) {
+        return ApiResponse.<T>builder()
+                .code(200)
+                .message(message)
+                .result(result)
+                .build();
     }
 
-    public static <T> ApiResponse<T> error(int status, String message, Object errors) {
-        return new ApiResponse<>(status, message, null, errors);
+    public static <T> ApiResponse<T> error(int code, String message, T result) {
+        return ApiResponse.<T>builder()
+                .code(code)
+                .message(message)
+                .result(result)
+                .build();
     }
 }

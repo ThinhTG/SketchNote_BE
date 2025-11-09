@@ -1,5 +1,6 @@
 package com.sketchnotes.learning.entity;
 
+import com.sketchnotes.learning.dto.enums.EnrollmentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -17,6 +18,9 @@ public class CourseEnrollment {
     private long userId;  // từ Identity Service
     private LocalDateTime enrolledAt;
 
+    private String status;  // PENDING_PAYMENT, PAYMENT_FAILED, ENROLLED
+    private String failureReason;  // Lý do thất bại nếu có
+    
     @ManyToOne
     @JoinColumn(name = "course_id")
     private Course course;

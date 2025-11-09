@@ -99,6 +99,30 @@ public class WalletServiceImp implements IWalletService {
 
     @Override
     @Transactional
+    public Transaction chargeCourse(Long walletId, BigDecimal amount) {
+        Wallet wallet = getWallet(walletId);
+        if (wallet.getBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient balance");
+        }
+
+        wallet.setBalance(wallet.getBalance().subtract(amount));
+        wallet.setUpdatedAt(LocalDateTime.now());
+        walletRepository.save(wallet);
+
+        Transaction transaction = Transaction.builder()
+                .wallet(wallet)
+                .amount(amount)
+                .type(TransactionType.COURSE_FEE)
+                .status(PaymentStatus.SUCCESS)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        return transactionRepository.save(transaction);
+    }
+
+
+    @Override
+    @Transactional
     public Transaction pay(Long walletId, BigDecimal amount) {
         Wallet wallet = getWallet(walletId);
         if (wallet.getBalance().compareTo(amount) < 0) {

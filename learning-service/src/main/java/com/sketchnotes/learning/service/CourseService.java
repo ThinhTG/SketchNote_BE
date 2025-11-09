@@ -2,6 +2,7 @@ package com.sketchnotes.learning.service;
 
 import com.sketchnotes.learning.dto.CourseDTO;
 import com.sketchnotes.learning.entity.Course;
+import com.sketchnotes.learning.entity.Lesson;
 import com.sketchnotes.learning.mapper.CourseMapper;
 import com.sketchnotes.learning.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,23 +17,36 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final CourseMapper courseMapper;
 
-    public List<Course> getAllCourses()
-    {return courseRepository.findAll();}
+    public List<CourseDTO> getAllCourses() {
+        List<Course> courses = courseRepository.findAllWithLessons();
+        return courseMapper.toDTOList(courses);
+    }
 
     // 1. Tạo Course
-    public Course createCourse(CourseDTO dto) {
-
+    public CourseDTO createCourse(CourseDTO dto) {
         Course course = courseMapper.toEntity(dto);
         course.setCreatedAt(LocalDateTime.now());
         course.setUpdatedAt(LocalDateTime.now());
 
-        return courseRepository.save(course);
+        // Gán course reference cho tất cả lessons và set timestamps
+        if (course.getLessons() != null) {
+            LocalDateTime now = LocalDateTime.now();
+            for (Lesson lesson : course.getLessons()) {
+                lesson.setCourse(course);
+                lesson.setCreatedAt(now);
+                lesson.setUpdatedAt(now);
+            }
+        }
+
+        Course saved = courseRepository.save(course);
+        return courseMapper.toDTO(saved);
     }
 
     // 2. Lấy khóa học theo ID
-    public Course getCourseById(Long id) {
-        return courseRepository.findById(id)
+    public CourseDTO getCourseById(Long id) {
+        Course course = courseRepository.findByIdWithLessons(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+        return courseMapper.toDTO(course);
     }
 
 
