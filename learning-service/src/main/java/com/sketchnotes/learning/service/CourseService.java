@@ -62,7 +62,7 @@ public class CourseService {
         if (dto.getPrice() != 0) existingCourse.setPrice(dto.getPrice());
         if (dto.getDescription() != null) existingCourse.setDescription(dto.getDescription());
         if (dto.getCategory() != null) existingCourse.setCategory(dto.getCategory());
-        if (dto.getStudentCount() != 0) existingCourse.setStudent_count(dto.getStudentCount());
+    if (dto.getStudentCount() != 0) existingCourse.setStudentCount(dto.getStudentCount());
         
         // Tự động tính lại totalDuration
         existingCourse.updateTotalDuration();

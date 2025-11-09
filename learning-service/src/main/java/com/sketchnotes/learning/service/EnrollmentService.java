@@ -69,6 +69,11 @@ public class EnrollmentService {
             enrollment.setStatus(EnrollmentStatus.ENROLLED);
             enrollment.setPaymentStatus("PAYMENT_SUCCESS");
             enrollment = enrollmentRepository.save(enrollment);
+
+            // Tăng studentCount của course lên 1 khi enroll thành công
+            course.setStudentCount(course.getStudentCount() + 1);
+            courseRepository.save(course);
+
             return enrollmentMapper.toDTO(enrollment);
             
         } catch (Exception e) {
