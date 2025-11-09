@@ -10,8 +10,8 @@ public class EnrollmentDTO {
     private Long enrollmentId;
     private Long userId;
     private Long courseId;
+    private EnrollmentStatus status;
     private String paymentStatus;
-    private EnrollmentStatus enrollmentStatus;
     private LocalDateTime enrolledAt;
 }
 

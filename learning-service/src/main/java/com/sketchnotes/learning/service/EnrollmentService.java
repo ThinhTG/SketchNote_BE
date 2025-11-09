@@ -6,6 +6,7 @@ import com.sketchnotes.learning.client.TransactionType;
 import com.sketchnotes.learning.dto.ApiResponse;
 import com.sketchnotes.learning.dto.CourseDTO;
 import com.sketchnotes.learning.dto.EnrollmentDTO;
+import com.sketchnotes.learning.dto.enums.EnrollmentStatus;
 import com.sketchnotes.learning.entity.Course;
 import com.sketchnotes.learning.entity.CourseEnrollment;
 import com.sketchnotes.learning.mapper.CourseMapper;
@@ -44,7 +45,8 @@ public class EnrollmentService {
         enrollment.setCourse(course);
         enrollment.setUserId(userId);
         enrollment.setEnrolledAt(LocalDateTime.now());
-        enrollment.setStatus("PENDING_PAYMENT");
+        enrollment.setStatus(EnrollmentStatus.PENDING);
+        enrollment.setPaymentStatus("PENDING_PAYMENT");
         CourseEnrollment saved = enrollmentRepository.save(enrollment);
 
         try {
@@ -57,21 +59,22 @@ public class EnrollmentService {
             );
 
             if (paymentResponse.getResult() == null) {
-                enrollment.setStatus("PAYMENT_FAILED");
-                enrollment.setFailureReason(paymentResponse.getMessage());
+                enrollment.setStatus(EnrollmentStatus.CANCELLED);
+                enrollment.setPaymentStatus("PAYMENT_FAILED");
                 enrollmentRepository.save(enrollment);
                 throw new RuntimeException("Payment failed: " + paymentResponse.getMessage());
             }
 
             // Thanh toán thành công
-            enrollment.setStatus("ENROLLED");
+            enrollment.setStatus(EnrollmentStatus.ENROLLED);
+            enrollment.setPaymentStatus("PAYMENT_SUCCESS");
             enrollment = enrollmentRepository.save(enrollment);
             return enrollmentMapper.toDTO(enrollment);
             
         } catch (Exception e) {
             // Xử lý lỗi và rollback nếu cần
-            enrollment.setStatus("PAYMENT_FAILED");
-            enrollment.setFailureReason(e.getMessage());
+            enrollment.setStatus(EnrollmentStatus.CANCELLED);
+            enrollment.setPaymentStatus("PAYMENT_FAILED");
             enrollmentRepository.save(enrollment);
             throw new RuntimeException("Failed to process enrollment: " + e.getMessage());
         }

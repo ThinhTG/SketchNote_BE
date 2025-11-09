@@ -36,6 +36,8 @@ public class CourseService {
                 lesson.setCreatedAt(now);
                 lesson.setUpdatedAt(now);
             }
+            // Tự động tính totalDuration dựa trên tổng duration của các lesson
+            course.updateTotalDuration();
         }
 
         Course saved = courseRepository.save(course);
@@ -52,7 +54,7 @@ public class CourseService {
 
     // 4. Cập nhật khóa học
     public CourseDTO updateCourse(Long id, CourseDTO dto) {
-        Course existingCourse = courseRepository.findById(id)
+        Course existingCourse = courseRepository.findByIdWithLessons(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
 
         if (dto.getTitle() != null) existingCourse.setTitle(dto.getTitle());
@@ -61,7 +63,9 @@ public class CourseService {
         if (dto.getDescription() != null) existingCourse.setDescription(dto.getDescription());
         if (dto.getCategory() != null) existingCourse.setCategory(dto.getCategory());
         if (dto.getStudentCount() != 0) existingCourse.setStudent_count(dto.getStudentCount());
-
+        
+        // Tự động tính lại totalDuration
+        existingCourse.updateTotalDuration();
         existingCourse.setUpdatedAt(LocalDateTime.now());
         Course updated = courseRepository.save(existingCourse);
 
@@ -77,5 +81,16 @@ public class CourseService {
         courseRepository.deleteById(id);
     }
 
+    // Get enrolled courses of a user
+    public List<CourseDTO> getEnrolledCourses(Long userId) {
+        List<Course> enrolledCourses = courseRepository.findEnrolledCoursesByUserId(userId);
+        return courseMapper.toDTOList(enrolledCourses);
     }
+
+    // Get not enrolled courses of a user
+    public List<CourseDTO> getNotEnrolledCourses(Long userId) {
+        List<Course> notEnrolledCourses = courseRepository.findNotEnrolledCoursesByUserId(userId);
+        return courseMapper.toDTOList(notEnrolledCourses);
+    }
+}
 

@@ -47,5 +47,11 @@ public class Course {
         this.courseId = courseId;
     }
 
+    public void updateTotalDuration() {
+        this.totalDuration = this.lessons.stream()
+                .mapToInt(Lesson::getDuration)
+                .sum();
+    }
+
 
 }

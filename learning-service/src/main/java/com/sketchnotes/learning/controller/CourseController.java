@@ -53,6 +53,17 @@ public class CourseController {
         return ResponseEntity.ok(ApiResponse.success(null, "Course deleted successfully"));
     }
 
+    @GetMapping("/enrolled/{userId}")
+    public ResponseEntity<ApiResponse<List<CourseDTO>>> getEnrolledCourses(@PathVariable Long userId) {
+        List<CourseDTO> enrolledCourses = courseService.getEnrolledCourses(userId);
+        return ResponseEntity.ok(ApiResponse.success(enrolledCourses, "Enrolled courses retrieved successfully"));
+    }
+
+    @GetMapping("/not-enrolled/{userId}")
+    public ResponseEntity<ApiResponse<List<CourseDTO>>> getNotEnrolledCourses(@PathVariable Long userId) {
+        List<CourseDTO> notEnrolledCourses = courseService.getNotEnrolledCourses(userId);
+        return ResponseEntity.ok(ApiResponse.success(notEnrolledCourses, "Not enrolled courses retrieved successfully"));
+    }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException ex) {
