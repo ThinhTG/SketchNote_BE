@@ -38,9 +38,10 @@ public class EnrollmentController {
     }
 
 
-    @GetMapping("/users/{userId}/status")
-    public ResponseEntity<ApiResponse<Map<String, List<CourseDTO>>>> getUserCourseStatus(@PathVariable long userId) {
-        Map<String, List<CourseDTO>> status = enrollmentService.getUserCourseStatus(userId);
+    @GetMapping("/users/status")
+    public ResponseEntity<ApiResponse<Map<String, List<CourseDTO>>>> getUserCourseStatus() {
+        var user = identityClient.getCurrentUser().getResult();
+        Map<String, List<CourseDTO>> status = enrollmentService.getUserCourseStatus(user.getId());
         return ResponseEntity.ok(ApiResponse.success(status, "User course status retrieved successfully"));
     }
 }
