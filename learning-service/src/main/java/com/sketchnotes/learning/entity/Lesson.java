@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class Lesson {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long lessonId;
+    private Long lessonId;
     private String title;              // tiêu đề từng bài học
     private String description;
     private String videoUrl;

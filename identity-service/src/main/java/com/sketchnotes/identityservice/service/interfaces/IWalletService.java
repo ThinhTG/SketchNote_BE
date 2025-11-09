@@ -14,7 +14,7 @@ public interface IWalletService {
         Transaction deposit(Long walletId, BigDecimal amount);
         Transaction withdraw(Long walletId, BigDecimal amount);
         Transaction pay(Long walletId, BigDecimal amount);
-
+        Transaction chargeCourse(Long walletId, BigDecimal amount);
         List<Transaction> getTransactions(Long walletId);
     }
 

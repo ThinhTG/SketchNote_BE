@@ -2,7 +2,6 @@ package com.sketchnotes.learning.controller;
 
 import com.sketchnotes.learning.dto.ApiResponse;
 import com.sketchnotes.learning.dto.CourseDTO;
-import com.sketchnotes.learning.entity.Course;
 import com.sketchnotes.learning.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,22 +17,22 @@ public class CourseController {
     private final CourseService courseService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Course>>> getAllCourses() {
-        List<Course> courses = courseService.getAllCourses();
+    public ResponseEntity<ApiResponse<List<CourseDTO>>> getAllCourses() {
+        List<CourseDTO> courses = courseService.getAllCourses();
         return ResponseEntity.ok(ApiResponse.success(courses, "Courses retrieved successfully"));
     }
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Course>> getCourseById(@PathVariable Long id) {
-        Course course = courseService.getCourseById(id);
+    public ResponseEntity<ApiResponse<CourseDTO>> getCourseById(@PathVariable Long id) {
+        CourseDTO course = courseService.getCourseById(id);
         return ResponseEntity.ok(ApiResponse.success(course, "Course retrieved successfully"));
     }
 
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Course>> createCourse(@RequestBody CourseDTO dto) {
-        Course created = courseService.createCourse(dto);
+    public ResponseEntity<ApiResponse<CourseDTO>> createCourse(@RequestBody CourseDTO dto) {
+        CourseDTO created = courseService.createCourse(dto);
         return new ResponseEntity<>(
                 ApiResponse.success(created, "Course created successfully"),
                 HttpStatus.CREATED
