@@ -18,9 +18,11 @@ public class CourseEnrollment {
     private long userId;  // từ Identity Service
     private LocalDateTime enrolledAt;
 
-    private String status;  // PENDING_PAYMENT, PAYMENT_FAILED, ENROLLED
-    private String failureReason;  // Lý do thất bại nếu có
+    @Enumerated(EnumType.STRING)
+    private EnrollmentStatus status;  // PENDING, ENROLLED, COMPLETED, CANCELLED
     
+    private String paymentStatus;  // PENDING_PAYMENT, PAYMENT_SUCCESS, PAYMENT_FAILED
+
     @ManyToOne
     @JoinColumn(name = "course_id")
     private Course course;

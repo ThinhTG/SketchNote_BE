@@ -38,6 +38,12 @@ public class LessonService {
         });
 
         List<Lesson> saved = lessonRepository.saveAll(lessons);
+        
+        // Cập nhật totalDuration của course
+        course.getLessons().addAll(saved);
+        course.updateTotalDuration();
+        courseRepository.save(course);
+        
         return lessonMapper.toDTOList(saved);
     }
 
