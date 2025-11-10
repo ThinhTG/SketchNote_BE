@@ -26,7 +26,6 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}")
-    @Cacheable(value = "projects", key = "#id")
     public ResponseEntity<ApiResponse<ProjectResponse>> get(@PathVariable Long id) {
         ProjectResponse response = projectService.getProject(id);
         return ResponseEntity.ok(ApiResponse.success(response, "Get data successful"));
@@ -52,6 +51,6 @@ public class ProjectController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) {
         projectService.deleteProject(id,userClient.getCurrentUser().getResult().getId());
-        return ResponseEntity.ok(ApiResponse.success("Project deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null,"Project deleted successfully"));
     }
 }
