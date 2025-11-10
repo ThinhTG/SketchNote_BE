@@ -9,7 +9,6 @@ import org.mapstruct.Mapping;
 public interface EnrollmentMapper {
     @Mapping(source = "course.courseId", target = "courseId")
     @Mapping(source = "status", target = "status")
-    @Mapping(source = "paymentStatus", target = "paymentStatus")
     EnrollmentDTO toDTO(CourseEnrollment entity);
 }
 

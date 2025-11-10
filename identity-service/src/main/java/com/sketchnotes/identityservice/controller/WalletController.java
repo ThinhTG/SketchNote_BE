@@ -61,28 +61,21 @@ public class WalletController {
 
     @PostMapping("/charge-course")
     public ApiResponse<Transaction> chargeCourse(
-            @RequestParam Long userId,
             @RequestParam BigDecimal price,
             @RequestParam(required = false) String description) {
-
-        try {
+            var user =  userService.getCurrentUser();
             // Lấy wallet
-            Wallet wallet = walletService.getWalletByUserId(userId);
+            Wallet wallet = walletService.getWalletByUserId(user.getId());
             if (wallet == null) {
                 return ApiResponse.error(404,"Wallet not found for this user",null);
             }
-
             // Kiểm tra số dư
             if (wallet.getBalance().compareTo(price) < 0) {
                 return ApiResponse.error(402,"Insufficient balance in wallet",null);
             }
-
             // Trừ tiền
             Transaction transaction = walletService.chargeCourse(wallet.getWalletId(), price);
             return ApiResponse.success(transaction, "Course charged successfully");
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to charge course: " + e.getMessage());
-        }
     }
 
 }

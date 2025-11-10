@@ -37,54 +37,20 @@ public class EnrollmentService {
     public EnrollmentDTO enroll(long courseId, long userId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
-
         // Kiểm tra xem user đã đăng ký khóa học này chưa
         if (enrollmentRepository.findByCourse_CourseIdAndUserId(courseId, userId).isPresent()) {
             throw new RuntimeException("User already enrolled in this course");
         }
-
         CourseEnrollment enrollment = new CourseEnrollment();
         enrollment.setCourse(course);
         enrollment.setUserId(userId);
         enrollment.setEnrolledAt(LocalDateTime.now());
-        enrollment.setStatus(EnrollmentStatus.PENDING);
-        enrollment.setPaymentStatus("PENDING_PAYMENT");
+        enrollment.setStatus(EnrollmentStatus.ENROLLED);
         CourseEnrollment saved = enrollmentRepository.save(enrollment);
-
-        try {
-            // Gọi API thanh toán từ identity service
-            ApiResponse<TransactionResponse> paymentResponse = identityClient.chargeCourse(
-                    userId,
-                    course.getPrice(),
-                    "Payment for course: " + course.getTitle(),
-                    TransactionType.COURSE_PAYMENT
-            );
-
-            if (paymentResponse.getResult() == null) {
-                enrollment.setStatus(EnrollmentStatus.CANCELLED);
-                enrollment.setPaymentStatus("PAYMENT_FAILED");
-                enrollmentRepository.save(enrollment);
-                throw new RuntimeException("Payment failed: " + paymentResponse.getMessage());
-            }
-
-            // Thanh toán thành công
-            enrollment.setStatus(EnrollmentStatus.ENROLLED);
-            enrollment.setPaymentStatus("PAYMENT_SUCCESS");
-            enrollment = enrollmentRepository.save(enrollment);
-
-            // Tăng studentCount của course lên 1 khi enroll thành công
-            course.setStudentCount(course.getStudentCount() + 1);
-            courseRepository.save(course);
-
-            return enrollmentMapper.toDTO(enrollment);
-            
-        } catch (Exception e) {
-            // Xử lý lỗi và rollback nếu cần
-            enrollment.setStatus(EnrollmentStatus.CANCELLED);
-            enrollment.setPaymentStatus("PAYMENT_FAILED");
-            enrollmentRepository.save(enrollment);
-            throw new RuntimeException("Failed to process enrollment: " + e.getMessage());
-        }
+        // Tăng studentCount của course lên 1 khi enroll thành công
+        course.setStudentCount(course.getStudentCount() + 1);
+        courseRepository.save(course);
+        return enrollmentMapper.toDTO(enrollment);
     }
 
     public Map<String, List<CourseDTO>> getUserCourseStatus(long userId) {
@@ -109,62 +75,5 @@ public class EnrollmentService {
         return result;
     }
 
-    // Lấy danh sách các khóa học thanh toán thất bại
-    public List<EnrollmentDTO> getFailedPayments(Long userId) {
-        List<CourseEnrollment> failedEnrollments = enrollmentRepository.findFailedPaymentsByUserId(userId);
-        return failedEnrollments.stream()
-                .map(enrollmentMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    // Thử thanh toán lại một khóa học
-    @Transactional
-    public EnrollmentDTO retryPayment(Long userId, RetryPaymentRequest request) {
-        CourseEnrollment enrollment = enrollmentRepository.findById(request.getEnrollmentId())
-                .orElseThrow(() -> new RuntimeException("Enrollment not found"));
-
-        // Kiểm tra xem enrollment có phải của user này không
-        if (enrollment.getUserId() != userId) {
-            throw new RuntimeException("Unauthorized to retry this payment");
-        }
-
-        // Kiểm tra xem payment status có phải PAYMENT_FAILED không
-        if (!"PAYMENT_FAILED".equals(enrollment.getPaymentStatus())) {
-            throw new RuntimeException("This enrollment is not in failed payment status");
-        }
-
-        try {
-            // Gọi API thanh toán từ identity service
-            ApiResponse<TransactionResponse> paymentResponse = identityClient.chargeCourse(
-                    userId,
-                    enrollment.getCourse().getPrice(),
-                    "Retry payment for course: " + enrollment.getCourse().getTitle(),
-                    TransactionType.COURSE_PAYMENT
-            );
-
-            if (paymentResponse.getResult() == null) {
-                enrollment.setPaymentStatus("PAYMENT_FAILED");
-                enrollmentRepository.save(enrollment);
-                throw new RuntimeException("Payment failed: " + paymentResponse.getMessage());
-            }
-
-            // Thanh toán thành công
-            enrollment.setStatus(EnrollmentStatus.ENROLLED);
-            enrollment.setPaymentStatus("PAYMENT_SUCCESS");
-            enrollment = enrollmentRepository.save(enrollment);
-            
-            // Tăng student count của course
-            Course course = enrollment.getCourse();
-            course.setStudentCount(course.getStudentCount() + 1);
-            courseRepository.save(course);
-
-            return enrollmentMapper.toDTO(enrollment);
-            
-        } catch (Exception e) {
-            enrollment.setPaymentStatus("PAYMENT_FAILED");
-            enrollmentRepository.save(enrollment);
-            throw new RuntimeException("Failed to process payment: " + e.getMessage());
-        }
-    }
 
 }
