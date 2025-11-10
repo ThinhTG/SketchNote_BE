@@ -6,11 +6,11 @@ import com.sketchnotes.project_service.dtos.response.ProjectResponse;
 import java.util.List;
 
 public interface IProjectService {
-    ProjectResponse createProject(ProjectRequest dto);
+    ProjectResponse createProject(ProjectRequest dto, Long ownerId);
     ProjectResponse getProject(Long id);
     List<ProjectResponse> getProjectsByOwner(Long ownerId);
-    List<ProjectResponse> getProjectsCurrentUser();
-    ProjectResponse updateProject(Long id, ProjectRequest dto);
-    void deleteProject(Long id);
+    List<ProjectResponse> getProjectsCurrentUser(Long ownerId);
+    ProjectResponse updateProject(Long id, ProjectRequest dto, Long ownerId);
+    void deleteProject(Long id, Long ownerId);
 }
 
