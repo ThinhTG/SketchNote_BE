@@ -14,6 +14,7 @@ import com.sketchnotes.project_service.service.IProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,8 +27,8 @@ public class ProjectService implements IProjectService {
     private final IUserClient userClient;
 
     @Override
-    @CacheEvict(value = "projects", allEntries = true)
-    public ProjectResponse createProject(ProjectRequest dto) {
+    @CacheEvict(value = "projects",  key = "#ownerId")
+    public ProjectResponse createProject(ProjectRequest dto, Long ownerId) {
         ApiResponse<UserResponse>  user = userClient.getCurrentUser();
 
         Project project = Project.builder()
@@ -60,7 +61,8 @@ public class ProjectService implements IProjectService {
                 .toList();
     }
     @Override
-    public List<ProjectResponse> getProjectsCurrentUser() {
+    @Cacheable(value = "projects", key = "#ownerId")
+    public List<ProjectResponse> getProjectsCurrentUser(Long ownerId) {
         ApiResponse<UserResponse> user = userClient.getCurrentUser();
         List<Project> projects = projectRepository.findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(user.getResult().getId());
         if (projects.isEmpty()) {
@@ -72,8 +74,11 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
-    @CacheEvict(value = "projects", allEntries = true)
-    public ProjectResponse updateProject(Long id, ProjectRequest dto) {
+    @Caching(evict = {
+            @CacheEvict(value = "projects", key = "#ownerId"),
+            @CacheEvict(value = "projects", key = "#id")
+    })
+    public ProjectResponse updateProject(Long id, ProjectRequest dto, Long ownerId) {
         Project project = projectRepository.findById(id).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
         project.setName(dto.getName());
@@ -83,8 +88,11 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
-    @CacheEvict(value = "projects", allEntries = true)
-    public void deleteProject(Long id) {
+    @Caching(evict = {
+            @CacheEvict(value = "projects", key = "#ownerId"),
+            @CacheEvict(value = "projects", key = "#id")
+    })
+    public void deleteProject(Long id, Long ownerId) {
         Project project = projectRepository.findById(id).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
         project.setDeletedAt(LocalDateTime.now());

@@ -17,6 +17,7 @@ import com.sketchnotes.project_service.repository.IProjectVersionRepository;
 import com.sketchnotes.project_service.service.IPageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -43,7 +44,7 @@ public class PageService implements IPageService {
         // Soft delete old pages before creating new version
         if(project.getPages() != null) {
             for (Page page : project.getPages()) {
-                
+
                     page.setProject(null);
                     pageRepository.save(page);
 
@@ -75,6 +76,7 @@ public class PageService implements IPageService {
     }
 
     @Override
+    @CacheEvict(value = "projects", key = "#dto.projectId")
     public PageResponse addPage(PageRequest dto) {
         Project project = projectRepository.findById(dto.getProjectId()).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
@@ -84,6 +86,7 @@ public class PageService implements IPageService {
     }
 
     @Override
+    //@Cacheable(value = "projects", key = "#projectId")
     public List<PageResponse> getPagesByProject(Long projectId) {
         List<Page> pages = pageRepository.findByProject_ProjectIdAndDeletedAtIsNullOrderByPageNumberAsc(projectId);
         if (pages.isEmpty()) {
@@ -93,6 +96,7 @@ public class PageService implements IPageService {
     }
 
     @Override
+    @CacheEvict(value = "projects", allEntries = true)
     public PageResponse updatePage(Long pageId, UpdatePageRequest dto) {
         Page page = pageRepository.findById(pageId).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PAGE_NOT_FOUND));
@@ -103,6 +107,7 @@ public class PageService implements IPageService {
     }
 
     @Override
+    @CacheEvict(value = "projects", allEntries = true)
     public void deletePage(Long pageId) {
         Page page = pageRepository.findById(pageId).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PAGE_NOT_FOUND));

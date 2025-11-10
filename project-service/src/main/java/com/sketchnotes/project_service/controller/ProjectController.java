@@ -1,10 +1,12 @@
 package com.sketchnotes.project_service.controller;
 
+import com.sketchnotes.project_service.client.IUserClient;
 import com.sketchnotes.project_service.dtos.ApiResponse;
 import com.sketchnotes.project_service.dtos.request.ProjectRequest;
 import com.sketchnotes.project_service.dtos.response.ProjectResponse;
 import com.sketchnotes.project_service.service.IProjectService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,14 +17,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProjectController {
     private final IProjectService projectService;
+    private final IUserClient userClient;
 
     @PostMapping
     public ResponseEntity<ApiResponse<ProjectResponse>> create(@RequestBody ProjectRequest dto) {
-        ProjectResponse response = projectService.createProject(dto);
+        ProjectResponse response = projectService.createProject(dto,userClient.getCurrentUser().getResult().getId());
         return ResponseEntity.ok(ApiResponse.success(response, "Project created successfully"));
     }
 
     @GetMapping("/{id}")
+    @Cacheable(value = "projects", key = "#id")
     public ResponseEntity<ApiResponse<ProjectResponse>> get(@PathVariable Long id) {
         ProjectResponse response = projectService.getProject(id);
         return ResponseEntity.ok(ApiResponse.success(response, "Get data successful"));
@@ -35,19 +39,19 @@ public class ProjectController {
     }
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<List<ProjectResponse>>> getByCurrentUser() {
-        List<ProjectResponse> response = projectService.getProjectsCurrentUser();
+        List<ProjectResponse> response = projectService.getProjectsCurrentUser(userClient.getCurrentUser().getResult().getId());
         return ResponseEntity.ok(ApiResponse.success(response, "Get data successful"));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProjectResponse>> update(@PathVariable Long id, @RequestBody ProjectRequest dto) {
-        ProjectResponse response = projectService.updateProject(id, dto);
+        ProjectResponse response = projectService.updateProject(id, dto,userClient.getCurrentUser().getResult().getId());
         return ResponseEntity.ok(ApiResponse.success(response, "Update successful"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) {
-        projectService.deleteProject(id);
+        projectService.deleteProject(id,userClient.getCurrentUser().getResult().getId());
         return ResponseEntity.ok(ApiResponse.success("Project deleted successfully"));
     }
 }
