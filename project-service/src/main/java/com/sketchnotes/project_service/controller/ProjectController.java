@@ -3,6 +3,7 @@ package com.sketchnotes.project_service.controller;
 import com.sketchnotes.project_service.client.IUserClient;
 import com.sketchnotes.project_service.dtos.ApiResponse;
 import com.sketchnotes.project_service.dtos.request.ProjectRequest;
+import com.sketchnotes.project_service.dtos.response.ProjectListResponse;
 import com.sketchnotes.project_service.dtos.response.ProjectResponse;
 import com.sketchnotes.project_service.service.IProjectService;
 import lombok.RequiredArgsConstructor;
@@ -32,13 +33,13 @@ public class ProjectController {
     }
 
     @GetMapping("/owner/{ownerId}")
-    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getByOwner(@PathVariable Long ownerId) {
-        List<ProjectResponse> response = projectService.getProjectsByOwner(ownerId);
+    public ResponseEntity<ApiResponse<ProjectListResponse>> getByOwner(@PathVariable Long ownerId) {
+        ProjectListResponse response = projectService.getProjectsByOwner(ownerId);
         return ResponseEntity.ok(ApiResponse.success(response, "Get data successful"));
     }
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getByCurrentUser() {
-        List<ProjectResponse> response = projectService.getProjectsCurrentUser(userClient.getCurrentUser().getResult().getId());
+    public ResponseEntity<ApiResponse<ProjectListResponse>> getByCurrentUser() {
+        ProjectListResponse response = projectService.getProjectsCurrentUser(userClient.getCurrentUser().getResult().getId());
         return ResponseEntity.ok(ApiResponse.success(response, "Get data successful"));
     }
 

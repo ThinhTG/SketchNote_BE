@@ -3,6 +3,7 @@ package com.sketchnotes.project_service.service.implement;
 import com.sketchnotes.project_service.client.IUserClient;
 import com.sketchnotes.project_service.dtos.ApiResponse;
 import com.sketchnotes.project_service.dtos.request.ProjectRequest;
+import com.sketchnotes.project_service.dtos.response.ProjectListResponse;
 import com.sketchnotes.project_service.dtos.response.ProjectResponse;
 import com.sketchnotes.project_service.dtos.mapper.ProjectMapper;
 import com.sketchnotes.project_service.dtos.response.UserResponse;
@@ -18,6 +19,7 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -27,7 +29,7 @@ public class ProjectService implements IProjectService {
     private final IUserClient userClient;
 
     @Override
-    @CacheEvict(value = "projects",  key = "#ownerId")
+    @CacheEvict(value = "projects",  key ="'user' +#ownerId")
     public ProjectResponse createProject(ProjectRequest dto, Long ownerId) {
         ApiResponse<UserResponse>  user = userClient.getCurrentUser();
 
@@ -50,32 +52,32 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
-    @Cacheable(value = "projects", key = "#ownerId")
-    public List<ProjectResponse> getProjectsByOwner(Long ownerId) {
+    @Cacheable(value = "projects", key ="'user' +#ownerId")
+    public ProjectListResponse getProjectsByOwner(Long ownerId) {
         List<Project> projects = projectRepository.findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(ownerId);
         if (projects.isEmpty()) {
-            return null;
+            return new ProjectListResponse(Collections.emptyList());
         }
-        return projects.stream()
+        return new ProjectListResponse(projects.stream()
                 .map(ProjectMapper::toDTO)
-                .toList();
+                .toList());
     }
     @Override
-    @Cacheable(value = "projects", key = "#ownerId")
-    public List<ProjectResponse> getProjectsCurrentUser(Long ownerId) {
+    @Cacheable(value = "projects", key ="'user' +#ownerId")
+    public ProjectListResponse getProjectsCurrentUser(Long ownerId) {
         ApiResponse<UserResponse> user = userClient.getCurrentUser();
         List<Project> projects = projectRepository.findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(user.getResult().getId());
         if (projects.isEmpty()) {
-            return null;
+            return new ProjectListResponse(Collections.emptyList());
         }
-        return projects.stream()
+        return  new ProjectListResponse(projects.stream()
                 .map(ProjectMapper::toDTO)
-                .toList();
+                .toList());
     }
 
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "projects", key = "#ownerId"),
+            @CacheEvict(value = "projects",  key ="'user' +#ownerId"),
             @CacheEvict(value = "projects", key = "#id")
     })
     public ProjectResponse updateProject(Long id, ProjectRequest dto, Long ownerId) {
@@ -89,7 +91,7 @@ public class ProjectService implements IProjectService {
 
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "projects", key = "#ownerId"),
+            @CacheEvict(value = "projects",  key ="'user' +#ownerId"),
             @CacheEvict(value = "projects", key = "#id")
     })
     public void deleteProject(Long id, Long ownerId) {

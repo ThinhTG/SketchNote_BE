@@ -18,6 +18,7 @@ import com.sketchnotes.project_service.service.IPageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,8 +34,11 @@ public class PageService implements IPageService {
     private final ProjectVersionService projectVersionService;
 
     @Override
-    @CacheEvict(value = "projects", key = "#dtos.projectId")
-    public List<PageResponse> addPages(ListPageRequest dtos) {
+    @Caching(evict = {
+            @CacheEvict(value = "projects",  key ="'user' +#ownerId"),
+            @CacheEvict(value = "projects", key = "#dtos.projectId")
+    })
+    public List<PageResponse> addPages(ListPageRequest dtos, Long ownerId) {
         Project project = projectRepository.findById(dtos.getProjectId()).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
         ProjectVersion lastVersion = project.getProjectVersions().stream()
@@ -76,8 +80,11 @@ public class PageService implements IPageService {
     }
 
     @Override
-    @CacheEvict(value = "projects", key = "#dto.projectId")
-    public PageResponse addPage(PageRequest dto) {
+    @Caching(evict = {
+            @CacheEvict(value = "projects",  key ="'user' +#ownerId"),
+            @CacheEvict(value = "projects", key = "#id")
+    })
+    public PageResponse addPage(PageRequest dto, Long ownerId) {
         Project project = projectRepository.findById(dto.getProjectId()).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
         Page page = PageMapper.toEntity(dto, project);
@@ -86,7 +93,6 @@ public class PageService implements IPageService {
     }
 
     @Override
-    //@Cacheable(value = "projects", key = "#projectId")
     public List<PageResponse> getPagesByProject(Long projectId) {
         List<Page> pages = pageRepository.findByProject_ProjectIdAndDeletedAtIsNullOrderByPageNumberAsc(projectId);
         if (pages.isEmpty()) {
