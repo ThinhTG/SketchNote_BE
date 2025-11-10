@@ -3,6 +3,7 @@ package com.sketchnotes.learning.entity;
 import com.sketchnotes.learning.dto.enums.EnrollmentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
+import java.math.BigDecimal;
 
 import java.time.LocalDateTime;
 
@@ -22,6 +23,9 @@ public class CourseEnrollment {
     private EnrollmentStatus status;  // PENDING, ENROLLED, COMPLETED, CANCELLED
     
     private String paymentStatus;  // PENDING_PAYMENT, PAYMENT_SUCCESS, PAYMENT_FAILED
+    
+    @Column(name = "progress_percent", precision = 5, scale = 2)
+    private BigDecimal progressPercent = BigDecimal.ZERO;
 
     @ManyToOne
     @JoinColumn(name = "course_id")
