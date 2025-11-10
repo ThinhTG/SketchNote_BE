@@ -20,10 +20,8 @@ public class CourseEnrollment {
     private LocalDateTime enrolledAt;
 
     @Enumerated(EnumType.STRING)
-    private EnrollmentStatus status;  // PENDING, ENROLLED, COMPLETED, CANCELLED
-    
-    private String paymentStatus;  // PENDING_PAYMENT, PAYMENT_SUCCESS, PAYMENT_FAILED
-    
+    private EnrollmentStatus status;  //ENROLLED, COMPLETED , InProgress
+
     @Column(name = "progress_percent", precision = 5, scale = 2)
     private BigDecimal progressPercent = BigDecimal.ZERO;
 

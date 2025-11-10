@@ -31,10 +31,6 @@ public class LessonProgressService {
         var enrollment = enrollRepo.findByUserIdAndCourse_CourseId(userId, courseId)
                 .orElseThrow(() -> new RuntimeException("User is not enrolled in this course"));
 
-        // Kiểm tra trạng thái enrollment
-        if (!"PAYMENT_SUCCESS".equals(enrollment.getPaymentStatus())) {
-            throw new RuntimeException("Course payment is not completed");
-        }
 
         var progress = progressRepo.findByUserIdAndLesson_LessonId(userId, lessonId)
                 .orElseGet(() -> createNewProgress(userId, courseId, lessonId));

@@ -25,12 +25,6 @@ public class EnrollmentController {
             @PathVariable long courseId) {
         var user = identityClient.getCurrentUser().getResult();
         EnrollmentDTO enrollment = enrollmentService.enroll(courseId, user.getId());
-        // nếu thanh toán thất bại trả về 402 và lý do
-        if ("PaymentFailed".equalsIgnoreCase(enrollment.getPaymentStatus())) {
-            return ResponseEntity.status(402)
-                    .body(ApiResponse.success(enrollment, "Payment failed: " + enrollment.getPaymentStatus()));
-        }
-        // success -> 201 CREATED
         return new ResponseEntity<>(
                 ApiResponse.success(enrollment, "Enrolled successfully"),
                 HttpStatus.CREATED
