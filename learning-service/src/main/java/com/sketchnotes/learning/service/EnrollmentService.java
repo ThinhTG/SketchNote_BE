@@ -127,6 +127,37 @@ public class EnrollmentService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Lấy enrollment của user cho 1 course cụ thể, kèm thông tin lesson progress
+     */
+    public EnrollmentDTO getEnrollmentByUserAndCourse(Long userId, Long courseId) {
+        CourseEnrollment enrollment = enrollmentRepository.findByUserIdAndCourse_CourseId(userId, courseId)
+                .orElseThrow(() -> new RuntimeException("Enrollment not found for user and course"));
+
+        EnrollmentDTO dto = enrollmentMapper.toDTO(enrollment);
+
+        // populate per-lesson progress for this user
+        if (dto.getCourse() != null && dto.getCourse().getLessons() != null) {
+            dto.getCourse().getLessons().forEach(lessonDto -> {
+                var progOpt = progressRepo.findByUserIdAndLesson_LessonId(userId, lessonDto.getLessonId());
+                if (progOpt.isPresent()) {
+                    var prog = progOpt.get();
+                    lessonDto.setLessonProgressStatus(prog.getStatus());
+                    lessonDto.setLastPosition(prog.getLastPosition());
+                    lessonDto.setTimeSpent(prog.getTimeSpent());
+                    lessonDto.setCompletedAt(prog.getCompletedAt());
+                } else {
+                    lessonDto.setLessonProgressStatus(com.sketchnotes.learning.dto.enums.ProgressStatus.NOT_STARTED);
+                    lessonDto.setLastPosition(0);
+                    lessonDto.setTimeSpent(0);
+                    lessonDto.setCompletedAt(null);
+                }
+            });
+        }
+
+        return dto;
+    }
+
 
 
 
