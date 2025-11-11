@@ -31,6 +31,7 @@ public class EnrollmentService {
     private final EnrollmentMapper enrollmentMapper;
     private final CourseMapper courseMapper;
     private final IdentityClient identityClient;
+    private final com.sketchnotes.learning.repository.UserLessonProgressRepository progressRepo;
 
     public EnrollmentDTO enroll(long courseId, long userId) {
         Course course = courseRepository.findById(courseId)
@@ -101,7 +102,28 @@ public class EnrollmentService {
     public List<EnrollmentDTO> getEnrollmentsByUser(Long userId) {
         List<CourseEnrollment> enrollments = enrollmentRepository.findByUserId(userId);
         return enrollments.stream()
-                .map(enrollmentMapper::toDTO)
+                .map(e -> {
+                    EnrollmentDTO dto = enrollmentMapper.toDTO(e);
+                    // populate per-lesson progress for this user
+                    if (dto.getCourse() != null && dto.getCourse().getLessons() != null) {
+                        dto.getCourse().getLessons().forEach(lessonDto -> {
+                            var progOpt = progressRepo.findByUserIdAndLesson_LessonId(userId, lessonDto.getLessonId());
+                            if (progOpt.isPresent()) {
+                                var prog = progOpt.get();
+                                lessonDto.setLessonProgressStatus(prog.getStatus());
+                                lessonDto.setLastPosition(prog.getLastPosition());
+                                lessonDto.setTimeSpent(prog.getTimeSpent());
+                                lessonDto.setCompletedAt(prog.getCompletedAt());
+                            } else {
+                                lessonDto.setLessonProgressStatus(com.sketchnotes.learning.dto.enums.ProgressStatus.NOT_STARTED);
+                                lessonDto.setLastPosition(0);
+                                lessonDto.setTimeSpent(0);
+                                lessonDto.setCompletedAt(null);
+                            }
+                        });
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
