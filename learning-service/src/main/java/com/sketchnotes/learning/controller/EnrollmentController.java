@@ -38,4 +38,11 @@ public class EnrollmentController {
         Map<String, List<CourseDTO>> status = enrollmentService.getUserCourseStatus(user.getId());
         return ResponseEntity.ok(ApiResponse.success(status, "User course status retrieved successfully"));
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<EnrollmentDTO>>> getMyEnrollments() {
+        var user = identityClient.getCurrentUser().getResult();
+        List<EnrollmentDTO> enrollments = enrollmentService.getEnrollmentsByUser(user.getId());
+        return ResponseEntity.ok(ApiResponse.success(enrollments, "Enrollments retrieved successfully"));
+    }
 }

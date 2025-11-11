@@ -6,7 +6,6 @@ import com.sketchnotes.learning.client.TransactionType;
 import com.sketchnotes.learning.dto.ApiResponse;
 import com.sketchnotes.learning.dto.CourseDTO;
 import com.sketchnotes.learning.dto.EnrollmentDTO;
-import com.sketchnotes.learning.dto.RetryPaymentRequest;
 import com.sketchnotes.learning.dto.enums.EnrollmentStatus;
 import com.sketchnotes.learning.entity.Course;
 import com.sketchnotes.learning.entity.CourseEnrollment;
@@ -16,7 +15,6 @@ import com.sketchnotes.learning.repository.CourseEnrollmentRepository;
 import com.sketchnotes.learning.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -37,20 +35,44 @@ public class EnrollmentService {
     public EnrollmentDTO enroll(long courseId, long userId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
+
         // Kiểm tra xem user đã đăng ký khóa học này chưa
         if (enrollmentRepository.findByCourse_CourseIdAndUserId(courseId, userId).isPresent()) {
             throw new RuntimeException("User already enrolled in this course");
         }
+
         CourseEnrollment enrollment = new CourseEnrollment();
         enrollment.setCourse(course);
         enrollment.setUserId(userId);
         enrollment.setEnrolledAt(LocalDateTime.now());
         enrollment.setStatus(EnrollmentStatus.ENROLLED);
         CourseEnrollment saved = enrollmentRepository.save(enrollment);
-        // Tăng studentCount của course lên 1 khi enroll thành công
-        course.setStudentCount(course.getStudentCount() + 1);
-        courseRepository.save(course);
-        return enrollmentMapper.toDTO(enrollment);
+
+        try {
+            // Gọi API thanh toán từ identity service
+            ApiResponse<TransactionResponse> paymentResponse = identityClient.chargeCourse(
+                    userId,
+                    course.getPrice(),
+                    "Payment for course: " + course.getTitle(),
+                    TransactionType.COURSE_PAYMENT
+            );
+
+            // Thanh toán thành công
+            enrollment.setStatus(EnrollmentStatus.ENROLLED);
+            enrollment = enrollmentRepository.save(enrollment);
+
+            // Tăng studentCount của course lên 1 khi enroll thành công
+            course.setStudentCount(course.getStudentCount() + 1);
+            courseRepository.save(course);
+
+            return enrollmentMapper.toDTO(enrollment);
+            
+        } catch (Exception e) {
+            // Xử lý lỗi và rollback nếu cần
+            enrollment.setStatus(EnrollmentStatus.CANCELLED);
+            enrollmentRepository.save(enrollment);
+            throw new RuntimeException("Failed to process enrollment: " + e.getMessage());
+        }
     }
 
     public Map<String, List<CourseDTO>> getUserCourseStatus(long userId) {
@@ -74,6 +96,16 @@ public class EnrollmentService {
         result.put("notRegistered", courseMapper.toDTOList(notRegistered));
         return result;
     }
+
+    // Lấy tất cả enrollment của user (kèm progressPercent)
+    public List<EnrollmentDTO> getEnrollmentsByUser(Long userId) {
+        List<CourseEnrollment> enrollments = enrollmentRepository.findByUserId(userId);
+        return enrollments.stream()
+                .map(enrollmentMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+
 
 
 }
