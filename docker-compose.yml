@@ -82,27 +82,24 @@ services:
       - sketchnote-net
     restart: unless-stopped
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.0.2
-    container_name: keycloak
-    command: start-dev --http-enabled=true --hostname-strict=false
-    environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
-      KC_DB_USERNAME: admin
-      KC_DB_PASSWORD: admin
-    ports:
-      - "8090:8080"
-    # volumes:
-    #   - ./identity-service/realm-export.json:/opt/keycloak/data/import/realm-export.json
-    depends_on:
-      - postgres
-   
-    networks:
-      - sketchnote-net
-    restart: unless-stopped
+ keycloak:
+  image: quay.io/keycloak/keycloak:26.0.2
+  container_name: keycloak
+  command: start-dev --http-enabled=true --hostname-strict=false
+  environment:
+    KC_BOOTSTRAP_ADMIN_USERNAME: admin
+    KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    KC_DB: postgres
+    KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+    KC_DB_USERNAME: admin
+    KC_DB_PASSWORD: admin
+    KC_HTTP_ENABLED: "true"        # bật HTTP
+    KC_HOSTNAME_STRICT: "false"    # tắt hostname strict
+  ports:
+    - "8090:8080"
+  networks:
+    - sketchnote-net
+  restart: unless-stopped
 
 volumes:
   pgdata:
