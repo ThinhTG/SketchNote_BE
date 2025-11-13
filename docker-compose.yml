@@ -1,13 +1,15 @@
+version: "3.9"
+
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     container_name: postgres
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: usersdb
     ports:
-      - "5432:5432" 
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
@@ -90,15 +92,15 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://pgbouncer:6432/keycloak
+      KC_DB_URL: jdbc:postgresql://pgbouncer:6432/usersdb
       KC_DB_USERNAME: admin
       KC_DB_PASSWORD: admin
     ports:
       - "8090:8080"
-    # volumes:
-    #   - ./identity-service/realm-export.json:/opt/keycloak/data/import/realm-export.json
     networks:
       - sketchnote-net
+    depends_on:
+      - pgbouncer
     restart: unless-stopped
 
 volumes:
