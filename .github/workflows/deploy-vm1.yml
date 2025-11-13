@@ -60,7 +60,7 @@ jobs:
           key: ${{ secrets.VM1_KEY }}
           script: |
             echo "🔁 Pulling latest images on VM1..."
-            cd /root/SketchNote_BE
+            cd /home/Admin/SketchNote_BE
             docker compose -f docker-compose-vm1.yml pull
             docker compose -f docker-compose-vm1.yml up -d
             echo "✅ Deployment complete!"
