@@ -55,7 +55,7 @@ services:
     restart: unless-stopped
 
   kafka:
-    image: bitnami/kafka:3.9.1
+    image: bitnami/kafka:latest
     container_name: kafka
     environment:
       - KAFKA_ENABLE_KRAFT=yes
