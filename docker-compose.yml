@@ -82,7 +82,7 @@ services:
       - sketchnote-net
     restart: unless-stopped
 
- keycloak:
+  keycloak:
   image: quay.io/keycloak/keycloak:26.0.2
   container_name: keycloak
   command: start-dev --http-enabled=true --hostname-strict=false
