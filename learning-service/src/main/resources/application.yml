@@ -23,6 +23,12 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://139.59.119.65:8090/realms/sketchnote
+
 eureka:
   client:
     enabled: true
@@ -33,3 +39,5 @@ eureka:
 #  instance:
 #    prefer-ip-address: true
 #    ip-address: localhost
+
+

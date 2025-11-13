@@ -25,7 +25,7 @@ public class LessonService {
     }
 
     // Tạo danh sách Lesson cho một Course
-    public List<Lesson> createLessonsForCourse(Long courseId, List<LessonDTO> lessonDtos) {
+    public List<LessonDTO> createLessonsForCourse(Long courseId, List<LessonDTO> lessonDtos) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
@@ -37,12 +37,20 @@ public class LessonService {
             lesson.setUpdatedAt(LocalDateTime.now());
         });
 
-        return lessonRepository.saveAll(lessons);
+        List<Lesson> saved = lessonRepository.saveAll(lessons);
+        
+        // Cập nhật totalDuration của course
+        course.getLessons().addAll(saved);
+        course.updateTotalDuration();
+        courseRepository.save(course);
+        
+        return lessonMapper.toDTOList(saved);
     }
 
     // Lấy tất cả lesson của 1 course
-    public List<Lesson> getLessonsByCourse(Long courseId) {
-        return lessonRepository.findByCourse_CourseId(courseId);
+    public List<LessonDTO> getLessonsByCourse(Long courseId) {
+        List<Lesson> lessons = lessonRepository.findByCourse_CourseId(courseId);
+        return lessonMapper.toDTOList(lessons);
     }
 
 }

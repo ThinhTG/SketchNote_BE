@@ -17,10 +17,7 @@ public class PaymentEventConsumer {
 
     @Bean
     public Consumer<PaymentSucceededEvent> paymentSucceededConsumer() {
-        log.info("Registering paymentSucceededConsumer bean");
         return event -> {
-            log.info("PaymentSucceededEvent received: orderId={}, txId={}, method={}",
-                    event.getOrderId(), event.getTransactionId(), event.getPaymentMethod());
             try {
                 paymentService.handlePaymentSuccess(event);
             } catch (Exception e) {
@@ -32,9 +29,7 @@ public class PaymentEventConsumer {
 
     @Bean
     public Consumer<PaymentFailedEvent> paymentFailedConsumer() {
-        log.info("Registering paymentFailedConsumer bean");
         return event -> {
-            log.info("PaymentFailedEvent received: orderId={}, reason={}", event.getOrderId(), event.getReason());
             try {
                 paymentService.handlePaymentFailed(event);
             } catch (Exception e) {

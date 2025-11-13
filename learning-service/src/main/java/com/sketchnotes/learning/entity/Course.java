@@ -1,5 +1,6 @@
 package com.sketchnotes.learning.entity;
 
+import com.sketchnotes.learning.dto.enums.SketchNoteCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,7 +18,7 @@ import java.util.List;
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long courseId;
+    private Long courseId;
 
     private String title; // tiêu đề lớn
 
@@ -25,23 +26,33 @@ public class Course {
 
     private double price;   // giá tiền
 
-    private int student_count; // số người đã enroll vào khóa học
+    @Column(name = "student_count")
+    private int studentCount; // số người đã enroll vào khóa học
 
     private String description;  // mô tả ngắn về khóa học
 
-    private String category; // khóa học về chủ đề, lĩnh vực gì ( vẽ cái gì? )
+    private SketchNoteCategory category; // khóa học về chủ đề, lĩnh vực gì ( vẽ cái gì? )
 
-    private LocalDateTime createdAt;  // thời điểm khóa học được tạo
+    private String imageUrl; // ảnh banner cho khóa học
 
-    private LocalDateTime updatedAt;  // thời điểm khóa học được cập nhật
+    private int totalDuration; // tổng thời gian hoàn thành khóa học
+
+    private LocalDateTime createdAt = LocalDateTime.now();  // thời điểm khóa học được tạo
+
+    private LocalDateTime updatedAt = LocalDateTime.now();  // thời điểm khóa học được cập nhật
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Lesson> lessons = new ArrayList<>();
 
-    // khóa học do ai tạo ra created_by
-    // ........
-
-    public Course(long courseId) {
+    public Course(Long courseId) {
         this.courseId = courseId;
     }
+
+    public void updateTotalDuration() {
+        this.totalDuration = this.lessons.stream()
+                .mapToInt(Lesson::getDuration)
+                .sum();
+    }
+
+
 }

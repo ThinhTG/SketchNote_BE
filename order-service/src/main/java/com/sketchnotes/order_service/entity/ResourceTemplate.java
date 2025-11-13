@@ -69,13 +69,7 @@ public class ResourceTemplate {
     }
 
     public enum TemplateType {
-        PRESENTATION,
-        DOCUMENT,
-        INFOGRAPHIC,
-        POSTER,
-        BROCHURE,
-        CERTIFICATE,
-        OTHER
+       ICONS, TEMPLATES, FONT, ILLUSTRATIONS, MOCKUPS, PHOTOS, TITLES, OTHER
     }
 
     public enum TemplateStatus {
