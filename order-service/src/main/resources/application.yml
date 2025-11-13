@@ -1,7 +1,7 @@
 server:
   port: 8083
 cors:
-  allowed-origins: "http://139.59.119.65:8888"
+  allowed-origins: "http://34.126.134.243:8888"
 # Microservice Configuration
 payment-service:
   url: ${PAYMENT_SERVICE_URL:http://localhost:8081}
@@ -29,7 +29,7 @@ spring:
           group: order-service-group
       kafka:
         binder:
-          brokers: ${KAFKA_BOOTSTRAP_SERVERS:139.59.119.65:9092}
+          brokers: ${KAFKA_BOOTSTRAP_SERVERS:34.126.134.243:9092}
         bindings:
           orderCreated-out-0:
             producer:
@@ -49,7 +49,7 @@ spring:
       idle-timeout: 30000
       connection-timeout: 20000
       max-lifetime: 600000
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://139.59.119.65:6432/ordersdb}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://34.126.134.243:6432/ordersdb}
     username: ${SPRING_DATASOURCE_USERNAME:admin}
     password: ${SPRING_DATASOURCE_PASSWORD:admin}
 
@@ -57,7 +57,7 @@ spring:
     properties:
       enable.idempotence: true
       max.in.flight.requests.per.connection: 5
-    bootstrap-servers: 139.59.119.65:9092   # địa chỉ Kafka KRaft broker
+    bootstrap-servers: 34.126.134.243:9092   # địa chỉ Kafka KRaft broker
     producer:
       # If your payloads are already byte[] (as seen in logs), use ByteArraySerializer
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -83,7 +83,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://139.59.119.65:8090/realms/sketchnote
+          issuer-uri: http://34.126.134.243:8090/realms/sketchnote
 
 # Thêm logging để debug
 logging:

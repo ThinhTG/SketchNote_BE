@@ -1,7 +1,7 @@
 server:
   port: 8083
 cors:
-  allowed-origins: "http://139.59.119.65:8888"
+  allowed-origins: "http://34.126.134.243:8888"
 spring:
   application:
     name: order-service
@@ -15,7 +15,7 @@ spring:
       idle-timeout: 30000
       connection-timeout: 20000
       max-lifetime: 600000
-    url: jdbc:postgresql://139.59.119.65:6432/ordersdb
+    url: jdbc:postgresql://34.126.134.243:6432/ordersdb
     username: admin
     password: admin
 
@@ -28,13 +28,13 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://139.59.119.65:8761/eureka/
+      defaultZone: http://34.126.134.243:8761/eureka/
   instance:
     prefer-ip-address: true
-    ip-address: 146.190.90.222
+    ip-address: 34.30.141.121
 
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://139.59.119.65:8090/realms/sketchnote
+          issuer-uri: http://34.126.134.243:8090/realms/sketchnote
