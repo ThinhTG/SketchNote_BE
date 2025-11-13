@@ -197,4 +197,25 @@ public class OrderTemplateController {
         var result = templateService.getTemplatesByReviewStatus(status, page, size, sortBy, sortDir);
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates by review status"));
     }
+
+    @PostMapping("/sell/{projectId}")
+    public ResponseEntity<ApiResponse<ResourceTemplateDTO>> sellProjectAsTemplate(
+            @PathVariable Long projectId,
+            @RequestBody TemplateSellDTO dto) {
+
+        // ✅ Lấy thông tin user hiện tại
+        ApiResponse<UserResponse> apiResponse = identityClient.getCurrentUser();
+        UserResponse user = apiResponse.getResult();
+
+        if (user == null || user.getRole() == null || !"DESIGNER".equalsIgnoreCase(user.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only designers can sell projects as templates");
+        }
+
+        // ✅ Gọi service để tạo template mới từ project
+        ResourceTemplateDTO created = templateService.createTemplateFromProject(projectId, user.getId(), dto);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(created, "Template created from project and pending review"));
+    }
+
 }

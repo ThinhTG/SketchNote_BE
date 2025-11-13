@@ -1,5 +1,5 @@
 server:
-  port: 8087
+  port: 8083
 cors:
   allowed-origins: "http://139.59.119.65:8888"
 # Microservice Configuration
