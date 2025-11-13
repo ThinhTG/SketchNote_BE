@@ -3,6 +3,7 @@ package com.sketchnotes.order_service.service;
 import com.sketchnotes.order_service.dtos.PagedResponseDTO;
 import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
 import com.sketchnotes.order_service.dtos.TemplateCreateUpdateDTO;
+import com.sketchnotes.order_service.dtos.TemplateSellDTO;
 import com.sketchnotes.order_service.entity.ResourceTemplate;
 
 import java.math.BigDecimal;
@@ -126,4 +127,7 @@ public interface TemplateService {
      * Chỉ staff mới có quyền thực hiện chức năng này
      */
     ResourceTemplateDTO rejectTemplate(Long id);
+
+
+    ResourceTemplateDTO createTemplateFromProject(Long projectId, Long userId, TemplateSellDTO templateDTO);
 }

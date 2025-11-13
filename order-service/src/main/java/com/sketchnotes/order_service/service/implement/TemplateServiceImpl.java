@@ -1,8 +1,12 @@
 package com.sketchnotes.order_service.service.implement;
 
+import com.sketchnotes.order_service.client.ProjectClient;
+import com.sketchnotes.order_service.dtos.ApiResponse;
 import com.sketchnotes.order_service.dtos.PagedResponseDTO;
 import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
 import com.sketchnotes.order_service.dtos.TemplateCreateUpdateDTO;
+import com.sketchnotes.order_service.dtos.TemplateSellDTO;
+import com.sketchnotes.order_service.dtos.project.ProjectResponse;
 import com.sketchnotes.order_service.entity.ResourceTemplate;
 import com.sketchnotes.order_service.entity.ResourcesTemplateImage;
 import com.sketchnotes.order_service.entity.ResourceTemplateItem;
@@ -15,8 +19,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -30,6 +36,7 @@ public class TemplateServiceImpl implements TemplateService {
     
     private final ResourceTemplateRepository resourceTemplateRepository;
     private final OrderMapper orderMapper;
+    private final ProjectClient projectClient;
 
     @Override
     @Transactional(readOnly = true)
@@ -314,6 +321,82 @@ public class TemplateServiceImpl implements TemplateService {
         
         template.setStatus(ResourceTemplate.TemplateStatus.REJECTED);
         ResourceTemplate saved = resourceTemplateRepository.save(template);
+        return orderMapper.toDto(saved);
+    }
+
+    @Override
+    public ResourceTemplateDTO createTemplateFromProject(Long projectId, Long userId, TemplateSellDTO templateDTO) {
+        // 🔹 1. Lấy project từ ProjectClient
+        ApiResponse<ProjectResponse> projectApiResponse = projectClient.getProject(projectId);
+        if (projectApiResponse == null || projectApiResponse.getResult() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found");
+        }
+        ProjectResponse project = projectApiResponse.getResult();
+
+        // 🔹 2. Map dữ liệu từ Project + DTO
+        ResourceTemplate template = new ResourceTemplate();
+        template.setName(templateDTO.getName() != null && !templateDTO.getName().isEmpty() 
+                ? templateDTO.getName() 
+                : project.getName());
+        template.setDescription(templateDTO.getDescription() != null && !templateDTO.getDescription().isEmpty() 
+                ? templateDTO.getDescription() 
+                : project.getDescription());
+        
+        // Convert type string to enum
+        if (templateDTO.getType() != null) {
+            try {
+                template.setType(ResourceTemplate.TemplateType.valueOf(templateDTO.getType().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                // List all valid template types
+                String validTypes = String.join(", ", 
+                    java.util.Arrays.stream(ResourceTemplate.TemplateType.values())
+                        .map(Enum::name)
+                        .toArray(String[]::new));
+                throw new IllegalArgumentException(
+                    "Invalid template type: '" + templateDTO.getType() + "'. " +
+                    "Valid types are: " + validTypes);
+            }
+        } else {
+            throw new IllegalArgumentException("Template type is required");
+        }
+        
+        template.setPrice(templateDTO.getPrice());
+        
+        // Convert LocalDateTime to LocalDate for expiredTime
+        if (templateDTO.getExpiredTime() != null) {
+            template.setExpiredTime(templateDTO.getExpiredTime().toLocalDate());
+        } else {
+            throw new IllegalArgumentException("Expired time is required");
+        }
+        
+        template.setReleaseDate(LocalDate.now());
+        template.setDesignerId(userId);
+        template.setStatus(ResourceTemplate.TemplateStatus.PENDING_REVIEW);
+
+        // 🔹 3. Gán hình ảnh thumbnail
+        if (project.getImageUrl() != null && !project.getImageUrl().isEmpty()) {
+            ResourcesTemplateImage thumbnail = new ResourcesTemplateImage();
+            thumbnail.setImageUrl(project.getImageUrl());
+            thumbnail.setIsThumbnail(true);
+            thumbnail.setResourceTemplate(template);
+            template.getImages().add(thumbnail);
+        }
+
+        // 🔹 4. Gán các page → item
+        if (project.getPages() != null && !project.getPages().isEmpty()) {
+            project.getPages().forEach(p -> {
+                ResourceTemplateItem item = new ResourceTemplateItem();
+                item.setItemIndex(p.getPageNumber());
+                item.setItemUrl(p.getStrokeUrl());
+                item.setResourceTemplate(template);
+                template.getItems().add(item);
+            });
+        }
+
+        // 🔹 5. Lưu vào DB
+        ResourceTemplate saved = resourceTemplateRepository.save(template);
+
+        // 🔹 6. Map sang DTO để trả về
         return orderMapper.toDto(saved);
     }
 
