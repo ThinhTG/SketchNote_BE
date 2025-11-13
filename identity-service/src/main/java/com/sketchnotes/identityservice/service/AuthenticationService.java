@@ -5,11 +5,8 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.sketchnotes.identityservice.client.IdentityClient;
 import com.sketchnotes.identityservice.dtos.identity.*;
-import com.sketchnotes.identityservice.dtos.request.LoginGoogleRequest;
-import com.sketchnotes.identityservice.dtos.request.LoginRequest;
-import com.sketchnotes.identityservice.dtos.request.RegisterRequest;
+import com.sketchnotes.identityservice.dtos.request.*;
 import com.sketchnotes.identityservice.dtos.response.LoginResponse;
-import com.sketchnotes.identityservice.dtos.request.TokenRequest;
 import com.sketchnotes.identityservice.enums.Role;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
@@ -210,5 +207,137 @@ public class AuthenticationService implements  IAuthService {
         return splitedStr[splitedStr.length - 1];
     }
 
+    @Override
+    public void sendVerifyEmail(VerifyEmailRequest request) {
+        try {
+            // Get admin token
+            TokenExchangeResponse token = identityClient.exchangeClientToken(
+                    TokenExchangeParam.builder()
+                            .grant_type("client_credentials")
+                            .client_id(clientId)
+                            .client_secret(clientSecret)
+                            .scope("openid")
+                            .build()
+            );
+
+            // Find user by email in Keycloak
+            List<UserInfo> users = identityClient.getUserByEmail(
+                    "Bearer " + token.getAccessToken(),
+                    request.getEmail()
+            );
+
+            if (users == null || users.isEmpty()) {
+                throw new AppException(ErrorCode.NOT_FOUND);
+            }
+
+            UserInfo userInfo = users.get(0);
+
+            // Send verification email
+            // redirect_uri: URL user will be redirected to after email verification
+            // Set to null to use default redirect URI from Keycloak client settings
+            identityClient.sendVerifyEmail(
+                    "Bearer " + token.getAccessToken(),
+                    userInfo.getId(),
+                    clientId,
+                    null  // or "http://your-frontend-url.com/verify-success"
+            );
+
+            log.info("Verification email sent to: {}", request.getEmail());
+
+        } catch (FeignException ex) {
+            log.error("FeignException during send verify email: {}", ex.getMessage());
+            throw errorNormalizer.handleKeyCloakException(ex);
+        } catch (Exception ex) {
+            log.error("Unexpected exception during send verify email", ex);
+            throw ex;
+        }
+    }
+
+    @Override
+    public void sendResetPasswordEmail(ForgotPasswordRequest request) {
+        try {
+            // Get admin token
+            TokenExchangeResponse token = identityClient.exchangeClientToken(
+                    TokenExchangeParam.builder()
+                            .grant_type("client_credentials")
+                            .client_id(clientId)
+                            .client_secret(clientSecret)
+                            .scope("openid")
+                            .build()
+            );
+
+            // Find user by email in Keycloak
+            List<UserInfo> users = identityClient.getUserByEmail(
+                    "Bearer " + token.getAccessToken(),
+                    request.getEmail()
+            );
+
+            if (users == null || users.isEmpty()) {
+                throw new AppException(ErrorCode.NOT_FOUND);
+            }
+
+            UserInfo userInfo = users.get(0);
+
+            // Send reset password email with UPDATE_PASSWORD action
+            // redirect_uri: URL user will be redirected to after resetting password
+            // Set to null to use default redirect URI from Keycloak client settings
+            identityClient.executeActionsEmail(
+                    "Bearer " + token.getAccessToken(),
+                    userInfo.getId(),
+                    clientId,
+                    null,  // or "http://your-frontend-url.com/reset-success"
+                    List.of("UPDATE_PASSWORD")
+            );
+
+            log.info("Reset password email sent to: {}", request.getEmail());
+
+        } catch (FeignException ex) {
+            log.error("FeignException during send reset password email: {}", ex.getMessage());
+            throw errorNormalizer.handleKeyCloakException(ex);
+        } catch (Exception ex) {
+            log.error("Unexpected exception during send reset password email", ex);
+            throw ex;
+        }
+    }
+
+    @Override
+    public void resetPassword(String userId, ResetPasswordRequest request) {
+        try {
+            // Validate passwords match
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                throw new AppException(ErrorCode.PASSWORD_MISMATCH);
+            }
+
+            // Get admin token
+            TokenExchangeResponse token = identityClient.exchangeClientToken(
+                    TokenExchangeParam.builder()
+                            .grant_type("client_credentials")
+                            .client_id(clientId)
+                            .client_secret(clientSecret)
+                            .scope("openid")
+                            .build()
+            );
+
+            // Reset password in Keycloak
+            identityClient.resetPassword(
+                    "Bearer " + token.getAccessToken(),
+                    userId,
+                    UpdatePasswordParam.builder()
+                            .type("password")
+                            .value(request.getNewPassword())
+                            .temporary(false)
+                            .build()
+            );
+
+            log.info("Password reset successfully for userId: {}", userId);
+
+        } catch (FeignException ex) {
+            log.error("FeignException during reset password: {}", ex.getMessage());
+            throw errorNormalizer.handleKeyCloakException(ex);
+        } catch (Exception ex) {
+            log.error("Unexpected exception during reset password", ex);
+            throw ex;
+        }
+    }
 
 }

@@ -1,10 +1,7 @@
 package com.sketchnotes.identityservice.controller;
 
 import com.sketchnotes.identityservice.dtos.ApiResponse;
-import com.sketchnotes.identityservice.dtos.request.LoginGoogleRequest;
-import com.sketchnotes.identityservice.dtos.request.LoginRequest;
-import com.sketchnotes.identityservice.dtos.request.RegisterRequest;
-import com.sketchnotes.identityservice.dtos.request.TokenRequest;
+import com.sketchnotes.identityservice.dtos.request.*;
 import com.sketchnotes.identityservice.dtos.response.LoginResponse;
 import com.sketchnotes.identityservice.service.interfaces.IAuthService;
 import jakarta.validation.Valid;
@@ -39,5 +36,25 @@ public class AuthController {
     public ResponseEntity<ApiResponse<LoginResponse>> loginGoogle(@RequestBody LoginGoogleRequest request) {
         LoginResponse response = authService.loginWithGoogle(request);
         return ResponseEntity.ok(new ApiResponse<LoginResponse>(200, "Login successful", response));
+    }
+
+    @PostMapping("/send-verify-email")
+    public ResponseEntity<ApiResponse<String>> sendVerifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        authService.sendVerifyEmail(request);
+        return ResponseEntity.ok(new ApiResponse<String>(200, "Verification email sent successfully", null));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.sendResetPasswordEmail(request);
+        return ResponseEntity.ok(new ApiResponse<String>(200, "Reset password email sent successfully", null));
+    }
+
+    @PutMapping("/reset-password/{userId}")
+    public ResponseEntity<ApiResponse<String>> resetPassword(
+            @PathVariable String userId,
+            @Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(userId, request);
+        return ResponseEntity.ok(new ApiResponse<String>(200, "Password reset successfully", null));
     }
 }

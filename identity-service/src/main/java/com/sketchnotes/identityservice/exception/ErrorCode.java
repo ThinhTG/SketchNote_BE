@@ -19,6 +19,7 @@ public enum ErrorCode{
     // User errors
     INVALID_EMAIL(400, "Email must be at least {min} characters", HttpStatus.BAD_REQUEST),
     INVALID_PASSWORD(400, "Password must be at least {min} characters", HttpStatus.BAD_REQUEST),
+    PASSWORD_MISMATCH(400, "Passwords do not match", HttpStatus.BAD_REQUEST),
     EMAIL_IS_MISSING(400, "Please enter e mail", HttpStatus.BAD_REQUEST),
     USER_EXISTED(400, "Username already exists, please choose another one", HttpStatus.BAD_REQUEST),
     EMAIL_EXISTED(400, "Email already exists, please choose another one", HttpStatus.BAD_REQUEST),

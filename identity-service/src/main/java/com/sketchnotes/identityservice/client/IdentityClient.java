@@ -59,4 +59,47 @@ public interface IdentityClient {
             @PathVariable("userId") String userId,
             @RequestBody List<RoleKeycloakRequest> roles
     );
+
+    /**
+     * Get user by email
+     */
+    @GetMapping("/admin/realms/${idp.client-id}/users")
+    List<UserInfo> getUserByEmail(
+            @RequestHeader("authorization") String token,
+            @RequestParam("email") String email
+    );
+
+    /**
+     * Send email verification
+     */
+    @PutMapping("/admin/realms/${idp.client-id}/users/{userId}/send-verify-email")
+    ResponseEntity<?> sendVerifyEmail(
+            @RequestHeader("authorization") String token,
+            @PathVariable("userId") String userId,
+            @RequestParam(value = "client_id", required = false) String clientId,
+            @RequestParam(value = "redirect_uri", required = false) String redirectUri
+    );
+
+    /**
+     * Send reset password email
+     */
+    @PutMapping("/admin/realms/${idp.client-id}/users/{userId}/execute-actions-email")
+    ResponseEntity<?> executeActionsEmail(
+            @RequestHeader("authorization") String token,
+            @PathVariable("userId") String userId,
+            @RequestParam(value = "client_id", required = false) String clientId,
+            @RequestParam(value = "redirect_uri", required = false) String redirectUri,
+            @RequestBody List<String> actions
+    );
+
+    /**
+     * Reset password (admin action)
+     */
+    @PutMapping(value = "/admin/realms/${idp.client-id}/users/{userId}/reset-password",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<?> resetPassword(
+            @RequestHeader("authorization") String token,
+            @PathVariable("userId") String userId,
+            @RequestBody UpdatePasswordParam passwordParam
+    );
 }
