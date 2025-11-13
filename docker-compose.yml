@@ -98,8 +98,8 @@ services:
     # volumes:
     #   - ./identity-service/realm-export.json:/opt/keycloak/data/import/realm-export.json
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
+   
     networks:
       - sketchnote-net
     restart: unless-stopped
