@@ -24,10 +24,11 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long transactionId;
 
-
     private Long orderId;
 
-    private BigDecimal amount;
+    private BigDecimal amount;  // so tien giao dich
+
+    private BigDecimal balance; // soos tienf còn lại sau khi giao dich duoc thuc hien
 
     @Enumerated(EnumType.STRING)
     private TransactionType type;   // DEPOSIT, PAYMENT, WITHDRAW
