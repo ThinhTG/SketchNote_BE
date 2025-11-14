@@ -66,5 +66,12 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(result, "Order status updated"));
     }
     
-
-}
+    /**
+     * Thanh toán lại cho đơn hàng có trạng thái PaymentFail
+     */
+    @PostMapping("/{id}/payment/retry")
+    public ResponseEntity<ApiResponse<PaymentResponseDTO>> retryPaymentForFailedOrder(@PathVariable Long id) {
+        var result = orderPaymentService.retryPaymentForFailedOrder(id);
+        return ResponseEntity.ok(ApiResponse.success(result, "Payment retry created successfully"));
+    }
+    
