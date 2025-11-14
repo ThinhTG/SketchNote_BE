@@ -27,7 +27,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://139.59.119.65:8090/realms/sketchnote
+          issuer-uri: http://34.126.134.243:8090/realms/sketchnote
 
 eureka:
   client:
