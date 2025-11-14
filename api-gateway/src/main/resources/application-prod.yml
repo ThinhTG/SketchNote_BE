@@ -28,7 +28,7 @@ spring:
             - id: project-service
               uri: lb://project-service
               predicates:
-                - Path=/api/projects/**, api/pages/**
+                - Path=/api/projects/**, /api/pages/**
 
             - id: order-service
               uri: lb://order-service
