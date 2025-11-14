@@ -7,38 +7,46 @@ spring:
 
   cloud:
     gateway:
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: true
-              lower-case-service-id: true
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
 
-          routes:
-            - id: learning-service
-              uri: lb://learning-service
-              predicates:
-                - Path=/api/learning/**
+      routes:
+        - id: learning-service
+          uri: lb://learning-service
+          predicates:
+            - Path=/api/learning/**
+          filters:
+            - StripPrefix=1
 
-            - id: account-service
-              uri: lb://account-service
-              predicates:
-                - Path=/api/users/**, /api/auth/**, /api/roles/**,/api/blogs/**,/api/payment/**
+        - id: account-service
+          uri: lb://account-service
+          predicates:
+            - Path=/api/users/**, /api/auth/**, /api/roles/**, /api/blogs/**, /api/payment/**
+          filters:
+            - StripPrefix=1
 
-            - id: project-service
-              uri: lb://project-service
-              predicates:
-                - Path=/api/projects/**
+        - id: project-service
+          uri: lb://project-service
+          predicates:
+            - Path=/api/projects/**
+          filters:
+            - StripPrefix=1
 
-            - id: order-service
-              uri: lb://order-service
-              predicates:
-                - Path=/api/orders/**
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - StripPrefix=1
 
-            - id: interaction-service
-              uri: lb://interaction-service
-              predicates:
-                - Path=/api/interactions/**
+        - id: interaction-service
+          uri: lb://interaction-service
+          predicates:
+            - Path=/api/interactions/**
+          filters:
+            - StripPrefix=1
 
 springdoc:
   swagger-ui:
@@ -53,6 +61,7 @@ springdoc:
         url: /order-service/v3/api-docs
       - name: interaction-service
         url: /interaction-service/v3/api-docs
+
 eureka:
   client:
     service-url:
