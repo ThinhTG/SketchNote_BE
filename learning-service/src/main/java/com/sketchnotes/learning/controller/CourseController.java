@@ -1,5 +1,6 @@
 package com.sketchnotes.learning.controller;
 
+import com.sketchnotes.learning.client.IdentityClient;
 import com.sketchnotes.learning.dto.ApiResponse;
 import com.sketchnotes.learning.dto.CourseDTO;
 import com.sketchnotes.learning.service.CourseService;
@@ -15,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CourseController {
     private final CourseService courseService;
+    private final IdentityClient identityClient;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<CourseDTO>>> getAllCourses() {
@@ -53,15 +55,17 @@ public class CourseController {
         return ResponseEntity.ok(ApiResponse.success(null, "Course deleted successfully"));
     }
 
-    @GetMapping("/enrolled/{userId}")
-    public ResponseEntity<ApiResponse<List<CourseDTO>>> getEnrolledCourses(@PathVariable Long userId) {
-        List<CourseDTO> enrolledCourses = courseService.getEnrolledCourses(userId);
+    @GetMapping("/enrolled/me")
+    public ResponseEntity<ApiResponse<List<CourseDTO>>> getEnrolledCourses() {
+        var user = identityClient.getCurrentUser().getResult();
+        List<CourseDTO> enrolledCourses = courseService.getEnrolledCourses(user.getId());
         return ResponseEntity.ok(ApiResponse.success(enrolledCourses, "Enrolled courses retrieved successfully"));
     }
 
-    @GetMapping("/not-enrolled/{userId}")
-    public ResponseEntity<ApiResponse<List<CourseDTO>>> getNotEnrolledCourses(@PathVariable Long userId) {
-        List<CourseDTO> notEnrolledCourses = courseService.getNotEnrolledCourses(userId);
+    @GetMapping("/not-enrolled/me")
+    public ResponseEntity<ApiResponse<List<CourseDTO>>> getNotEnrolledCourses() {
+        var user = identityClient.getCurrentUser().getResult();
+        List<CourseDTO> notEnrolledCourses = courseService.getNotEnrolledCourses(user.getId());
         return ResponseEntity.ok(ApiResponse.success(notEnrolledCourses, "Not enrolled courses retrieved successfully"));
     }
 
