@@ -71,5 +71,5 @@ jobs:
           script: |
             echo "🔁 Pulling latest images on VM2..."
             cd /home/Admin/SketchNote_BE
-            docker compose -f docker-compose-services.yml pull
-            docker compose -f docker-compose-services.yml up -d
+            docker compose  pull
+            docker compose up -d
