@@ -10,4 +10,5 @@ import java.util.List;
 public interface IProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByOwnerId(Long ownerId);
     List<Project> findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long ownerId);
+
 }

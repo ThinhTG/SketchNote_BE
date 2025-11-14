@@ -68,7 +68,6 @@ spring:
 #      retries: 1
 #    listener:
 #      ack-mode: record
-
 idp:
   url: http://34.126.134.243:8090
   client-id: sketchnote

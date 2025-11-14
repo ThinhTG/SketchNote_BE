@@ -32,7 +32,6 @@ eureka:
     prefer-ip-address: true
     ip-address: 34.126.98.83
 
-
   security:
     oauth2:
       resourceserver:
