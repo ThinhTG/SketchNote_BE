@@ -32,7 +32,7 @@ public class UserResourceController {
     }
 
     /**
-     * 📦 [GET] Lấy danh sách ResourceTemplate mà user đã mua (bao gồm các itemUrl)
+     * 📦 [GET] Lấy danh sách ResourceTemplate mà user đã mua (bao gồm các itemUrl)dv
      */
     @GetMapping("/user/me/templates")
     @Transactional(readOnly = true)

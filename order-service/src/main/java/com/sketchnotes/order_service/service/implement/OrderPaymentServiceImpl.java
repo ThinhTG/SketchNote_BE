@@ -89,6 +89,46 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
         }
     }
     
+    @Override
+    public PaymentResponseDTO retryPaymentForFailedOrder(Long orderId) {
+        OrderResponseDTO order = orderService.getOrderById(orderId);
+        
+        // Kiểm tra xem payment status có phải là FAILED không
+        if (order.getPaymentStatus() == null || !order.getPaymentStatus().equals("FAILED")) {
+            throw new RuntimeException("Order payment status is not FAILED. Current status: " + 
+                    (order.getPaymentStatus() != null ? order.getPaymentStatus() : "null"));
+        }
+        
+        log.info("Retrying payment for failed order: {}", orderId);
+        
+        // Tạo payment request từ order
+        PaymentRequestDTO paymentRequest = PaymentRequestDTO.builder()
+                .orderId(orderId)
+                .amount(order.getTotalAmount())
+                .description("Retry Payment for Order #" + order.getInvoiceNumber())
+                .returnUrl("http://localhost:3000/payment/success")
+                .cancelUrl("http://localhost:3000/payment/cancel")
+                .items(order.getItems().stream()
+                        .map(item -> PaymentRequestDTO.PaymentItemDTO.builder()
+                                .name(item.getTemplateName())
+                                .quantity(1)
+                                .price(item.getUnitPrice())
+                                .build())
+                        .toList())
+                .build();
+        
+        // Tạo payment link mới
+        PaymentResponseDTO paymentResponse = paymentClient.createPaymentLink(paymentRequest);
+        
+        // Cập nhật trạng thái order về PENDING
+        orderService.updateOrderStatus(orderId, "PENDING");
+        orderService.updatePaymentStatus(orderId, "PENDING");
+        
+        log.info("Payment retry created successfully for order: {}", orderId);
+        
+        return paymentResponse;
+    }
+    
     private String generateOrderCode(OrderResponseDTO order) {
         // Sử dụng invoiceNumber làm orderCode, hoặc fallback về orderId
         if (order.getInvoiceNumber() != null) {

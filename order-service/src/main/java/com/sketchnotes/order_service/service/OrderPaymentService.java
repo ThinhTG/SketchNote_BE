@@ -25,4 +25,9 @@ public interface OrderPaymentService {
      * Xử lý callback từ payment-service
      */
     void handlePaymentCallback(Long orderId, String paymentStatus);
+    
+    /**
+     * Thanh toán lại cho order có trạng thái PaymentFail
+     */
+    PaymentResponseDTO retryPaymentForFailedOrder(Long orderId);
 }
