@@ -14,4 +14,5 @@ public class PageResponse {
     private Long pageId;
     private Integer pageNumber;
     private String strokeUrl;
+    private String snapshotUrl;
 }
