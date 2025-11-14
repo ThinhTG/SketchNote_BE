@@ -20,6 +20,8 @@ public class SecurityConfig {
             "/api/auth/login-google",
             "/api/payment/payos/webhook",
             "/api/users/public/**",
+            "/internal/deposit-for-designer",
+            "/api/wallet/internal/**",
             // swagger endpoints
             "/v3/api-docs/**",
             "/swagger-ui/**",

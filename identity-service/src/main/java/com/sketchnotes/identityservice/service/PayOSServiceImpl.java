@@ -57,6 +57,7 @@ public class PayOSServiceImpl implements IPaymentGatewayService {
             Transaction tx = Transaction.builder()
                     .wallet(wallet)
                     .amount(amount)
+                    .balance(wallet.getBalance())
                     .status(PaymentStatus.PENDING)
                     .type(TransactionType.DEPOSIT)
                     .orderCode(orderCode) // lưu để mapping với callback
