@@ -29,12 +29,10 @@ spring:
               uri: lb://project-service
               predicates:
                 - Path=/api/projects/**, /api/pages/**
-
             - id: order-service
               uri: lb://order-service
               predicates:
                 - Path=/api/orders/**
-
             - id: interaction-service
               uri: lb://interaction-service
               predicates:
