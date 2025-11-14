@@ -61,6 +61,6 @@ jobs:
           script: |
             echo "🔁 Pulling latest images on VM1..."
             cd /home/Admin/SketchNote_BE
-            docker compose -f docker-compose-vm1.yml pull
-            docker compose -f docker-compose-vm1.yml up -d
+            docker compose pull postgres pgbouncer eureka gateway redis keycloak
+            docker compose up -d
             echo "✅ Deployment complete!"
