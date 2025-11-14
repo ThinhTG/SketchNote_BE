@@ -12,4 +12,5 @@ import lombok.Setter;
 public class PageDto {
     private Integer pageNumber;
     private String strokeUrl;
+    private String snapshotUrl;
 }

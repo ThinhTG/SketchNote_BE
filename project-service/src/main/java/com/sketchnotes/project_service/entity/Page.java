@@ -29,7 +29,7 @@ public class Page {
     // URL tới file strokes đã upload cloud
     @Column(nullable = false)
     private String strokeUrl;
-
+    private String snapshotUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;

@@ -13,6 +13,7 @@ public class PageMapper {
                 .projectId(page.getProject() != null ? page.getProject().getProjectId() : null)
                 .pageNumber(page.getPageNumber())
                 .strokeUrl(page.getStrokeUrl())
+                .snapshotUrl(page.getSnapshotUrl())
                 .build();
     }
 
@@ -20,6 +21,7 @@ public class PageMapper {
         return Page.builder()
                 .pageNumber(dto.getPageNumber())
                 .strokeUrl(dto.getStrokeUrl())
+                .snapshotUrl(dto.getSnapshotUrl())
                 .project(project)
                 .build();
     }
@@ -27,6 +29,7 @@ public class PageMapper {
         return Page.builder()
                 .pageNumber(dto.getPageNumber())
                 .strokeUrl(dto.getStrokeUrl())
+                .snapshotUrl(dto.getSnapshotUrl())
                 .project(project)
                 .build();
     }

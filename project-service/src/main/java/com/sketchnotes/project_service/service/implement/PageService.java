@@ -48,7 +48,6 @@ public class PageService implements IPageService {
         // Soft delete old pages before creating new version
         if(project.getPages() != null) {
             for (Page page : project.getPages()) {
-
                     page.setProject(null);
                     pageRepository.save(page);
 
