@@ -15,6 +15,7 @@ import com.sketchnotes.identityservice.model.User;
 import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.service.interfaces.IAuthService;
 import com.sketchnotes.identityservice.service.KafkaProducerService;
+import com.sketchnotes.identityservice.service.interfaces.IWalletService;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,7 @@ public class AuthenticationService implements  IAuthService {
     private final IdentityClient identityClient;
     private final IUserRepository userRepository;
     private final ErrorNormalizer errorNormalizer;
+    private final IWalletService walletService;
     private  final KafkaProducerService kafkaProducerService;
     @Value("${idp.client-id}")
     @NonFinal
@@ -129,7 +131,7 @@ public class AuthenticationService implements  IAuthService {
             User user = userRepository.findByEmail(email).orElse(null);
 
             if (user == null) {
-                 userRepository.save(
+               var newUser =  userRepository.save(
                         User.builder()
                                 .keycloakId(keycloakId)
                                 .email(email)
@@ -139,6 +141,8 @@ public class AuthenticationService implements  IAuthService {
                                 .lastName(lastName)
                                 .build()
                 );
+                walletService.createWallet(newUser.getId());
+
             }
             return LoginResponse.builder()
                     .accessToken(tokenResponse.getAccessToken())
@@ -189,6 +193,7 @@ public class AuthenticationService implements  IAuthService {
                     .avatarUrl(request.getAvatarUrl())
                     .build();
                 user = userRepository.save(user);
+            walletService.createWallet(user.getId());
 
         } catch (FeignException exception) {
             throw errorNormalizer.handleKeyCloakException(exception);
