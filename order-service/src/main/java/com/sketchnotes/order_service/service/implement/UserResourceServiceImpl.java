@@ -91,6 +91,7 @@ public class UserResourceServiceImpl implements UserResourceService {
                             .resourceItemId(item.getResourceItemId())
                             .itemIndex(item.getItemIndex())
                             .itemUrl(item.getItemUrl())
+                            .imageUrl(item.getImageUrl())
                             .build());
                 }
                 dto.setItems(itemDTOs);

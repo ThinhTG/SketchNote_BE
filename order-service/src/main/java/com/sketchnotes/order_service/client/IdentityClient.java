@@ -26,4 +26,10 @@ public interface IdentityClient {
             @RequestParam Long designerId,
             @RequestParam BigDecimal amount,
             @RequestParam(required = false) String description);
+
+    @PostMapping("api/wallet/internal/pay-order")
+    ApiResponse<?> payOrderFromWallet(
+            @RequestParam Long userId,
+            @RequestParam BigDecimal amount,
+            @RequestParam(required = false) String description);
 }

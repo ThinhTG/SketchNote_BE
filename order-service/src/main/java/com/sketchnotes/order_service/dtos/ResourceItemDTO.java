@@ -13,4 +13,5 @@ public class ResourceItemDTO {
     private Long resourceItemId;
     private Integer itemIndex;
     private String itemUrl;
+    private String imageUrl;
 }
