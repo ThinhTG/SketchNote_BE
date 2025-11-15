@@ -1,6 +1,7 @@
 package com.sketchnotes.identityservice.model;
 
 
+import com.sketchnotes.identityservice.enums.BlogStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -28,6 +29,8 @@ public class Blog {
 
     @Column(columnDefinition = "TEXT")
     private String summary;
+    @Enumerated(EnumType.STRING)
+    private BlogStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
