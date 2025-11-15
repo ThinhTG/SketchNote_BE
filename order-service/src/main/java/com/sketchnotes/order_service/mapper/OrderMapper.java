@@ -64,6 +64,7 @@ public interface OrderMapper {
                 .resourceItemId(item.getResourceItemId())
                 .itemIndex(item.getItemIndex())
                 .itemUrl(item.getItemUrl())
+                .imageUrl(item.getImageUrl())
                 .build();
     }
 
@@ -78,6 +79,7 @@ public interface OrderMapper {
                 .resourceItemId(dto.getResourceItemId())
                 .itemIndex(dto.getItemIndex())
                 .itemUrl(dto.getItemUrl())
+                .imageUrl(dto.getImageUrl())
                 .build();
     }
 
