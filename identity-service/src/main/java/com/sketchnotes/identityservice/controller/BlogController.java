@@ -3,6 +3,7 @@ package com.sketchnotes.identityservice.controller;
 import com.sketchnotes.identityservice.client.IdentityClient;
 import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.dtos.request.BlogRequest;
+import com.sketchnotes.identityservice.dtos.request.PublishRequest;
 import com.sketchnotes.identityservice.dtos.request.UpdateBlogRequest;
 import com.sketchnotes.identityservice.dtos.response.BlogResponse;
 import com.sketchnotes.identityservice.enums.BlogStatus;
@@ -54,8 +55,8 @@ public class BlogController {
     }
 
     @PutMapping("/{id}/publish")
-    public ResponseEntity<ApiResponse<BlogResponse>> publish(@PathVariable Long id, @RequestBody BlogStatus status){
-        BlogResponse response = postService.publishBlog(id, status);
+    public ResponseEntity<ApiResponse<BlogResponse>> publish(@PathVariable Long id,   @RequestBody PublishRequest request){
+        BlogResponse response = postService.publishBlog(id, request.getStatus());
         return ResponseEntity.ok(ApiResponse.success( response,"Publish blog successful"));
     }
 
