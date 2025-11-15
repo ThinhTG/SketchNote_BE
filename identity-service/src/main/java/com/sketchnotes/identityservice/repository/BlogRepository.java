@@ -16,6 +16,5 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
     Optional<Blog> findByIdAndDeletedAtIsNull(Long id);
     List<Blog> findByAuthorIdAndDeletedAtIsNull(Long authorId);
     Optional<Blog> findBlogsByIdAndDeletedAtIsNull(Long id);
-    Page<Blog> findBlogsByStatusAndDeletedAtIsNull(Pageable pageable);
     Page<Blog> findBlogsByStatusAndDeletedAtIsNull(BlogStatus status, Pageable pageable);
 }
