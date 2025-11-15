@@ -28,7 +28,11 @@ public enum ErrorCode {
     NOT_FOUND(404, "Not found", HttpStatus.BAD_REQUEST),
     USER_NOT_FOUND(404, "User not found", HttpStatus.BAD_REQUEST),
     PROJECT_NOT_FOUND(404, "Project not found", HttpStatus.BAD_REQUEST),
-    PAGE_NOT_FOUND(404, "Project not found", HttpStatus.BAD_REQUEST);
+    PAGE_NOT_FOUND(404, "Project not found", HttpStatus.BAD_REQUEST),
+    FORBIDDEN_ACTION(403, "You do not have permission to perform this action", HttpStatus.FORBIDDEN),
+    COLLAB_NOT_FOUND(403, "Collaboration not found", HttpStatus.FORBIDDEN);
+
+
 
     private final int code;
     private final HttpStatusCode statusCode;

@@ -10,7 +10,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
-public class CollbabRequest {
+public class CollabRequest {
     private Long projectId;
-    private Long userId;
+    private String email;
+    private boolean isEdited;
 }

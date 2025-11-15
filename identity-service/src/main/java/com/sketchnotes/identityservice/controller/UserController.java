@@ -20,6 +20,11 @@ public class UserController {
         UserResponse response = userService.getUserById(id);
         return ResponseEntity.ok( ApiResponse.success( response,"Get data successful" ));
     }
+    @GetMapping("/email/{email}")
+    public ResponseEntity<ApiResponse<UserResponse>>getUserByEmail(@PathVariable String email) {
+        UserResponse response = userService.getUserByEmail(email);
+        return ResponseEntity.ok( ApiResponse.success( response,"Get data successful" ));
+    }
 
     @GetMapping("/public/{id}")
     public ResponseEntity<ApiResponse<UserResponse>>getUserByIdPublic(@PathVariable Long id) {

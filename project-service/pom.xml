@@ -40,7 +40,11 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
 		</dependency>
-
+		<!-- ===== Websocket ===== -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
 		<!-- ===== EUREKA ===== -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>

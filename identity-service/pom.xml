@@ -52,7 +52,6 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
-
         <!-- ===== KEYCLOAK ===== -->
         <dependency>
             <groupId>org.keycloak</groupId>

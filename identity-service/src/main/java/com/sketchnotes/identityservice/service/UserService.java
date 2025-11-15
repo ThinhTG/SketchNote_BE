@@ -126,4 +126,19 @@ public class UserService implements IUserService {
                 .avatarUrl(user.getAvatarUrl())
                 .build();
     }
+
+    @Override
+    public UserResponse getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email).filter(User::isActive)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return UserResponse.builder()
+                .id(user.getId())
+                .keycloakId(user.getKeycloakId())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .role(user.getRole().toString())
+                .avatarUrl(user.getAvatarUrl())
+                .build();
+    }
 }

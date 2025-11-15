@@ -12,4 +12,5 @@ public interface IUserService {
      void deleteUser(Long id);
     UserResponse getCurrentUser();
     UserResponse getUserByKeycloakId(String sub);
+    UserResponse getUserByEmail(String email);
 }
