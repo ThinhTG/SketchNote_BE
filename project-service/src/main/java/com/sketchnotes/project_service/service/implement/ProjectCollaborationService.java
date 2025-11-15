@@ -84,6 +84,7 @@ public class ProjectCollaborationService implements IProjectCollaborationService
         List<ProjectCollaboration> projectCollaborations = projectCollaborationRepository.findByProjectAndDeletedAtIsNull(project);
         return projectCollaborations.stream().map(p -> ProjectCollaborationResponse.builder()
                 .projectId(p.getProject().getProjectId())
+                .email(userClient.getUserById(p.getUserId()).getResult().getEmail())
                 .userId(p.getUserId())
                 .isEdited(p.isEdited())
                 .createdAt(p.getCreatedAt())

@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class ProjectCollaborationResponse {
     private Long projectId;
     private Long userId;
+    private String email;
     private boolean isEdited;
     private LocalDateTime createdAt;
 }
