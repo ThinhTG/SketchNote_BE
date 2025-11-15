@@ -53,9 +53,9 @@ public class BlogController {
         return ResponseEntity.ok(ApiResponse.success( response,"Update successful"));
     }
 
-    @PostMapping("/{id}/publish")
-    public ResponseEntity<ApiResponse<BlogResponse>> publish(@PathVariable Long id){
-        BlogResponse response = postService.publishBlog(id);
+    @PutMapping("/{id}/publish")
+    public ResponseEntity<ApiResponse<BlogResponse>> publish(@PathVariable Long id, @RequestBody BlogStatus status){
+        BlogResponse response = postService.publishBlog(id, status);
         return ResponseEntity.ok(ApiResponse.success( response,"Publish blog successful"));
     }
 

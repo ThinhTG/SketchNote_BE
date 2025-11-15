@@ -91,9 +91,9 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public BlogResponse publishBlog(Long id) {
+    public BlogResponse publishBlog(Long id, BlogStatus status) {
         Blog post = blogRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BLOG_NOT_FOUND));
-        post.setStatus(BlogStatus.PUBLISHED);
+        post.setStatus(status);
         return toDto(blogRepository.save(post));
     }
 
@@ -123,6 +123,7 @@ public class BlogServiceImpl implements BlogService {
                 .authorDisplay(userName)
                 .createdAt(p.getCreatedAt())
                 .updatedAt(p.getUpdatedAt())
+                .status(p.getStatus().toString())
                 .contents(contents)
                 .build();
     }

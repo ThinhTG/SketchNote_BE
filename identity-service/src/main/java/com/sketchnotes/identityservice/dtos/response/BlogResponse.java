@@ -1,5 +1,6 @@
 package com.sketchnotes.identityservice.dtos.response;
 
+import com.sketchnotes.identityservice.enums.BlogStatus;
 import lombok.*;
 
 import java.time.Instant;
@@ -18,6 +19,7 @@ public class BlogResponse {
     private  String summary;
     private String authorDisplay;
     private String imageUrl;
+    private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<ContentResponse> contents;
