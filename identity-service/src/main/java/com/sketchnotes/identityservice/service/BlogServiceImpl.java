@@ -40,6 +40,7 @@ public class BlogServiceImpl implements BlogService {
         Blog p = Blog.builder()
                 .title(request.getTitle())
                 .summary(request.getSummary())
+
                 .author(user)
                 .imageUrl(request.getImageUrl())
                 .build();

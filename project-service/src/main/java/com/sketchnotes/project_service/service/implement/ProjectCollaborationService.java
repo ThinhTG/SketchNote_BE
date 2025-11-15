@@ -87,6 +87,7 @@ public class ProjectCollaborationService implements IProjectCollaborationService
                 .email(userClient.getUserById(p.getUserId()).getResult().getEmail())
                 .userId(p.getUserId())
                 .isEdited(p.isEdited())
+                .avatarUrl(userClient.getUserById(p.getUserId()).getResult().getAvatarUrl())
                 .createdAt(p.getCreatedAt())
                 .build()).toList();
     }
