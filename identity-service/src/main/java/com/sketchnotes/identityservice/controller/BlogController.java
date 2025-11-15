@@ -9,6 +9,7 @@ import com.sketchnotes.identityservice.dtos.response.BlogResponse;
 import com.sketchnotes.identityservice.enums.BlogStatus;
 import com.sketchnotes.identityservice.service.interfaces.BlogService;
 import com.sketchnotes.identityservice.ultils.PagedResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -54,6 +55,10 @@ public class BlogController {
         return ResponseEntity.ok(ApiResponse.success( response,"Update successful"));
     }
 
+    @Operation(
+            summary = "Publish a blog",
+            description = "Change blog status to PUBLISHED, DRAFT, or ARCHIVED"
+    )
     @PutMapping("/{id}/publish")
     public ResponseEntity<ApiResponse<BlogResponse>> publish(@PathVariable Long id,   @RequestBody PublishRequest request){
         BlogResponse response = postService.publishBlog(id, request.getStatus());
