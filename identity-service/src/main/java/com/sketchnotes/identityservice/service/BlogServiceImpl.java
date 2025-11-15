@@ -5,6 +5,7 @@ import com.sketchnotes.identityservice.dtos.request.ContentRequest;
 import com.sketchnotes.identityservice.dtos.request.UpdateBlogRequest;
 import com.sketchnotes.identityservice.dtos.response.BlogResponse;
 import com.sketchnotes.identityservice.dtos.response.ContentResponse;
+import com.sketchnotes.identityservice.enums.BlogStatus;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.model.Blog;
@@ -40,7 +41,7 @@ public class BlogServiceImpl implements BlogService {
         Blog p = Blog.builder()
                 .title(request.getTitle())
                 .summary(request.getSummary())
-
+                .status(BlogStatus.DRAFT)
                 .author(user)
                 .imageUrl(request.getImageUrl())
                 .build();
@@ -66,9 +67,9 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public PagedResponse<BlogResponse> getAll(int pageNo, int pageSize)  {
+    public PagedResponse<BlogResponse> getAll(int pageNo, int pageSize, BlogStatus status)  {
         Pageable pageable =  PageRequest.of(pageNo, pageSize);
-        Page<Blog> blogs = blogRepository.findBlogsByDeletedAtIsNull(pageable);
+        Page<Blog> blogs = blogRepository.findBlogsByStatusAndDeletedAtIsNull(status, pageable);
         List<BlogResponse> responses = blogs.stream().map(this::toDto).collect(Collectors.toList());
         return new PagedResponse<>(
                 responses,
@@ -86,6 +87,13 @@ public class BlogServiceImpl implements BlogService {
         post.setTitle(request.getTitle());
         post.setSummary(request.getSummary());
         post.setImageUrl(request.getImageUrl());
+        return toDto(blogRepository.save(post));
+    }
+
+    @Override
+    public BlogResponse publishBlog(Long id) {
+        Blog post = blogRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BLOG_NOT_FOUND));
+        post.setStatus(BlogStatus.PUBLISHED);
         return toDto(blogRepository.save(post));
     }
 
