@@ -2,8 +2,8 @@ package com.sketchnotes.identityservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import vn.ưpayos.PayOS;
 import org.springframework.beans.factory.annotation.Value;
+import vn.payos.PayOS;
 
 
 @Configuration
