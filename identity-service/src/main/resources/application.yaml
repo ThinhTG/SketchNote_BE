@@ -61,7 +61,6 @@ idp:
   client-secret: QYHYNsUNOS40S0Z28N7IytIf9bLYhtK3
 
 payos:
-  api-url: https://api-merchant.payos.vn/v2
   client-id: 1d3270ba-354d-4ac1-9693-09bd3ef01a47
   api-key: 8be8c8ef-3f5f-4fd8-ae46-4a170ca132e5
   checksum-key: f9386305d4e364c17bbe31b5beffeb99def6fa6da7ea63afc856301a8edbf851
