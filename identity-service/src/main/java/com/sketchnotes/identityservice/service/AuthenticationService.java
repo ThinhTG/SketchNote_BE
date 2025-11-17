@@ -241,7 +241,7 @@ public class AuthenticationService implements  IAuthService {
             );
 
             if (users == null || users.isEmpty()) {
-                throw new AppException(ErrorCode.NOT_FOUND);
+                throw new AppException(ErrorCode.USER_NOT_FOUND);
             }
 
             UserInfo userInfo = users.get(0);

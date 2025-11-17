@@ -16,6 +16,7 @@ public class SecurityConfig {
             "/api/auth/register",
             "/api/auth/login",
             "/api/blogs",
+            "/api/auth/verify-email",
             "/api/auth/refresh-token",
             "/api/auth/login-google",
             "/api/payment/payos/webhook",
