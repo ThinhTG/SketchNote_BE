@@ -33,6 +33,11 @@ spring:
               predicates:
                 - Path=/api/orders/**
 
+            - id: project-ws
+              uri: lb:ws://project-service
+              predicates:
+                - Path=/ws/**
+                -
             - id: interaction-service
               uri: lb://interaction-service
               predicates:
