@@ -28,11 +28,28 @@ public class ApiResponse<T> {
                 .result(result)
                 .build();
     }
+
     public static <T> ApiResponse<T> error(int code, String message, T result) {
         return ApiResponse.<T>builder()
                 .code(code)
                 .message(message)
                 .result(result)
                 .build();
+    }
+
+    public static <T> ApiResponse<T> success2(T data) {
+        return new ApiResponse<>(0, "success", data);
+    }
+
+    public static <T> ApiResponse<T> success2(String message, T data) {
+        return new ApiResponse<>(0, message, data);
+    }
+
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(-1, message, null);
+    }
+
+    public static <T> ApiResponse<T> error(int code, String message) {
+        return new ApiResponse<>(code, message, null);
     }
 }
