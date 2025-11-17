@@ -24,8 +24,11 @@ public class ResourceTemplateItem {
     @Column(name = "item_index")
     private Integer itemIndex;
 
+    @Column(name = "image_url")
+    private String imageUrl;    // ảnh của item show ở library để customer biết item đó trông như thế nào khi kéo vào canvas sử dụng
+
     @Column(name = "item_url", length = 255)
-    private String itemUrl;
+    private String itemUrl;    // link của item khi kéo vào canvas sử dụng
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

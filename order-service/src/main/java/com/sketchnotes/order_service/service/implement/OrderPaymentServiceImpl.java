@@ -1,9 +1,11 @@
 package com.sketchnotes.order_service.service.implement;
 
 import com.sketchnotes.order_service.client.PaymentClient;
+import com.sketchnotes.order_service.client.IdentityClient;
 import com.sketchnotes.order_service.dtos.OrderResponseDTO;
 import com.sketchnotes.order_service.dtos.PaymentRequestDTO;
 import com.sketchnotes.order_service.dtos.PaymentResponseDTO;
+import com.sketchnotes.order_service.dtos.ApiResponse;
 import com.sketchnotes.order_service.service.OrderPaymentService;
 import com.sketchnotes.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
     
     private final OrderService orderService;
     private final PaymentClient paymentClient;
+    private final IdentityClient identityClient;
 
     @Override
     public PaymentResponseDTO createPaymentForOrder(Long orderId) {
@@ -87,6 +90,40 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
             default:
                 log.error("Unknown payment status: {}", paymentStatus);
         }
+    }
+    
+    @Override
+    public PaymentResponseDTO retryPaymentForFailedOrder(Long orderId) {
+        OrderResponseDTO order = orderService.getOrderById(orderId);
+        
+        // Kiểm tra xem payment status có phải là FAILED không
+        if (order.getPaymentStatus() == null || !order.getPaymentStatus().equals("FAILED")) {
+            throw new RuntimeException("Order payment status is not FAILED. Current status: " + 
+                    (order.getPaymentStatus() != null ? order.getPaymentStatus() : "null"));
+        }
+        
+        log.info("Retrying payment for failed order: {}", orderId);
+        ApiResponse<?> payResult = identityClient.payOrderFromWallet(order.getUserId(), order.getTotalAmount(),
+                "Retry payment for order #" + order.getInvoiceNumber());
+
+        if (payResult == null || payResult.getCode() != 200) {
+            String msg = payResult != null ? payResult.getMessage() : "Unknown error";
+            log.warn("Wallet payment failed for order {}: {}", orderId, msg);
+            throw new RuntimeException("Wallet payment failed: " + msg);
+        }
+
+        orderService.updatePaymentStatus(orderId, "PAID");
+        orderService.updateOrderStatus(orderId, "CONFIRMED");
+
+        log.info("Wallet payment successful for order: {}", orderId);
+
+        return PaymentResponseDTO.builder()
+                .paymentId("WALLET-" + orderId)
+                .orderCode(order.getInvoiceNumber() != null ? order.getInvoiceNumber() : String.valueOf(orderId))
+                .amount(order.getTotalAmount())
+                .description("Wallet payment for order retry")
+                .status("PAID")
+                .build();
     }
     
     private String generateOrderCode(OrderResponseDTO order) {

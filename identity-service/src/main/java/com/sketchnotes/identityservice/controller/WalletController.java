@@ -78,5 +78,26 @@ public class WalletController {
             return ApiResponse.success(transaction, "Course charged successfully");
     }
 
+    @PostMapping("/internal/pay-order")
+    public ApiResponse<Transaction> payOrder(
+            @RequestParam Long userId,
+            @RequestParam BigDecimal amount,
+            @RequestParam(required = false) String description) {
+        try {
+            Wallet wallet = walletService.getWalletByUserId(userId);
+            if (wallet == null) {
+                return ApiResponse.error(404, "Wallet not found for this user", null);
+            }
+            if (wallet.getBalance().compareTo(amount) < 0) {
+                return ApiResponse.error(402, "Insufficient balance in wallet", null);
+            }
+            Transaction transaction = walletService.pay(wallet.getWalletId(), amount);
+            return ApiResponse.success(transaction, "Order paid successfully");
+        } catch (Exception e) {
+            return ApiResponse.error(500, "Failed to pay order: " + e.getMessage(), null);
+        }
+    }
+
 }
+
 

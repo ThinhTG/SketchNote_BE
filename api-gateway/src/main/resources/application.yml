@@ -22,7 +22,7 @@ spring:
             - id: identity-service
               uri: lb://account-service
               predicates:
-                - Path=/api/users/**, /api/auth/**, /api/roles/**,/api/blogs/**,/api/payment/**
+                - Path=/api/users/**, /api/auth/**, /api/roles/**,/api/blogs/**,/api/payment/**,/api/wallet/**
             - id: project-service
               uri: lb://project-service
               predicates:

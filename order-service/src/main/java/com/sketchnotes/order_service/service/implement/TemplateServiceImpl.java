@@ -185,6 +185,7 @@ public class TemplateServiceImpl implements TemplateService {
                         ResourceTemplateItem it = new ResourceTemplateItem();
                         it.setItemIndex(itemDto.getItemIndex());
                         it.setItemUrl(itemDto.getItemUrl());
+                        it.setImageUrl(itemDto.getImageUrl());
                         it.setResourceTemplate(template);
                         return it;
                     }).toList();

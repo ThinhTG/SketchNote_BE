@@ -48,6 +48,7 @@ spring:
   cache:
     type: redis
 
+
   data:
     redis:
       host: 34.126.134.243

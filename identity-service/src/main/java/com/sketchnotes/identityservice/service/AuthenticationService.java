@@ -253,7 +253,7 @@ public class AuthenticationService implements  IAuthService {
                     "Bearer " + token.getAccessToken(),
                     userInfo.getId(),
                     clientId,
-                    linkVerifyEmail 
+                    linkVerifyEmail
             );
 
             log.info("Verification email sent to: {}", request.getEmail());
