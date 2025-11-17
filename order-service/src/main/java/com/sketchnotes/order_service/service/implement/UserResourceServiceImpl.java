@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +59,11 @@ public class UserResourceServiceImpl implements UserResourceService {
     @Override
     public List<UserResource> getUserResources(Long userId) {
         return userResourceRepository.findByUserIdAndActiveTrue(userId);
+    }
+
+    @Override
+    public Page<UserResource> getUserResources(Long userId, Pageable pageable) {
+        return userResourceRepository.findByUserIdAndActiveTrue(userId, pageable);
     }
 
     @Override

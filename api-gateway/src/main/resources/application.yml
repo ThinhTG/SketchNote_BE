@@ -19,31 +19,32 @@ spring:
               uri: lb://learning-service
               predicates:
                 - Path=/api/learning/**
-            - id: identity-service
+
+            - id: account-service
               uri: lb://account-service
               predicates:
-                - Path=/api/users/**, /api/auth/**, /api/roles/**,/api/blogs/**,/api/payment/**,/api/wallet/**
+                - Path=/api/users/**, /api/auth/**, /api/roles/**,/api/blogs/**,/api/payment/**,/api/contents/**, /api/wallet/**
+
             - id: project-service
               uri: lb://project-service
               predicates:
-                - Path=/api/projects/**
+                - Path=/api/projects/**, /api/pages/**,/api/collaborations/**
+
+            # 🔥 Thêm WebSocket route
+            - id: project-ws
+              uri: lb:ws://project-service
+              predicates:
+                - Path=/ws/**
 
             - id: order-service
               uri: lb://order-service
               predicates:
                 - Path=/api/orders/**
 
-            - id: project-ws
-              uri: lb:ws://project-service
-              predicates:
-                - Path=/ws/**
-                -
             - id: interaction-service
               uri: lb://interaction-service
               predicates:
                 - Path=/api/interactions/**
-
-
 
 springdoc:
   swagger-ui:
@@ -58,10 +59,11 @@ springdoc:
         url: /order-service/v3/api-docs
       - name: interaction-service
         url: /interaction-service/v3/api-docs
+
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
-#  instance:
-#    prefer-ip-address: true
-#    ip-address: localhost
+      defaultZone: http://34.126.134.243:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    ip-address: 34.126.134.243
