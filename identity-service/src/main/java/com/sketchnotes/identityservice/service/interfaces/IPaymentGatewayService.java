@@ -1,6 +1,6 @@
 package com.sketchnotes.identityservice.service.interfaces;
 
-import vn.payos.type.Webhook;
+
 
 import java.math.BigDecimal;
 
@@ -10,5 +10,5 @@ public interface IPaymentGatewayService {
      */
     String createPaymentLink(Long walletId, BigDecimal amount, String description);
 
-    void handleCallback(Webhook webhook);
+//    void handleCallback(Webhook webhook);
 }
