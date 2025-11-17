@@ -30,16 +30,18 @@ public enum ErrorCode{
 
     // OAuth2 / Token API errors
     INVALID_GRANT(400, "Invalid email or password", HttpStatus.BAD_REQUEST),
-    INVALID_CLIENT(3002, "Invalid client", HttpStatus.BAD_REQUEST),
-    INVALID_SCOPE(3003, "Invalid scope", HttpStatus.BAD_REQUEST),
+    INVALID_CLIENT(500, "Invalid client", HttpStatus.BAD_REQUEST),
+    INVALID_SCOPE(500, "Invalid scope", HttpStatus.BAD_REQUEST),
     UNAUTHORIZED_CLIENT(3004, "Unauthorized client", HttpStatus.BAD_REQUEST),
     INVALID_REQUEST(3005, "Invalid request", HttpStatus.BAD_REQUEST),
-    INVALID_TOKEN(3006, "Invalid token", HttpStatus.BAD_REQUEST),
-    EXPIRED_TOKEN(3007, "Expired token", HttpStatus.UNAUTHORIZED),
+    INVALID_TOKEN(400, "Invalid token", HttpStatus.BAD_REQUEST),
+    EXPIRED_TOKEN(400, "Expired token", HttpStatus.UNAUTHORIZED),
     NOT_FOUND(404, "Not found", HttpStatus.BAD_REQUEST),
     USER_NOT_FOUND(404, "User not found", HttpStatus.BAD_REQUEST),
     BLOG_NOT_FOUND(404, "Blog not found", HttpStatus.BAD_REQUEST),
-    CONTENT_NOT_FOUND(404, "Content not found", HttpStatus.BAD_REQUEST);
+    CONTENT_NOT_FOUND(404, "Content not found", HttpStatus.BAD_REQUEST),
+    EMAIL_NOT_VERIFIED(400, "Email not verified", HttpStatus.BAD_REQUEST);
+
     private final int code;
     private final HttpStatusCode statusCode;
     private final String message;

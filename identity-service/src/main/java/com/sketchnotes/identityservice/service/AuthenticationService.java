@@ -40,11 +40,16 @@ public class AuthenticationService implements  IAuthService {
     private  final KafkaProducerService kafkaProducerService;
     @Value("${idp.client-id}")
     @NonFinal
-    String clientId;
+   private String clientId;
 
     @Value("${idp.client-secret}")
     @NonFinal
-    String clientSecret;
+    private String clientSecret;
+
+    @Value("${link.verify-email}")
+    @NonFinal
+    private String linkVerifyEmail;
+
 
 
     @Override
@@ -61,7 +66,11 @@ public class AuthenticationService implements  IAuthService {
                             .scope("openid")
                             .build()
             );
-
+            DecodedJWT jwt = JWT.decode(tokenResponse.getAccessToken());
+            boolean emailVerified = jwt.getClaim("email_verified").asBoolean();
+            if (!emailVerified) {
+                throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+            }
             // Tìm user trong DB (nếu có)
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
@@ -244,7 +253,7 @@ public class AuthenticationService implements  IAuthService {
                     "Bearer " + token.getAccessToken(),
                     userInfo.getId(),
                     clientId,
-                    null  // or "http://your-frontend-url.com/verify-success"
+                    linkVerifyEmail 
             );
 
             log.info("Verification email sent to: {}", request.getEmail());

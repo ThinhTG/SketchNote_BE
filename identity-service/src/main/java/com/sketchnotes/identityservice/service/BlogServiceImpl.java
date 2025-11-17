@@ -1,5 +1,4 @@
 package com.sketchnotes.identityservice.service;
-
 import com.sketchnotes.identityservice.dtos.request.BlogRequest;
 import com.sketchnotes.identityservice.dtos.request.ContentRequest;
 import com.sketchnotes.identityservice.dtos.request.UpdateBlogRequest;
