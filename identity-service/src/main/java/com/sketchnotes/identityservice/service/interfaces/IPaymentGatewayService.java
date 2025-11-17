@@ -2,7 +2,10 @@ package com.sketchnotes.identityservice.service.interfaces;
 
 
 
+import org.springframework.http.ResponseEntity;
+
 import java.math.BigDecimal;
+import java.util.Map;
 
 public interface IPaymentGatewayService {
     /**
@@ -10,5 +13,6 @@ public interface IPaymentGatewayService {
      */
     String createPaymentLink(Long walletId, BigDecimal amount, String description);
 
-//    void handleCallback(Webhook webhook);
+    public ResponseEntity<String> handleWebhook(Map<String, Object> requestBody);
+
 }

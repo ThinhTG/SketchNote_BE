@@ -45,23 +45,11 @@ public class PaymentController {
         return ApiResponse.success("ok", paymentLink);
     }
 
-//    @PostMapping("/payos/webhook")
-//    public ResponseEntity<ApiResponse<Object>> receivePayosPaymentWebhook(@RequestBody Webhook webhookRequest) {
-//        try {
-//            payOSService.handleCallback(webhookRequest); // truyền toàn bộ object, không chỉ data
-//                ApiResponse<Object> resp = ApiResponse.success("OK", "Webhook processed");
-//                return ResponseEntity.ok(resp);
-//        } catch (Exception e) {
-//                log.error("Error processing PayOS webhook", e);
-//                // Always return HTTP 200 but with error details in ApiResponse
-//                ApiResponse<Object> err = ApiResponse.<Object>builder()
-//                        .code(500)
-//                        .message("Error processing webhook")
-//                        .result(e.getMessage())
-//                        .build();
-//                return ResponseEntity.ok(err);
-//        }
-//    }
+    @PostMapping("/payos/webhook")
+    public ResponseEntity<String> handleWebhook(@RequestBody Map<String, Object> requestBody) {
+        return payOSService.handleWebhook(requestBody);
+    }
+
 
 
     @PostMapping(path = "/confirm-webhook")
