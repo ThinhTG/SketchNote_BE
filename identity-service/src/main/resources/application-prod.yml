@@ -1,5 +1,7 @@
 server:
   port: 8089
+link:
+  verify-email: https://love-haven.vercel.app/verify-result
 cors:
   allowed-origins: "http://34.126.134.243:8888"
 spring:
@@ -36,7 +38,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   security:
     oauth2:
