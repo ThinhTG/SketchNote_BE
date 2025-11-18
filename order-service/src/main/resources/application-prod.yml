@@ -6,8 +6,39 @@ spring:
   application:
     name: order-service
   cloud:
+    function:
+      definition: paymentSucceededConsumer;paymentFailedConsumer
     discovery:
       enabled: true
+    stream:
+      bindings:
+        orderCreated-out-0:
+          contentType: application/json
+          destination: order-created
+        paymentSucceededConsumer-in-0:
+          contentType: application/json
+          destination: payment-succeeded
+          group: order-service-group
+        paymentFailedConsumer-in-0:
+          contentType: application/json
+          destination: payment-failed
+          group: order-service-group
+      kafka:
+        binder:
+          brokers: ${KAFKA_BOOTSTRAP_SERVERS:34.126.134.243:9092}
+        bindings:
+          orderCreated-out-0:
+            producer:
+              configuration:
+                value.serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+          # Per-binding consumer settings to ensure new consumer groups read existing messages
+          paymentSucceededConsumer-in-0:
+            consumer:
+              auto-offset-reset: earliest
+          paymentFailedConsumer-in-0:
+            consumer:
+              auto-offset-reset: earliest
+
   datasource:
     hikari:
       maximum-pool-size: 5
@@ -18,6 +49,26 @@ spring:
     url: jdbc:postgresql://34.126.134.243:6432/ordersdb
     username: admin
     password: admin
+
+
+  kafka:
+    properties:
+      enable.idempotence: true
+      max.in.flight.requests.per.connection: 5
+    bootstrap-servers: 34.126.134.243:9092   # địa chỉ Kafka KRaft broker
+    producer:
+      # If your payloads are already byte[] (as seen in logs), use ByteArraySerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+      acks: all
+      retries: 1
+    consumer:
+      group-id: order-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: record
 
   jpa:
     hibernate:
