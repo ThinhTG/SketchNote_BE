@@ -39,7 +39,7 @@ spring:
             - id: order-service
               uri: lb://order-service
               predicates:
-                - Path=/api/orders/**, /api/orders/designer/dashboard/***
+                - Path=/api/orders/**
 
             - id: interaction-service
               uri: lb://interaction-service

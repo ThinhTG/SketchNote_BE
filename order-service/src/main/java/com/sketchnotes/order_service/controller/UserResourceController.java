@@ -2,6 +2,7 @@ package com.sketchnotes.order_service.controller;
 
 import com.sketchnotes.order_service.client.IdentityClient;
 import com.sketchnotes.order_service.dtos.ApiResponse;
+import com.sketchnotes.order_service.dtos.PagedResponseDTO;
 import com.sketchnotes.order_service.entity.UserResource;
 import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
 import com.sketchnotes.order_service.service.UserResourceService;
@@ -9,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,10 +28,26 @@ public class UserResourceController {
      */
     @GetMapping("/user/me")
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<List<UserResource>>> getUserResources() {
+    public ResponseEntity<ApiResponse<PagedResponseDTO<UserResource>>> getUserResources(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
         var user = identityClient.getCurrentUser();
-        List<UserResource> resources = userResourceService.getUserResources(user.getResult().getId());
-        return ResponseEntity.ok(ApiResponse.success(resources, "Fetched user resources"));
+        Page<UserResource> resources = userResourceService.getUserResources(user.getResult().getId(), PageRequest.of(page, size));
+
+        PagedResponseDTO<UserResource> paged = PagedResponseDTO.<UserResource>builder()
+                .content(resources.getContent())
+                .page(resources.getNumber())
+                .size(resources.getSize())
+                .totalElements(resources.getTotalElements())
+                .totalPages(resources.getTotalPages())
+                .first(resources.isFirst())
+                .last(resources.isLast())
+                .hasNext(resources.hasNext())
+                .hasPrevious(resources.hasPrevious())
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success(paged, "Fetched user resources"));
     }
 
     /**

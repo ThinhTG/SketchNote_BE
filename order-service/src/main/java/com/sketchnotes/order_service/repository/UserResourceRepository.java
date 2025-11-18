@@ -3,6 +3,8 @@ package com.sketchnotes.order_service.repository;
 import com.sketchnotes.order_service.entity.UserResource;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -19,6 +21,7 @@ public interface UserResourceRepository  extends JpaRepository<UserResource,Long
 
 
     List<UserResource> findByUserIdAndActiveTrue(Long userId);
+    Page<UserResource> findByUserIdAndActiveTrue(Long userId, Pageable pageable);
     boolean existsByUserIdAndResourceTemplateId(Long userId, Long resourceTemplateId);
     boolean existsByUserIdAndResourceTemplateIdAndActiveTrue(Long userId, Long resourceTemplateId);
     Optional<UserResource> findFirstByUserIdAndResourceTemplateId(Long userId, Long resourceTemplateId);
