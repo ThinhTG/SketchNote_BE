@@ -17,5 +17,7 @@ public class ProjectResponse {
     private String description;
     private String imageUrl;
     private Long ownerId;
+    private boolean isOwner;
+    private boolean isEdited;
     private List<PageResponse> pages;
 }

@@ -8,8 +8,10 @@ import com.sketchnotes.project_service.dtos.response.ProjectResponse;
 import com.sketchnotes.project_service.dtos.mapper.ProjectMapper;
 import com.sketchnotes.project_service.dtos.response.UserResponse;
 import com.sketchnotes.project_service.entity.Project;
+import com.sketchnotes.project_service.entity.ProjectCollaboration;
 import com.sketchnotes.project_service.exception.AppException;
 import com.sketchnotes.project_service.exception.ErrorCode;
+import com.sketchnotes.project_service.repository.IProjectCollaborationRepository;
 import com.sketchnotes.project_service.repository.IProjectRepository;
 import com.sketchnotes.project_service.service.IProjectService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ import java.util.List;
 public class ProjectService implements IProjectService {
     private final IProjectRepository projectRepository;
     private final IUserClient userClient;
+    private final IProjectCollaborationRepository projectCollaborationRepository;
 
     @Override
     @CacheEvict(value = "projects",  key ="'user' +#ownerId")
@@ -72,6 +75,22 @@ public class ProjectService implements IProjectService {
         }
         return  new ProjectListResponse(projects.stream()
                 .map(ProjectMapper::toDTO)
+                .toList());
+    }
+    @Override
+
+    public ProjectListResponse getSharedProjectsCurrentUser() {
+        ApiResponse<UserResponse> user = userClient.getCurrentUser();
+        List<ProjectCollaboration> projects = projectCollaborationRepository.findByUserIdAndDeletedAtIsNull(user.getResult().getId());
+        if (projects.isEmpty()) {
+            return new ProjectListResponse(Collections.emptyList());
+        }
+        return  new ProjectListResponse(projects.stream()
+                .map(pc -> {
+                    Project project = pc.getProject();
+                    boolean isEdited = pc.isEdited();
+                    return ProjectMapper.toCollabProjectDTO(project, isEdited);
+                })
                 .toList());
     }
 

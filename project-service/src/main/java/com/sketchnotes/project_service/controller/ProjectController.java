@@ -42,6 +42,11 @@ public class ProjectController {
         ProjectListResponse response = projectService.getProjectsCurrentUser(userClient.getCurrentUser().getResult().getId());
         return ResponseEntity.ok(ApiResponse.success(response, "Get data successful"));
     }
+    @GetMapping("/me/shared")
+    public ResponseEntity<ApiResponse<ProjectListResponse>> getShareProjectByCurrentUser() {
+        ProjectListResponse response = projectService.getSharedProjectsCurrentUser();
+        return ResponseEntity.ok(ApiResponse.success(response, "Get data successful"));
+    }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProjectResponse>> update(@PathVariable Long id, @RequestBody ProjectRequest dto) {

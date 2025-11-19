@@ -13,6 +13,8 @@ public class ProjectMapper {
                         .description(project.getDescription())
                         .ownerId(project.getOwnerId())
                         .imageUrl(project.getImageUrl())
+                        .isEdited(true)
+                        .isOwner(true)
                         .pages(null)
                         .build();
             }
@@ -22,6 +24,8 @@ public class ProjectMapper {
                 .description(project.getDescription())
                 .ownerId(project.getOwnerId())
                 .imageUrl(project.getImageUrl())
+                .isEdited(true)
+                .isOwner(true)
                 .pages(project.getPages().stream()
                         .map(PageMapper::toDTO)
                         .toList())
@@ -33,6 +37,33 @@ public class ProjectMapper {
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .imageUrl(dto.getImageUrl())
+                .build();
+    }
+
+    public static ProjectResponse toCollabProjectDTO(Project project, boolean isEdited) {
+        if(project.getPages() == null) {
+            return ProjectResponse.builder()
+                    .projectId(project.getProjectId())
+                    .name(project.getName())
+                    .description(project.getDescription())
+                    .ownerId(project.getOwnerId())
+                    .imageUrl(project.getImageUrl())
+                    .isEdited(isEdited)
+                    .isOwner(false)
+                    .pages(null)
+                    .build();
+        }
+        return ProjectResponse.builder()
+                .projectId(project.getProjectId())
+                .name(project.getName())
+                .description(project.getDescription())
+                .ownerId(project.getOwnerId())
+                .imageUrl(project.getImageUrl())
+                .isEdited(true)
+                .isOwner(true)
+                .pages(project.getPages().stream()
+                        .map(PageMapper::toDTO)
+                        .toList())
                 .build();
     }
 }
