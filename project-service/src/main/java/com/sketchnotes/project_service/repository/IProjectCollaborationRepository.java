@@ -13,4 +13,5 @@ import java.util.Optional;
 public interface IProjectCollaborationRepository extends JpaRepository<ProjectCollaboration, Long> {
     List<ProjectCollaboration> findByProjectAndDeletedAtIsNull(Project project);
     Optional<ProjectCollaboration> findByProjectAndUserIdAndDeletedAtIsNull(Project project, Long userId);
+    List<ProjectCollaboration> findByUserIdAndDeletedAtIsNull(Long userId);
 }

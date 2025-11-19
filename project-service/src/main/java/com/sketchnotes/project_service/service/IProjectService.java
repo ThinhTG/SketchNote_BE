@@ -12,6 +12,7 @@ public interface IProjectService {
     ProjectListResponse getProjectsByOwner(Long ownerId);
     ProjectListResponse getProjectsCurrentUser(Long ownerId);
     ProjectResponse updateProject(Long id, ProjectRequest dto, Long ownerId);
+    ProjectListResponse getSharedProjectsCurrentUser();
     void deleteProject(Long id, Long ownerId);
 }
 
