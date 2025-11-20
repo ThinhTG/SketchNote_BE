@@ -33,9 +33,13 @@ public class ProjectCollaborationService implements IProjectCollaborationService
         if(!project.getOwnerId().equals(user.getResult().getId())) {
             throw new AppException(ErrorCode.FORBIDDEN_ACTION);
         }
+        ApiResponse<UserResponse> collabUser = userClient.getUserById(dto.getUserId());
+        if(collabUser == null) {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        }
         ProjectCollaboration projectCollaboration = new ProjectCollaboration();
         projectCollaboration.setProject(project);
-        projectCollaboration.setUserId(user.getResult().getId());
+        projectCollaboration.setUserId(collabUser.getResult().getId());
         projectCollaboration.setEdited(dto.isEdited());
         projectCollaborationRepository.save(projectCollaboration);
 

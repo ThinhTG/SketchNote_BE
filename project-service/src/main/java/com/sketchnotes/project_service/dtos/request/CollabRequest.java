@@ -12,6 +12,6 @@ import lombok.Setter;
 @Getter
 public class CollabRequest {
     private Long projectId;
-    private String email;
+    private Long userId;
     private boolean isEdited;
 }
