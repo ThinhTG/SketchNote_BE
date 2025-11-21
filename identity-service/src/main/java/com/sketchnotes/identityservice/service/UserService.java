@@ -3,6 +3,7 @@ package com.sketchnotes.identityservice.service;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.model.User;
+import com.sketchnotes.identityservice.model.UserSubscription;
 import com.sketchnotes.identityservice.dtos.request.UserRequest;
 import com.sketchnotes.identityservice.dtos.response.UserResponse;
 import com.sketchnotes.identityservice.repository.IUserRepository;
@@ -31,15 +32,7 @@ public class UserService implements IUserService {
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id).filter(User::isActive)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        return UserResponse.builder()
-                .id(user.getId())
-                .keycloakId(user.getKeycloakId())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .role(user.getRole().toString())
-                .avatarUrl(user.getAvatarUrl())
-                .build();
+        return toUserResponse(user);
     }
 
     @Override
@@ -47,15 +40,9 @@ public class UserService implements IUserService {
     public PagedResponse<UserResponse> getAllUsers(int pageNo, int pageSize) {
         Pageable pageable =  PageRequest.of(pageNo, pageSize);
         Page<User> users = userRepository.findAllByIsActiveTrue(pageable);
-        List<UserResponse> userResponses = users.stream().map(user -> UserResponse.builder()
-                .id(user.getId())
-                .keycloakId(user.getKeycloakId())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .role(user.getRole().toString())
-                .avatarUrl(user.getAvatarUrl())
-                .build()).toList();
+        List<UserResponse> userResponses = users.stream()
+                .map(this::toUserResponse)
+                .toList();
         return new PagedResponse<>(
                 userResponses,
                 users.getNumber(),
@@ -65,6 +52,7 @@ public class UserService implements IUserService {
                 users.isLast()
         );
     }
+    
     @Override
     @CacheEvict(value = "users", allEntries = true)
     public UserResponse updateUser(Long id, UserRequest request) {
@@ -76,14 +64,7 @@ public class UserService implements IUserService {
         account.setAvatarUrl(request.getAvatarUrl());
         account.setUpdateAt(LocalDateTime.now());
         account = userRepository.save(account);
-        return UserResponse.builder()
-                .id(account.getId())
-                .email(account.getEmail())
-                .firstName(account.getFirstName())
-                .lastName(account.getLastName())
-                .role(account.getRole().toString())
-                .avatarUrl(account.getAvatarUrl())
-                .build();
+        return toUserResponse(account);
     }
 
     @Override
@@ -100,15 +81,7 @@ public class UserService implements IUserService {
     public UserResponse getCurrentUser() {
         User user = userRepository.findByKeycloakId(SecurityUtils.getCurrentUserId()).filter(User::isActive)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        return UserResponse.builder()
-                .id(user.getId())
-                .keycloakId(user.getKeycloakId())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .role(user.getRole().toString())
-                .avatarUrl(user.getAvatarUrl())
-                .build();
+        return toUserResponse(user);
     }
 
     @Override
@@ -116,21 +89,32 @@ public class UserService implements IUserService {
     public UserResponse getUserByKeycloakId(String sub) {
         User user = userRepository.findByKeycloakId(sub).filter(User::isActive)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        return UserResponse.builder()
-                .id(user.getId())
-                .keycloakId(user.getKeycloakId())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .role(user.getRole().toString())
-                .avatarUrl(user.getAvatarUrl())
-                .build();
+        return toUserResponse(user);
     }
 
     @Override
     public UserResponse getUserByEmail(String email) {
         User user = userRepository.findByEmail(email).filter(User::isActive)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return toUserResponse(user);
+    }
+    
+    /**
+     * Helper method to convert User entity to UserResponse with subscription info
+     */
+    private UserResponse toUserResponse(User user) {
+        boolean hasActiveSubscription = user.hasActiveSubscription();
+        String subscriptionType = "Free";
+        LocalDateTime subscriptionEndDate = null;
+        
+        if (hasActiveSubscription) {
+            UserSubscription activeSub = user.getActiveSubscription();
+            if (activeSub != null) {
+                subscriptionType = activeSub.getSubscriptionPlan().getPlanName();
+                subscriptionEndDate = activeSub.getEndDate();
+            }
+        }
+        
         return UserResponse.builder()
                 .id(user.getId())
                 .keycloakId(user.getKeycloakId())
@@ -139,6 +123,11 @@ public class UserService implements IUserService {
                 .lastName(user.getLastName())
                 .role(user.getRole().toString())
                 .avatarUrl(user.getAvatarUrl())
+                // Subscription info
+                .hasActiveSubscription(hasActiveSubscription)
+                .subscriptionType(subscriptionType)
+                .subscriptionEndDate(subscriptionEndDate)
+                .maxProjects(user.getMaxProjects())
                 .build();
     }
 }
