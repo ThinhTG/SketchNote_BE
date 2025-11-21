@@ -40,7 +40,8 @@ public class UserSubscription {
     @Column(nullable = false)
     private Boolean autoRenew = false;
 
-    private Long transactionId;
+    @Column(nullable = true)
+    private String transactionId;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

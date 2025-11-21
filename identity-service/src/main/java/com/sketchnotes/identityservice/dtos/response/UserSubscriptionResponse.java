@@ -19,7 +19,7 @@ public class UserSubscriptionResponse {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Boolean autoRenew;
-    private Long transactionId;
+    private String transactionId;
     private LocalDateTime createdAt;
     private Boolean isCurrentlyActive;
 }
