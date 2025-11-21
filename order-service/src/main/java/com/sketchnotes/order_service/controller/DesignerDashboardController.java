@@ -3,6 +3,7 @@ package com.sketchnotes.order_service.controller;
 import com.sketchnotes.order_service.client.IdentityClient;
 import com.sketchnotes.order_service.dtos.ApiResponse;
 import com.sketchnotes.order_service.dtos.designer.DesignerDashboardSummaryDTO;
+import com.sketchnotes.order_service.dtos.designer.RevenueChartResponseDTO;
 import com.sketchnotes.order_service.dtos.designer.TimeSeriesPointDTO;
 import com.sketchnotes.order_service.dtos.designer.TopTemplateDTO;
 import com.sketchnotes.order_service.service.designer.DesignerDashboardService;
@@ -46,15 +47,15 @@ public class DesignerDashboardController {
     }
 
     @GetMapping("/sales")
-    public ResponseEntity<ApiResponse<List<TimeSeriesPointDTO>>> getSalesTimeSeries(
+    public ResponseEntity<ApiResponse<RevenueChartResponseDTO>> getSalesTimeSeries(
             @RequestParam(required = false) String start,
             @RequestParam(required = false) String end,
             @RequestParam(defaultValue = "day") String groupBy) {
         var designerId = identityClient.getCurrentUser().getResult().getId();
         LocalDateTime s = parseOrDefaultStart(start);
         LocalDateTime e = parseOrDefaultEnd(end);
-        List<TimeSeriesPointDTO> series = dashboardService.getSalesTimeSeries(designerId, s, e, groupBy);
-        return ResponseEntity.ok(ApiResponse.success(series, "Sales time series"));
+        RevenueChartResponseDTO response = dashboardService.getSalesTimeSeries(designerId, s, e, groupBy);
+        return ResponseEntity.ok(ApiResponse.success(response, "Sales time series"));
     }
 
     private LocalDateTime parseOrDefaultStart(String v) {
