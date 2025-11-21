@@ -59,4 +59,10 @@ public class ProjectController {
         projectService.deleteProject(id,userClient.getCurrentUser().getResult().getId());
         return ResponseEntity.ok(ApiResponse.success(null,"Project deleted successfully"));
     }
+
+    @GetMapping("/count")
+    public ResponseEntity<Integer> getProjectCount(@RequestParam Long ownerId) {
+        Long count = projectService.getProjectCountByOwner(ownerId);
+        return ResponseEntity.ok(count.intValue());
+    }
 }

@@ -103,7 +103,7 @@ BEGIN
                         v_template_id,
                         v_price,
                         'PAID',
-                        CASE WHEN RANDOM() > 0.1 THEN 'DELIVERED' ELSE 'CONFIRMED' END,
+                        'SUCCESS',
                         'INV-' || v_year || LPAD(v_month::TEXT, 2, '0') || LPAD(v_day::TEXT, 2, '0') || '-' || LPAD(i::TEXT, 4, '0'),
                         v_order_date,
                         v_order_date,
@@ -137,6 +137,6 @@ SELECT
     SUM(total_amount) as total_revenue
 FROM orders
 WHERE payment_status = 'PAID' 
-  AND order_status IN ('CONFIRMED', 'DELIVERED')
+  AND order_status = 'SUCCESS'
 GROUP BY EXTRACT(YEAR FROM issue_date)
 ORDER BY year;

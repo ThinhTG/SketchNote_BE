@@ -37,7 +37,7 @@ public class PaymentService {
             try {
                 if (!alreadyPaid) {
                     order.setPaymentStatus("PAID");
-                    order.setOrderStatus("CONFIRMED");
+                    order.setOrderStatus("SUCCESS");
                     orderRepository.save(order);
                 }
 

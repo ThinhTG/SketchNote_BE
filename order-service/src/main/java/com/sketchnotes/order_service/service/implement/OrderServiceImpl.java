@@ -138,7 +138,7 @@ public class OrderServiceImpl implements OrderService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Order must contain at least one template item");
         }
 
-        List<String> orderStatuses = List.of("PENDING", "CONFIRMED");
+        List<String> orderStatuses = List.of("PENDING", "SUCCESS");
         List<String> paymentStatuses = List.of("PENDING", "PAID");
 
         for (OrderRequestDTO.OrderDetailRequestDTO item : items) {

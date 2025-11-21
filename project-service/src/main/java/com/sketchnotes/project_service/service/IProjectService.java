@@ -14,5 +14,6 @@ public interface IProjectService {
     ProjectResponse updateProject(Long id, ProjectRequest dto, Long ownerId);
     ProjectListResponse getSharedProjectsCurrentUser();
     void deleteProject(Long id, Long ownerId);
+    Long getProjectCountByOwner(Long ownerId);
 }
 

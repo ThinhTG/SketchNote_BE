@@ -40,7 +40,13 @@ public enum ErrorCode{
     USER_NOT_FOUND(404, "User not found", HttpStatus.BAD_REQUEST),
     BLOG_NOT_FOUND(404, "Blog not found", HttpStatus.BAD_REQUEST),
     CONTENT_NOT_FOUND(404, "Content not found", HttpStatus.BAD_REQUEST),
-    EMAIL_NOT_VERIFIED(400, "Email not verified", HttpStatus.BAD_REQUEST);
+    EMAIL_NOT_VERIFIED(400, "Email not verified", HttpStatus.BAD_REQUEST),
+    
+    // Subscription errors
+    SUBSCRIPTION_PLAN_NOT_FOUND(404, "Subscription plan not found", HttpStatus.NOT_FOUND),
+    SUBSCRIPTION_NOT_FOUND(404, "Subscription not found", HttpStatus.NOT_FOUND),
+    INSUFFICIENT_BALANCE(400, "Insufficient wallet balance", HttpStatus.BAD_REQUEST),
+    PROJECT_QUOTA_EXCEEDED(400, "Project quota exceeded. Please upgrade your subscription", HttpStatus.BAD_REQUEST);
 
     private final int code;
     private final HttpStatusCode statusCode;

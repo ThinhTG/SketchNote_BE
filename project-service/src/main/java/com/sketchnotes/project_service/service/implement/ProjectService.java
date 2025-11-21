@@ -1,11 +1,13 @@
 package com.sketchnotes.project_service.service.implement;
 
 import com.sketchnotes.project_service.client.IUserClient;
+import com.sketchnotes.project_service.client.IdentityServiceClient;
 import com.sketchnotes.project_service.dtos.ApiResponse;
 import com.sketchnotes.project_service.dtos.request.ProjectRequest;
 import com.sketchnotes.project_service.dtos.response.ProjectListResponse;
 import com.sketchnotes.project_service.dtos.response.ProjectResponse;
 import com.sketchnotes.project_service.dtos.mapper.ProjectMapper;
+import com.sketchnotes.project_service.dtos.response.UserQuotaResponse;
 import com.sketchnotes.project_service.dtos.response.UserResponse;
 import com.sketchnotes.project_service.entity.Project;
 import com.sketchnotes.project_service.entity.ProjectCollaboration;
@@ -30,11 +32,24 @@ public class ProjectService implements IProjectService {
     private final IProjectRepository projectRepository;
     private final IUserClient userClient;
     private final IProjectCollaborationRepository projectCollaborationRepository;
+    private final IdentityServiceClient identityServiceClient;
 
     @Override
     @CacheEvict(value = "projects",  key ="'user' +#ownerId")
     public ProjectResponse createProject(ProjectRequest dto, Long ownerId) {
         ApiResponse<UserResponse>  user = userClient.getCurrentUser();
+
+        // Check project quota before creating
+        try {
+            UserQuotaResponse quota = identityServiceClient.getUserQuota(user.getResult().getId());
+            if (!quota.getCanCreateProject()) {
+                throw new AppException(ErrorCode.PROJECT_QUOTA_EXCEEDED);
+            }
+        } catch (Exception e) {
+            // If identity-service is down, log error but allow creation (fail-open)
+            // In production, you might want to fail-closed instead
+            System.err.println("Failed to check quota: " + e.getMessage());
+        }
 
         Project project = Project.builder()
                 .name(dto.getName())
@@ -118,6 +133,11 @@ public class ProjectService implements IProjectService {
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
         project.setDeletedAt(LocalDateTime.now());
         projectRepository.save(project);
+    }
+
+    @Override
+    public Long getProjectCountByOwner(Long ownerId) {
+        return projectRepository.countByOwnerIdAndDeletedAtIsNull(ownerId);
     }
 }
 

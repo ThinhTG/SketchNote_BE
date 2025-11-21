@@ -38,7 +38,7 @@ public class Order {
     private String paymentStatus; // PENDING, PAID, FAILED, REFUNDED
 
     @Column(name = "order_status", length = 50)
-    private String orderStatus; // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+    private String orderStatus; // PENDING, SUCCESS, CANCELED
 
     @Column(name = "invoice_number", length = 50)
     private String invoiceNumber;
