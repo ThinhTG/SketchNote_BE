@@ -4,5 +4,6 @@ public enum TransactionType {
     DEPOSIT,
     PAYMENT,
     WITHDRAW,
-    COURSE_FEE
+    COURSE_FEE,
+    SUBSCRIPTION
 }

@@ -8,16 +8,20 @@ import com.sketchnotes.identityservice.dtos.response.UserSubscriptionResponse;
 import com.sketchnotes.identityservice.enums.PlanType;
 import com.sketchnotes.identityservice.enums.Role;
 import com.sketchnotes.identityservice.enums.SubscriptionStatus;
+import com.sketchnotes.identityservice.enums.TransactionType;
+import com.sketchnotes.identityservice.enums.PaymentStatus;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.model.SubscriptionPlan;
 import com.sketchnotes.identityservice.model.User;
 import com.sketchnotes.identityservice.model.UserSubscription;
 import com.sketchnotes.identityservice.model.Wallet;
+import com.sketchnotes.identityservice.model.Transaction;
 import com.sketchnotes.identityservice.repository.ISubscriptionPlanRepository;
 import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.repository.IUserSubscriptionRepository;
 import com.sketchnotes.identityservice.repository.IWalletRepository;
+import com.sketchnotes.identityservice.repository.ITransactionRepository;
 import com.sketchnotes.identityservice.service.interfaces.IUserSubscriptionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +42,7 @@ public class UserSubscriptionService implements IUserSubscriptionService {
     private final ISubscriptionPlanRepository subscriptionPlanRepository;
     private final IUserRepository userRepository;
     private final IWalletRepository walletRepository;
+    private final ITransactionRepository transactionRepository;
     private final ProjectServiceClient projectServiceClient;
 
     @Override
@@ -68,11 +73,37 @@ public class UserSubscriptionService implements IUserSubscriptionService {
 
         // Deduct from wallet
         wallet.setBalance(wallet.getBalance().subtract(plan.getPrice()));
+        wallet.setUpdatedAt(LocalDateTime.now());
         walletRepository.save(wallet);
+
+        // Create transaction record
+        log.info("Creating transaction for subscription purchase. Amount: {}, Wallet ID: {}", 
+                plan.getPrice(), wallet.getWalletId());
+        
+        Transaction transaction = Transaction.builder()
+                .wallet(wallet)
+                .amount(plan.getPrice())
+                .balance(wallet.getBalance())
+                .type(TransactionType.SUBSCRIPTION)
+                .status(PaymentStatus.SUCCESS)
+                .provider("WALLET")
+                .createdAt(LocalDateTime.now())
+                .build();
+        Transaction savedTransaction = transactionRepository.save(transaction);
+        
+        log.info("Transaction saved successfully. Transaction ID: {}", savedTransaction.getTransactionId());
+        
+        if (savedTransaction.getTransactionId() == null) {
+            log.error("Transaction ID is null after save!");
+            throw new RuntimeException("Failed to create transaction - ID is null");
+        }
 
         // Create subscription
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime endDate = now.plusDays(plan.getDurationDays());
+        
+        String transactionIdStr = savedTransaction.getTransactionId().toString();
+        log.info("Setting transaction ID in subscription: {}", transactionIdStr);
 
         UserSubscription subscription = UserSubscription.builder()
                 .user(user)
@@ -81,6 +112,7 @@ public class UserSubscriptionService implements IUserSubscriptionService {
                 .startDate(now)
                 .endDate(endDate)
                 .autoRenew(request.getAutoRenew())
+                .transactionId(transactionIdStr)
                 .build();
 
         UserSubscription savedSubscription = userSubscriptionRepository.save(subscription);
@@ -92,7 +124,8 @@ public class UserSubscriptionService implements IUserSubscriptionService {
             log.info("Upgraded user {} to DESIGNER role", userId);
         }
 
-        log.info("Successfully created subscription {} for user {}", savedSubscription.getSubscriptionId(), userId);
+        log.info("Successfully created subscription {} for user {} with transaction {}", 
+                savedSubscription.getSubscriptionId(), userId, savedTransaction.getTransactionId());
 
         return mapToResponse(savedSubscription);
     }
