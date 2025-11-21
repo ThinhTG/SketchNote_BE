@@ -73,14 +73,15 @@ services:
       - sketchnote-net
     restart: unless-stopped
 
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    ports:
-      - "6379:6379" 
-    networks:
-      - sketchnote-net
-    restart: unless-stopped
+ redis:
+  image: redis:7-alpine
+  container_name: redis
+  ports:
+    - "6379:6379"
+  command: ["redis-server", "--bind", "0.0.0.0", "--protected-mode", "no"]
+  networks:
+    - sketchnote-net
+  restart: unless-stopped
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.0.2
