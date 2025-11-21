@@ -1,6 +1,8 @@
 package com.sketchnotes.order_service.service.designer.impl;
 
 import com.sketchnotes.order_service.dtos.designer.DesignerDashboardSummaryDTO;
+import com.sketchnotes.order_service.dtos.designer.RevenueChartResponseDTO;
+import com.sketchnotes.order_service.dtos.designer.RevenueDataPointDTO;
 import com.sketchnotes.order_service.dtos.designer.TimeSeriesPointDTO;
 import com.sketchnotes.order_service.dtos.designer.TopTemplateDTO;
 import com.sketchnotes.order_service.repository.DashboardRepository;
@@ -50,27 +52,49 @@ public class DesignerDashboardServiceImpl implements DesignerDashboardService {
     }
 
     @Override
-    public List<TimeSeriesPointDTO> getSalesTimeSeries(Long designerId, LocalDateTime start, LocalDateTime end, String groupBy) {
+    public RevenueChartResponseDTO getSalesTimeSeries(Long designerId, LocalDateTime start, LocalDateTime end, String groupBy) {
         List<Object[]> rows;
         String gb = (groupBy == null) ? "day" : groupBy.toLowerCase();
+        String type;
+        
         switch (gb) {
             case "month":
                 rows = dashboardRepository.salesByMonth(designerId, start, end);
+                type = "monthly";
                 break;
             case "year":
                 rows = dashboardRepository.salesByYear(designerId, start, end);
+                type = "yearly";
                 break;
             default:
                 rows = dashboardRepository.salesByDay(designerId, start, end);
+                type = "daily";
         }
 
-        List<TimeSeriesPointDTO> out = new ArrayList<>();
+        List<RevenueDataPointDTO> dataPoints = new ArrayList<>();
         for (Object[] r : rows) {
             String period = r[0] == null ? null : r[0].toString();
-            Long soldCount = r[1] == null ? 0L : ((Number) r[1]).longValue();
             BigDecimal revenue = r[2] == null ? BigDecimal.ZERO : new BigDecimal(r[2].toString());
-            out.add(new TimeSeriesPointDTO(period, soldCount, revenue));
+            
+            RevenueDataPointDTO point = new RevenueDataPointDTO();
+            point.setRevenue(revenue);
+            
+            // Set appropriate field based on type
+            switch (type) {
+                case "daily":
+                    point.setDate(period);
+                    break;
+                case "monthly":
+                    point.setMonth(period);
+                    break;
+                case "yearly":
+                    point.setYear(period == null ? null : Integer.parseInt(period));
+                    break;
+            }
+            
+            dataPoints.add(point);
         }
-        return out;
+        
+        return new RevenueChartResponseDTO(type, dataPoints);
     }
 }

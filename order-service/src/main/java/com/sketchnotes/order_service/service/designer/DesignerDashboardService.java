@@ -1,6 +1,7 @@
 package com.sketchnotes.order_service.service.designer;
 
 import com.sketchnotes.order_service.dtos.designer.DesignerDashboardSummaryDTO;
+import com.sketchnotes.order_service.dtos.designer.RevenueChartResponseDTO;
 import com.sketchnotes.order_service.dtos.designer.TimeSeriesPointDTO;
 import com.sketchnotes.order_service.dtos.designer.TopTemplateDTO;
 
@@ -12,5 +13,5 @@ public interface DesignerDashboardService {
 
     List<TopTemplateDTO> getTopTemplates(Long designerId, LocalDateTime start, LocalDateTime end, int limit);
 
-    List<TimeSeriesPointDTO> getSalesTimeSeries(Long designerId, LocalDateTime start, LocalDateTime end, String groupBy);
+    RevenueChartResponseDTO getSalesTimeSeries(Long designerId, LocalDateTime start, LocalDateTime end, String groupBy);
 }
