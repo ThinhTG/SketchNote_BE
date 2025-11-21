@@ -6,7 +6,7 @@ import com.sketchnotes.project_service.entity.Project;
 
 public class ProjectMapper {
     public static ProjectResponse toDTO(Project project) {
-            if(project.getPages() == null) {
+            if(project.getPages() == null || project.getPages().isEmpty()) {
                 return ProjectResponse.builder()
                         .projectId(project.getProjectId())
                         .name(project.getName())
@@ -18,6 +18,13 @@ public class ProjectMapper {
                         .pages(null)
                         .build();
             }
+        
+        // Filter: only pages that are NOT deleted AND NOT assigned to a version (current working pages)
+        var activePages = project.getPages().stream()
+                .filter(page -> page.getDeletedAt() == null)  // Not soft deleted
+                .map(PageMapper::toDTO)
+                .toList();
+        
         return ProjectResponse.builder()
                 .projectId(project.getProjectId())
                 .name(project.getName())
@@ -26,9 +33,7 @@ public class ProjectMapper {
                 .imageUrl(project.getImageUrl())
                 .isEdited(true)
                 .isOwner(true)
-                .pages(project.getPages().stream()
-                        .map(PageMapper::toDTO)
-                        .toList())
+                .pages(activePages)
                 .build();
     }
 
@@ -41,7 +46,7 @@ public class ProjectMapper {
     }
 
     public static ProjectResponse toCollabProjectDTO(Project project, boolean isEdited) {
-        if(project.getPages() == null) {
+        if(project.getPages() == null || project.getPages().isEmpty()) {
             return ProjectResponse.builder()
                     .projectId(project.getProjectId())
                     .name(project.getName())
@@ -53,17 +58,22 @@ public class ProjectMapper {
                     .pages(null)
                     .build();
         }
+        
+        // Filter: only pages that are NOT deleted AND NOT assigned to a version
+        var activePages = project.getPages().stream()
+                .filter(page -> page.getDeletedAt() == null)
+                .map(PageMapper::toDTO)
+                .toList();
+        
         return ProjectResponse.builder()
                 .projectId(project.getProjectId())
                 .name(project.getName())
                 .description(project.getDescription())
                 .ownerId(project.getOwnerId())
                 .imageUrl(project.getImageUrl())
-                .isEdited(true)
-                .isOwner(true)
-                .pages(project.getPages().stream()
-                        .map(PageMapper::toDTO)
-                        .toList())
+                .isEdited(isEdited)
+                .isOwner(false)
+                .pages(activePages)
                 .build();
     }
 }
