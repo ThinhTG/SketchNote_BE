@@ -3,6 +3,7 @@ package com.sketchnotes.identityservice.controller;
 import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.dtos.request.UserRequest;
 import com.sketchnotes.identityservice.dtos.response.UserResponse;
+import com.sketchnotes.identityservice.dtos.response.UserProfileWithSubscriptionResponse;
 import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import com.sketchnotes.identityservice.ultils.PagedResponse;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,20 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponse>>getCurrentUser() {
         UserResponse response = userService.getCurrentUser();
         return ResponseEntity.ok( ApiResponse.success( response,"Get data successful" ));
+    }
+    
+    /**
+     * Get current user profile with subscription information
+     * This endpoint returns detailed subscription info including:
+     * - Active subscription status
+     * - Subscription type and expiry date
+     * - Project quota (max, current, can create)
+     */
+    @GetMapping("/me/profile")
+    public ResponseEntity<ApiResponse<UserProfileWithSubscriptionResponse>> getCurrentUserProfile() {
+        UserResponse currentUser = userService.getCurrentUser();
+        UserProfileWithSubscriptionResponse profile = userService.getUserProfileWithSubscription(currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success(profile, "Get user profile with subscription successful"));
     }
 
     @GetMapping
