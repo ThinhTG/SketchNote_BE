@@ -47,7 +47,7 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
-   
+
     public ProjectResponse getProject(Long id) {
         Project project = projectRepository.findById(id).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
