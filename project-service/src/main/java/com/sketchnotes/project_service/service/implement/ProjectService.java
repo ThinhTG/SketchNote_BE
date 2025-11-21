@@ -55,7 +55,7 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
-    @Cacheable(value = "projects", key ="'user' +#ownerId")
+   /// @Cacheable(value = "projects", key ="'user' +#ownerId")
     public ProjectListResponse getProjectsByOwner(Long ownerId) {
         List<Project> projects = projectRepository.findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(ownerId);
         if (projects.isEmpty()) {
@@ -66,7 +66,7 @@ public class ProjectService implements IProjectService {
                 .toList());
     }
     @Override
-    @Cacheable(value = "projects", key ="'user' +#ownerId")
+    ///@Cacheable(value = "projects", key ="'user' +#ownerId")
     public ProjectListResponse getProjectsCurrentUser(Long ownerId) {
         ApiResponse<UserResponse> user = userClient.getCurrentUser();
         List<Project> projects = projectRepository.findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(user.getResult().getId());

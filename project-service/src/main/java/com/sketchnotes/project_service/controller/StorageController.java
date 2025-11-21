@@ -23,4 +23,12 @@ public class StorageController {
         Map<String, String> response = storageService.generatePresignedUrl(fileName, contentType);
         return ResponseEntity.ok(ApiResponse.success(response, "Presigned URL generated successfully"));
     }
+
+    @PostMapping("/storage/copy")
+    public ResponseEntity<ApiResponse<Map<String, String>>> copyFile(
+                @RequestParam String sourceFileUrl) {
+        String newFileUrl = storageService.copyFile(sourceFileUrl);
+        Map<String, String> response = Map.of("newFileUrl", newFileUrl);
+        return ResponseEntity.ok(ApiResponse.success(response, "File copied successfully"));
+    }
 }
