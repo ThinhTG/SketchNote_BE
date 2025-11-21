@@ -21,7 +21,7 @@ public class DashboardRepository {
                 "JOIN resource_template rt ON od.resource_template_id = rt.template_id " +
                 "WHERE rt.designer_id = :designerId " +
                 "AND o.payment_status = 'PAID' " +
-                "AND o.order_status IN ('CONFIRMED','DELIVERED') " +
+                "AND o.order_status = 'SUCCESS' " +
                 "AND o.issue_date BETWEEN :start AND :end";
 
         Query q = em.createNativeQuery(sql);
@@ -41,7 +41,7 @@ public class DashboardRepository {
                 "JOIN resource_template rt ON od.resource_template_id = rt.template_id " +
                 "WHERE rt.designer_id = :designerId " +
                 "AND o.payment_status = 'PAID' " +
-                "AND o.order_status IN ('CONFIRMED','DELIVERED') " +
+                "AND o.order_status = 'SUCCESS' " +
                 "AND o.issue_date BETWEEN :start AND :end " +
                 "GROUP BY rt.template_id, rt.name " +
                 "ORDER BY sold_count DESC " +
@@ -63,7 +63,7 @@ public class DashboardRepository {
                 "JOIN resource_template rt ON od.resource_template_id = rt.template_id " +
                 "WHERE rt.designer_id = :designerId " +
                 "AND o.payment_status = 'PAID' " +
-                "AND o.order_status IN ('CONFIRMED','DELIVERED') " +
+                "AND o.order_status = 'SUCCESS' " +
                 "AND o.issue_date BETWEEN :start AND :end " +
                 "GROUP BY period " +
                 "ORDER BY period";
@@ -83,7 +83,7 @@ public class DashboardRepository {
                 "JOIN resource_template rt ON od.resource_template_id = rt.template_id " +
                 "WHERE rt.designer_id = :designerId " +
                 "AND o.payment_status = 'PAID' " +
-                "AND o.order_status IN ('CONFIRMED','DELIVERED') " +
+                "AND o.order_status = 'SUCCESS' " +
                 "AND o.issue_date BETWEEN :start AND :end " +
                 "GROUP BY period " +
                 "ORDER BY period";
@@ -103,7 +103,7 @@ public class DashboardRepository {
                 "JOIN resource_template rt ON od.resource_template_id = rt.template_id " +
                 "WHERE rt.designer_id = :designerId " +
                 "AND o.payment_status = 'PAID' " +
-                "AND o.order_status IN ('CONFIRMED','DELIVERED') " +
+                "AND o.order_status = 'SUCCESS' " +
                 "AND o.issue_date BETWEEN :start AND :end " +
                 "GROUP BY period " +
                 "ORDER BY period";

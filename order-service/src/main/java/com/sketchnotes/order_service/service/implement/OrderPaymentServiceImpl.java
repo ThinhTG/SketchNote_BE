@@ -81,7 +81,7 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
         // Cập nhật trạng thái order dựa trên payment status
         switch (paymentStatus) {
             case "PAID":
-                orderService.updateOrderStatus(orderId, "CONFIRMED");
+                orderService.updateOrderStatus(orderId, "SUCCESS");
                 break;
             case "FAILED":
             case "CANCELLED":
@@ -113,7 +113,7 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
         }
 
         orderService.updatePaymentStatus(orderId, "PAID");
-        orderService.updateOrderStatus(orderId, "CONFIRMED");
+        orderService.updateOrderStatus(orderId, "SUCCESS");
 
         log.info("Wallet payment successful for order: {}", orderId);
 

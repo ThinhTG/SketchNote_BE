@@ -40,4 +40,28 @@ public class User{
     private List<Blog> blogs;
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<UserSubscription> subscriptions;
+
+    // Helper method to get active subscription
+    public UserSubscription getActiveSubscription() {
+        if (subscriptions == null) {
+            return null;
+        }
+        return subscriptions.stream()
+                .filter(UserSubscription::isCurrentlyActive)
+                .findFirst()
+                .orElse(null);
+    }
+
+    // Helper method to check if user has active subscription
+    public boolean hasActiveSubscription() {
+        return getActiveSubscription() != null;
+    }
+
+    // Helper method to get max projects allowed (3 for free, unlimited for subscription)
+    public int getMaxProjects() {
+        return hasActiveSubscription() ? -1 : 3; // -1 means unlimited
+    }
 }
