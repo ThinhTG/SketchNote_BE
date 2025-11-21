@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -66,6 +67,43 @@ public class StorageService implements IStorageService {
         } catch (Exception e) {
             log.error("Error deleting file from S3: {}", fileUrl, e);
             // Don't throw exception to avoid blocking the version cleanup
+        }
+    }
+
+    @Override
+    public String copyFile(String sourceFileUrl) {
+        try {
+            // Extract source key from URL
+            String sourceKey = extractKeyFromUrl(sourceFileUrl);
+            
+            if (sourceKey == null || sourceKey.isEmpty()) {
+                throw new IllegalArgumentException("Invalid source file URL");
+            }
+            
+            // Extract filename from source key
+            String fileName = sourceKey.substring(sourceKey.lastIndexOf("/") + 1);
+            
+            // Generate new key with UUID
+            String destinationKey = "notes/" + UUID.randomUUID() + "/" + fileName;
+            
+            // Copy object in S3
+            CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+                    .sourceBucket(s3Properties.getBucketName())
+                    .sourceKey(sourceKey)
+                    .destinationBucket(s3Properties.getBucketName())
+                    .destinationKey(destinationKey)
+                    .build();
+            
+            s3Client.copyObject(copyRequest);
+            log.info("Copied file from {} to {}", sourceKey, destinationKey);
+            
+            // Return new file URL
+            return "https://" + s3Properties.getBucketName() + ".s3." +
+                    s3Properties.getRegion() + ".amazonaws.com/" + destinationKey;
+                    
+        } catch (Exception e) {
+            log.error("Error copying file from S3: {}", sourceFileUrl, e);
+            throw new RuntimeException("Failed to copy file: " + e.getMessage(), e);
         }
     }
 
