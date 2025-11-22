@@ -1,6 +1,7 @@
 package com.sketchnotes.order_service.service.implement;
 
 import com.sketchnotes.order_service.client.IdentityClient;
+import com.sketchnotes.order_service.client.LearningClient;
 import com.sketchnotes.order_service.dtos.admin.AdminDashboardResponseDTO;
 import com.sketchnotes.order_service.repository.AdminDashboardRepository;
 import com.sketchnotes.order_service.service.AdminDashboardService;
@@ -20,9 +21,12 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     
     private static final BigDecimal COMMISSION_RATE = new BigDecimal("0.10"); // 10%
 
-    public AdminDashboardServiceImpl(IdentityClient identityClient, AdminDashboardRepository adminDashboardRepository) {
+    private final LearningClient learningClient;
+
+    public AdminDashboardServiceImpl(IdentityClient identityClient, AdminDashboardRepository adminDashboardRepository, LearningClient learningClient) {
         this.identityClient = identityClient;
         this.adminDashboardRepository = adminDashboardRepository;
+        this.learningClient = learningClient;
     }
 
     @Override
@@ -107,5 +111,72 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
                 .totalSubscriptionRevenue(totalSubscriptionRevenue)
                 .totalResourceCommissionRevenue(totalResourceCommissionRevenue)
                 .build();
+    }
+
+    @Override
+    public AdminDashboardResponseDTO.OverviewStatsDTO getOverviewStats() {
+        long totalOrders = adminDashboardRepository.countSuccessfulOrders();
+        long totalEnrollments = 0;
+        try {
+            totalEnrollments = learningClient.getTotalEnrollments();
+        } catch (Exception e) {
+            // Log error or handle fallback
+            e.printStackTrace();
+        }
+        return new AdminDashboardResponseDTO.OverviewStatsDTO(totalOrders, totalEnrollments);
+    }
+
+    @Override
+    public List<AdminDashboardResponseDTO.TopItemDTO> getTopSellingCourses(int limit) {
+        try {
+            List<Map<String, Object>> topCourses = learningClient.getTopSellingCourses(limit);
+            List<AdminDashboardResponseDTO.TopItemDTO> result = new ArrayList<>();
+            for (Map<String, Object> item : topCourses) {
+                Long id = ((Number) item.get("courseId")).longValue();
+                long count = ((Number) item.get("enrollmentCount")).longValue();
+                result.add(new AdminDashboardResponseDTO.TopItemDTO(id, null, count));
+            }
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public List<AdminDashboardResponseDTO.TopItemDTO> getTopSellingResources(int limit) {
+        List<Object[]> rows = adminDashboardRepository.findTopSellingResources(limit);
+        List<AdminDashboardResponseDTO.TopItemDTO> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            Long id = row[0] == null ? null : ((Number) row[0]).longValue();
+            long count = row[1] == null ? 0 : ((Number) row[1]).longValue();
+            String name = row[2] == null ? null : row[2].toString();
+            result.add(new AdminDashboardResponseDTO.TopItemDTO(id, name, count));
+        }
+        return result;
+    }
+
+    @Override
+    public List<AdminDashboardResponseDTO.TopDesignerDTO> getTopDesigners(int limit) {
+        List<Object[]> rows = adminDashboardRepository.findTopDesignersByRevenue(limit);
+        List<AdminDashboardResponseDTO.TopDesignerDTO> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            Long id = row[0] == null ? null : ((Number) row[0]).longValue();
+            BigDecimal revenue = row[1] == null ? BigDecimal.ZERO : new BigDecimal(row[1].toString());
+            result.add(new AdminDashboardResponseDTO.TopDesignerDTO(id, revenue));
+        }
+        return result;
+    }
+
+    @Override
+    public List<AdminDashboardResponseDTO.SubscriptionStatDTO> getSubscriptionStats() {
+        List<Object[]> rows = adminDashboardRepository.countSubscriptionsByPlan();
+        List<AdminDashboardResponseDTO.SubscriptionStatDTO> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            Long id = row[0] == null ? null : ((Number) row[0]).longValue();
+            long count = row[1] == null ? 0 : ((Number) row[1]).longValue();
+            result.add(new AdminDashboardResponseDTO.SubscriptionStatDTO(id, count));
+        }
+        return result;
     }
 }
