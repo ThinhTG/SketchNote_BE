@@ -31,10 +31,10 @@ spring:
                 - Path=/api/projects/**, /api/pages/**,/api/collaborations/**
 
             # 🔥 Thêm WebSocket route
-            - id: project-ws
-              uri: lb:ws://project-service
-              predicates:
-                - Path=/ws/**
+#            - id: project-ws
+#              uri: lb:ws://project-service
+#              predicates:
+#                - Path=/ws/**
 
             - id: order-service
               uri: lb://order-service
