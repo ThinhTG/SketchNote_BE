@@ -16,6 +16,10 @@ public class CommentResponse {
     private String content;
     private Long authorId;
     private String authorDisplay;
+    private String authorAvatarUrl;
     private Long parentCommentId;
+    private Long replyCount;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private Boolean isDeleted;
 }

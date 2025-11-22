@@ -2,6 +2,7 @@ package com.sketchnotes.identityservice.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -10,8 +11,13 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "comments")
+@Table(name = "comments", indexes = {
+    @Index(name = "idx_blog_id", columnList = "blog_id"),
+    @Index(name = "idx_parent_comment_id", columnList = "parentCommentId"),
+    @Index(name = "idx_deleted_at", columnList = "deletedAt")
+})
 @EntityListeners(AuditingEntityListener.class)
+@Where(clause = "deleted_at IS NULL")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -41,4 +47,6 @@ public class Comment {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+    
+    private LocalDateTime deletedAt;
 }
