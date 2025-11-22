@@ -39,6 +39,36 @@ public class AdminDashboardController {
         return ResponseEntity.ok(ApiResponse.success(result, "Admin dashboard revenue stats"));
     }
 
+    @GetMapping("/overview")
+    public ResponseEntity<ApiResponse<AdminDashboardResponseDTO.OverviewStatsDTO>> getOverview() {
+        AdminDashboardResponseDTO.OverviewStatsDTO result = adminDashboardService.getOverviewStats();
+        return ResponseEntity.ok(ApiResponse.success(result, "Admin dashboard overview stats"));
+    }
+
+    @GetMapping("/top-courses")
+    public ResponseEntity<ApiResponse<java.util.List<AdminDashboardResponseDTO.TopItemDTO>>> getTopCourses(@RequestParam(defaultValue = "5") int limit) {
+        java.util.List<AdminDashboardResponseDTO.TopItemDTO> result = adminDashboardService.getTopSellingCourses(limit);
+        return ResponseEntity.ok(ApiResponse.success(result, "Top selling courses"));
+    }
+
+    @GetMapping("/top-resources")
+    public ResponseEntity<ApiResponse<java.util.List<AdminDashboardResponseDTO.TopItemDTO>>> getTopResources(@RequestParam(defaultValue = "5") int limit) {
+        java.util.List<AdminDashboardResponseDTO.TopItemDTO> result = adminDashboardService.getTopSellingResources(limit);
+        return ResponseEntity.ok(ApiResponse.success(result, "Top selling resources"));
+    }
+
+    @GetMapping("/top-designers")
+    public ResponseEntity<ApiResponse<java.util.List<AdminDashboardResponseDTO.TopDesignerDTO>>> getTopDesigners(@RequestParam(defaultValue = "5") int limit) {
+        java.util.List<AdminDashboardResponseDTO.TopDesignerDTO> result = adminDashboardService.getTopDesigners(limit);
+        return ResponseEntity.ok(ApiResponse.success(result, "Top designers by revenue"));
+    }
+
+    @GetMapping("/subscription-stats")
+    public ResponseEntity<ApiResponse<java.util.List<AdminDashboardResponseDTO.SubscriptionStatDTO>>> getSubscriptionStats() {
+        java.util.List<AdminDashboardResponseDTO.SubscriptionStatDTO> result = adminDashboardService.getSubscriptionStats();
+        return ResponseEntity.ok(ApiResponse.success(result, "Subscription stats"));
+    }
+
     private LocalDateTime parseOrDefaultStart(String v) {
         if (v == null || v.trim().isEmpty()) {
             return LocalDateTime.of(1970, 1, 1, 0, 0);
