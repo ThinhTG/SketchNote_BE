@@ -11,11 +11,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentRequest {
+public class UpdateCommentRequest {
     @NotBlank(message = "Comment content cannot be blank")
     @Size(min = 1, max = 5000, message = "Comment content must be between 1 and 5000 characters")
     private String content;
-    
-    private Long parentCommentId; // optional - null for root comments
 }
-
