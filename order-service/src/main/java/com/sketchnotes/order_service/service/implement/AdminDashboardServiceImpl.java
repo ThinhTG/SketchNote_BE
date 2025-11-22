@@ -134,7 +134,8 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
             for (Map<String, Object> item : topCourses) {
                 Long id = ((Number) item.get("courseId")).longValue();
                 long count = ((Number) item.get("enrollmentCount")).longValue();
-                result.add(new AdminDashboardResponseDTO.TopItemDTO(id, null, count));
+                String name = (String) item.get("title");
+                result.add(new AdminDashboardResponseDTO.TopItemDTO(id, name, count));
             }
             return result;
         } catch (Exception e) {

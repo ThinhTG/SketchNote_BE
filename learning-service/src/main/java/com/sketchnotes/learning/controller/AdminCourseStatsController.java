@@ -31,6 +31,7 @@ public class AdminCourseStatsController {
                     Map<String, Object> map = new HashMap<>();
                     map.put("courseId", row[0]);
                     map.put("enrollmentCount", row[1]);
+                    map.put("title", row[2]);
                     return map;
                 })
                 .collect(Collectors.toList());
