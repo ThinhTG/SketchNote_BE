@@ -13,4 +13,6 @@ public interface IUserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     Page<User> findAllByIsActiveTrue(Pageable pageable);
     Optional<User> findByKeycloakId(String keycloakId);
+    
+    long countByRole(com.sketchnotes.identityservice.enums.Role role);
 }
