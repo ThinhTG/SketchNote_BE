@@ -15,7 +15,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS();
         
         // Also add endpoint without SockJS for native WebSocket support
-        registry.addEndpoint("/ws")
+        registry.addEndpoint("/socket")
                 .setAllowedOriginPatterns("*");
     }
 
