@@ -28,13 +28,7 @@ spring:
             - id: project-service
               uri: lb://project-service
               predicates:
-                - Path=/api/projects/**, /api/pages/**,/api/collaborations/**
-
-            # 🔥 Thêm WebSocket route
-            - id: project-ws
-              uri: lb:ws://project-service
-              predicates:
-                - Path=/ws/**
+                - Path=/api/projects/**, /api/pages/**,/api/collaborations/**, /ws/**
 
             - id: order-service
               uri: lb://order-service

@@ -16,7 +16,7 @@ public class SecurityConfig {
     private final String[] PUBLIC_GET_ENDPOINTS = {
             "/api/learning/courses",
             "/api/learning/courses/*",
-            "/api/enrollments/user/{userId}/*"
+            "/api/enrollments/**"
     };
 
     private final String[] PUBLIC_POST_ENDPOINTS = {
@@ -24,7 +24,7 @@ public class SecurityConfig {
             "/api/auth/login",
             "/api/auth/refresh-token",
             "/api/auth/login-google",
-            "/api/enrollments/user/{userId}/*"
+            "/api/enrollments/**"
     };
 
     private final String[] SWAGGER_ENDPOINTS = {
