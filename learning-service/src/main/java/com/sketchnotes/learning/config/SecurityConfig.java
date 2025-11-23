@@ -23,7 +23,8 @@ public class SecurityConfig {
             "/api/auth/register",
             "/api/auth/login",
             "/api/auth/refresh-token",
-            "/api/auth/login-google"
+            "/api/auth/login-google",
+            "/api/enrollments/user/{userId}/*"
     };
 
     private final String[] SWAGGER_ENDPOINTS = {
