@@ -15,4 +15,4 @@ public interface IProjectCollaborationRepository extends JpaRepository<ProjectCo
     Optional<ProjectCollaboration> findByProjectAndUserIdAndDeletedAtIsNull(Project project, Long userId);
     List<ProjectCollaboration> findByUserIdAndDeletedAtIsNull(Long userId);
     boolean existsByProjectAndDeletedAtIsNull(Project project);
-    boolean existsByProjectAndEditedTrueAndDeletedAtIsNull(Project project);}
+    boolean existsByProjectAndIsEditedTrueAndDeletedAtIsNull(Project project);}
