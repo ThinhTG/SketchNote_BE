@@ -67,7 +67,7 @@ public class ProjectService implements IProjectService {
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
         boolean hasCollaboration = projectCollaborationRepository.existsByProjectAndDeletedAtIsNull(project);
         Long userId = userClient.getCurrentUser().getResult().getId();
-        boolean isEdited =  projectCollaborationRepository.existsByProjectAndEditedTrueAndDeletedAtIsNull(project);
+        boolean isEdited =  projectCollaborationRepository.existsByProjectAndIsEditedTrueAndDeletedAtIsNull(project);
         boolean isOwner = project.getOwnerId().equals(userId);
         if(isOwner){
             isEdited = true;
