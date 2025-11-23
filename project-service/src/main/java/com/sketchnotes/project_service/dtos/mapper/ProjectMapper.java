@@ -78,7 +78,7 @@ public class ProjectMapper {
                 .build();
     }
 
-    public static ProjectDetailResponse toDetailDTO(Project project, boolean hasCollaboration) {
+    public static ProjectDetailResponse toDetailDTO(Project project, boolean hasCollaboration,boolean isEdited, boolean isOwner) {
         if(project.getPages() == null || project.getPages().isEmpty()) {
             return ProjectDetailResponse.builder()
                     .projectId(project.getProjectId())
@@ -86,8 +86,8 @@ public class ProjectMapper {
                     .description(project.getDescription())
                     .ownerId(project.getOwnerId())
                     .imageUrl(project.getImageUrl())
-                    .isEdited(true)
-                    .isOwner(true)
+                    .isEdited(isEdited)
+                    .isOwner(isOwner)
                     .hasCollaboration(hasCollaboration)
                     .pages(null)
                     .build();
@@ -105,8 +105,8 @@ public class ProjectMapper {
                 .description(project.getDescription())
                 .ownerId(project.getOwnerId())
                 .imageUrl(project.getImageUrl())
-                .isEdited(true)
-                .isOwner(true)
+                .isEdited(isEdited)
+                .isOwner(isOwner)
                 .hasCollaboration(hasCollaboration)
                 .pages(activePages)
                 .build();

@@ -61,15 +61,18 @@ public class ProjectService implements IProjectService {
         Project saved = projectRepository.save(project);
         return ProjectMapper.toDTO(saved);
     }
-
-    @Override
-
     @Override
     public ProjectDetailResponse getProject(Long id) {
         Project project = projectRepository.findById(id).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
         boolean hasCollaboration = projectCollaborationRepository.existsByProjectAndDeletedAtIsNull(project);
-        return ProjectMapper.toDetailDTO(project, hasCollaboration);
+        Long userId = userClient.getCurrentUser().getResult().getId();
+        boolean isEdited =  projectCollaborationRepository.existsByProjectAndEditedTrueAndDeletedAtIsNull(project);
+        boolean isOwner = project.getOwnerId().equals(userId);
+        if(isOwner){
+            isEdited = true;
+        }
+        return ProjectMapper.toDetailDTO(project, hasCollaboration,isEdited,isOwner);
     }
 
     @Override
