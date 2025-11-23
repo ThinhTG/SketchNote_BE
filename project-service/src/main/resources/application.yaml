@@ -69,7 +69,14 @@ spring:
     listener:
       ack-mode: record
 
+
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka/}
+
+logging:
+  level:
+    org.springframework.web.socket: DEBUG
+    org.springframework.messaging: DEBUG
+    com.sketchnotes.project_service: DEBUG

@@ -15,7 +15,8 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
     private final String[] PUBLIC_GET_ENDPOINTS = {
             "/api/learning/courses",
-            "/api/learning/courses/*"
+            "/api/learning/courses/*",
+            "/api/enrollments/user/{userId}/*"
     };
 
     private final String[] PUBLIC_POST_ENDPOINTS = {
