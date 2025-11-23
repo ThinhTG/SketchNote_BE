@@ -27,4 +27,10 @@ public interface UserResourceService {
      * Lấy danh sách ResourceTemplate mà user đã mua (bao gồm items có itemUrl)
      */
     java.util.List<ResourceTemplateDTO> getPurchasedTemplates(Long userId);
+    
+    /**
+     * Get user resource by userId and resourceId
+     * Used by identity-service to validate feedback eligibility
+     */
+    UserResource getUserResourceByUserIdAndResourceId(Long userId, Long resourceId);
 }

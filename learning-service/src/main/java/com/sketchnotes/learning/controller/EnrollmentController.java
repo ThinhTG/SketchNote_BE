@@ -52,4 +52,16 @@ public class EnrollmentController {
         EnrollmentDTO enrollment = enrollmentService.getEnrollmentByUserAndCourse(user.getId(), courseId);
         return ResponseEntity.ok(ApiResponse.success(enrollment, "Enrollment retrieved successfully"));
     }
+    
+    /**
+     * Get enrollment details for a specific user and course
+     * This endpoint is used by identity-service to validate feedback eligibility
+     */
+    @GetMapping("/user/{userId}/course/{courseId}")
+    public ResponseEntity<ApiResponse<EnrollmentDTO>> getEnrollment(
+            @PathVariable Long userId,
+            @PathVariable Long courseId) {
+        EnrollmentDTO enrollment = enrollmentService.getEnrollmentByUserAndCourse(userId, courseId);
+        return ResponseEntity.ok(ApiResponse.success(enrollment, "Enrollment retrieved successfully"));
+    }
 }

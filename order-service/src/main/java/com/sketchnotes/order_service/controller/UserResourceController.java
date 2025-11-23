@@ -75,5 +75,17 @@ public class UserResourceController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(newResource, "User resource created"));
     }
+    
+    /**
+     * Check if user has purchased a specific resource
+     * This endpoint is used by identity-service to validate feedback eligibility
+     */
+    @GetMapping("/user/{userId}/resource/{resourceId}")
+    public ResponseEntity<ApiResponse<UserResource>> getUserResource(
+            @PathVariable Long userId,
+            @PathVariable Long resourceId) {
+        UserResource userResource = userResourceService.getUserResourceByUserIdAndResourceId(userId, resourceId);
+        return ResponseEntity.ok(ApiResponse.success(userResource, "User resource retrieved successfully"));
+    }
 
 }
