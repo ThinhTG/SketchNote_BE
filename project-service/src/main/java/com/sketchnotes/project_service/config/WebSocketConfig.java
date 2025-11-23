@@ -80,9 +80,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
-        registry.setMessageSizeLimit(512 * 1024); // 512KB
+        // Set to MAX_VALUE (~2GB) as requested
+        registry.setMessageSizeLimit(Integer.MAX_VALUE); 
         registry.setSendTimeLimit(20 * 10000);
-        registry.setSendBufferSizeLimit(512 * 1024); // 512KB
+        registry.setSendBufferSizeLimit(Integer.MAX_VALUE);
     }
 
     @Override
@@ -96,7 +97,5 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // broker (simple in-memory). Cho public topics
         config.enableSimpleBroker("/topic", "/queue");
         log.info("✅ [WebSocket] Simple broker enabled for: /topic, /queue");
-        
-        // nếu scale, thay bằng RabbitMQ/ActiveMQ STOMP broker
     }
 }
