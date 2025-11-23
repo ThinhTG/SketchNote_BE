@@ -16,6 +16,8 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/swagger-resources/**",
+            "/api/user-resources/user/{userId}/resource/{resourceId}",
+            "/api/user-resources/user/{userId}/**",
             "/configuration/**",
             "/webjars/**",
             "/ws/**"
