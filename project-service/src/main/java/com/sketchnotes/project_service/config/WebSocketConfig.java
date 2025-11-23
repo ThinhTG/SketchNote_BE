@@ -72,6 +72,27 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         } else {
                             log.info("✅ [WebSocket Native] Handshake completed successfully");
                         }
+                    }
+                });
+        
+        log.info("✅ [WebSocket] STOMP endpoints registered at /ws");
+    }
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
+        registry.setMessageSizeLimit(512 * 1024); // 512KB
+        registry.setSendTimeLimit(20 * 10000);
+        registry.setSendBufferSizeLimit(512 * 1024); // 512KB
+    }
+
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        log.info("🔵 [WebSocket] Configuring message broker...");
+        
+        // prefix cho destinations gửi từ client tới server (controller)
+        config.setApplicationDestinationPrefixes("/app");
+        log.info("✅ [WebSocket] Application destination prefix: /app");
+        
         // broker (simple in-memory). Cho public topics
         config.enableSimpleBroker("/topic", "/queue");
         log.info("✅ [WebSocket] Simple broker enabled for: /topic, /queue");
