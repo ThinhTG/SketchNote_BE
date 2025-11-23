@@ -6,6 +6,7 @@ import com.sketchnotes.project_service.dtos.ApiResponse;
 import com.sketchnotes.project_service.dtos.request.ProjectRequest;
 import com.sketchnotes.project_service.dtos.response.ProjectListResponse;
 import com.sketchnotes.project_service.dtos.response.ProjectResponse;
+import com.sketchnotes.project_service.dtos.response.ProjectDetailResponse;
 import com.sketchnotes.project_service.dtos.mapper.ProjectMapper;
 import com.sketchnotes.project_service.dtos.response.UserQuotaResponse;
 import com.sketchnotes.project_service.dtos.response.UserResponse;
@@ -63,10 +64,12 @@ public class ProjectService implements IProjectService {
 
     @Override
 
-    public ProjectResponse getProject(Long id) {
+    @Override
+    public ProjectDetailResponse getProject(Long id) {
         Project project = projectRepository.findById(id).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
-        return ProjectMapper.toDTO(project);
+        boolean hasCollaboration = projectCollaborationRepository.existsByProjectAndDeletedAtIsNull(project);
+        return ProjectMapper.toDetailDTO(project, hasCollaboration);
     }
 
     @Override

@@ -20,7 +20,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         log.info("🔵 [WebSocket] Registering STOMP endpoints...");
         
-        // endpoint client connect tới (SockJS fallback)
+        // Native WebSocket endpoint (no SockJS)
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
                 .addInterceptors(new HandshakeInterceptor() {
@@ -46,36 +46,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                             log.info("✅ [WebSocket] Handshake completed successfully");
                         }
                     }
-                })
-                .withSockJS();
-        
-        // Also add endpoint without SockJS for native WebSocket support
-        registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
-                .addInterceptors(new HandshakeInterceptor() {
-                    @Override
-                    public boolean beforeHandshake(ServerHttpRequest request, 
-                                                   ServerHttpResponse response,
-                                                   WebSocketHandler wsHandler, 
-                                                   Map<String, Object> attributes) {
-                        log.info("🟢 [WebSocket Native] Handshake request from: {}", request.getRemoteAddress());
-                        return true;
-                    }
-
-                    @Override
-                    public void afterHandshake(ServerHttpRequest request, 
-                                               ServerHttpResponse response,
-                                               WebSocketHandler wsHandler, 
-                                               Exception exception) {
-                        if (exception != null) {
-                            log.error("❌ [WebSocket Native] Handshake failed", exception);
-                        } else {
-                            log.info("✅ [WebSocket Native] Handshake completed successfully");
-                        }
-                    }
                 });
         
-        log.info("✅ [WebSocket] STOMP endpoints registered at /ws");
+        log.info("✅ [WebSocket] Native STOMP endpoint registered at /ws");
     }
 
     @Override

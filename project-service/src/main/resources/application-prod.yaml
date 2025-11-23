@@ -66,3 +66,10 @@ eureka:
   instance:
     prefer-ip-address: true
     ip-address: 34.126.98.83
+
+logging:
+  level:
+    org.springframework.web.socket: DEBUG
+    org.springframework.messaging: DEBUG
+    com.sketchnotes.project_service: DEBUG
+

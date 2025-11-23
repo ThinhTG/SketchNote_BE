@@ -5,6 +5,7 @@ import com.sketchnotes.project_service.dtos.ApiResponse;
 import com.sketchnotes.project_service.dtos.request.ProjectRequest;
 import com.sketchnotes.project_service.dtos.response.ProjectListResponse;
 import com.sketchnotes.project_service.dtos.response.ProjectResponse;
+import com.sketchnotes.project_service.dtos.response.ProjectDetailResponse;
 import com.sketchnotes.project_service.service.IProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
@@ -27,8 +28,8 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProjectResponse>> get(@PathVariable Long id) {
-        ProjectResponse response = projectService.getProject(id);
+    public ResponseEntity<ApiResponse<ProjectDetailResponse>> get(@PathVariable Long id) {
+        ProjectDetailResponse response = projectService.getProject(id);
         return ResponseEntity.ok(ApiResponse.success(response, "Get data successful"));
     }
 
