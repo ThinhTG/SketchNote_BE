@@ -109,4 +109,11 @@ public class UserResourceServiceImpl implements UserResourceService {
         }
         return result;
     }
+    
+    @Override
+    public UserResource getUserResourceByUserIdAndResourceId(Long userId, Long resourceId) {
+        return userResourceRepository.findByUserIdAndResourceTemplateIdAndActiveTrue(userId, resourceId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("User %d has not purchased resource %d or it is not active", userId, resourceId)));
+    }
 }

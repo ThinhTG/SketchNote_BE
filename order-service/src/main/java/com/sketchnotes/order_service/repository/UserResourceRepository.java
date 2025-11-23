@@ -28,4 +28,10 @@ public interface UserResourceRepository  extends JpaRepository<UserResource,Long
 
     @Query("select ur.resourceTemplateId from UserResource ur where ur.userId = ?1 and ur.active = true")
     List<Long> findActiveTemplateIdsByUserId(Long userId);
+    
+    /**
+     * Find user resource by userId and resourceTemplateId with active status
+     * Used by identity-service to validate feedback eligibility
+     */
+    Optional<UserResource> findByUserIdAndResourceTemplateIdAndActiveTrue(Long userId, Long resourceTemplateId);
 }
