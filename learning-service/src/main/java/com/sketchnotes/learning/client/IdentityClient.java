@@ -15,13 +15,13 @@ import java.math.BigDecimal;
 )
 public interface IdentityClient {
 
-    @GetMapping("api/users/me")
+    @GetMapping("/api/users/me")
     ApiResponse<UserResponse> getCurrentUser();
 
-    @GetMapping("api/users/public/{id}")
+    @GetMapping("/api/users/public/{id}")
     ApiResponse<UserResponse> getUser(@PathVariable Long id);
 
-    @PostMapping("api/wallet/charge-course")
+    @PostMapping("/api/wallet/charge-course")
     ApiResponse<TransactionResponse> chargeCourse(
             @RequestParam Long userId,
             @RequestParam double price,
