@@ -13,35 +13,24 @@ public class WebSocketEventListener {
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        log.info("✅✅✅ [WebSocket Event] NEW CONNECTION ✅✅✅");
-        log.info("✅ [WebSocket Event] Session ID: {}", headerAccessor.getSessionId());
-        log.info("✅ [WebSocket Event] User: {}", headerAccessor.getUser());
-        log.info("✅ [WebSocket Event] Session attributes: {}", headerAccessor.getSessionAttributes());
+        log.info("✅ [WebSocket] New connection - Session ID: {}", headerAccessor.getSessionId());
     }
 
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        log.info("🔴 [WebSocket Event] CONNECTION CLOSED");
-        log.info("🔴 [WebSocket Event] Session ID: {}", headerAccessor.getSessionId());
-        log.info("🔴 [WebSocket Event] User: {}", headerAccessor.getUser());
+        log.info("🔴 [WebSocket] Connection closed - Session ID: {}", headerAccessor.getSessionId());
     }
 
     @EventListener
     public void handleWebSocketSubscribeListener(SessionSubscribeEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        log.info("📥 [WebSocket Event] NEW SUBSCRIPTION");
-        log.info("📥 [WebSocket Event] Session ID: {}", headerAccessor.getSessionId());
-        log.info("📥 [WebSocket Event] Destination: {}", headerAccessor.getDestination());
-        log.info("📥 [WebSocket Event] Subscription ID: {}", headerAccessor.getSubscriptionId());
-        log.info("📥 [WebSocket Event] User: {}", headerAccessor.getUser());
+        log.info("📥 [WebSocket] New subscription - Destination: {}", headerAccessor.getDestination());
     }
 
     @EventListener
     public void handleWebSocketUnsubscribeListener(SessionUnsubscribeEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        log.info("🔴 [WebSocket Event] UNSUBSCRIBE");
-        log.info("🔴 [WebSocket Event] Session ID: {}", headerAccessor.getSessionId());
-        log.info("🔴 [WebSocket Event] Subscription ID: {}", headerAccessor.getSubscriptionId());
+        log.info("🔴 [WebSocket] Unsubscribe - Session ID: {}", headerAccessor.getSessionId());
     }
 }
