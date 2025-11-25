@@ -1,0 +1,18 @@
+package com.sketchnotes.identityservice.dtos.request;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class UpdateMessageRequest {
+    @NotBlank(message = "Message content cannot be blank")
+    @Size(min = 1, max = 10000, message = "Message content must be between 1 and 10000 characters")
+    private String content;
+}

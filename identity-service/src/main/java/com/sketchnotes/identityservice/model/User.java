@@ -32,6 +32,10 @@ public class User{
     private String avatarUrl;
     private LocalDateTime createAt;
     private  LocalDateTime  updateAt;
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Message> sentMessages;
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Message> receivedMessages;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference
