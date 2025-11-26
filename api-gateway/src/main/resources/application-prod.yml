@@ -30,21 +30,11 @@ spring:
               predicates:
                 - Path=/api/projects/**, /api/pages/**,/api/collaborations/**
 
-            # 🔥 Thêm WebSocket route
-#            - id: project-ws
-#              uri: lb:ws://project-service
-#              predicates:
-#                - Path=/ws/**
-
             - id: order-service
               uri: lb://order-service
               predicates:
                 - Path=/api/orders/**
 
-            - id: interaction-service
-              uri: lb://interaction-service
-              predicates:
-                - Path=/api/interactions/**
 
 springdoc:
   swagger-ui:
@@ -57,9 +47,6 @@ springdoc:
         url: /project-service/v3/api-docs
       - name: order-service
         url: /order-service/v3/api-docs
-      - name: interaction-service
-        url: /interaction-service/v3/api-docs
-
 eureka:
   client:
     service-url:
