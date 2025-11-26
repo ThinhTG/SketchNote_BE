@@ -6,6 +6,8 @@ cors:
   allowed-origins: "http://34.126.134.243:8888"
 app:
   ip: 34.126.134.243
+websocket:
+  allowed-origins: "http://localhost:3000,http://34.126.134.243:8888,https://love-haven.vercel.app"
 
 spring:
   application:

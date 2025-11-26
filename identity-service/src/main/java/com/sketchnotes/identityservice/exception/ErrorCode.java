@@ -46,7 +46,10 @@ public enum ErrorCode{
     SUBSCRIPTION_PLAN_NOT_FOUND(404, "Subscription plan not found", HttpStatus.NOT_FOUND),
     SUBSCRIPTION_NOT_FOUND(404, "Subscription not found", HttpStatus.NOT_FOUND),
     INSUFFICIENT_BALANCE(400, "Insufficient wallet balance", HttpStatus.BAD_REQUEST),
-    PROJECT_QUOTA_EXCEEDED(400, "Project quota exceeded. Please upgrade your subscription", HttpStatus.BAD_REQUEST);
+    PROJECT_QUOTA_EXCEEDED(400, "Project quota exceeded. Please upgrade your subscription", HttpStatus.BAD_REQUEST),
+    
+    // Notification errors
+    NOTIFICATION_NOT_FOUND(404, "Notification not found", HttpStatus.NOT_FOUND);
 
     private final int code;
     private final HttpStatusCode statusCode;
