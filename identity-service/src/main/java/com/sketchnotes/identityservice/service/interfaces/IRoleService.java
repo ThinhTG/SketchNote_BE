@@ -8,4 +8,5 @@ import java.util.List;
 public interface IRoleService {
     List<RoleResponseKeycloak> getAllRoles();
     void updateRolesForUser(RoleRequest request);
+    void assignRoleByName(Long userId, String roleName);
 }

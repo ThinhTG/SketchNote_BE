@@ -76,4 +76,37 @@ public class RoleService implements IRoleService {
             throw errorNormalizer.handleKeyCloakException(exception);
         }
     }
+
+    @Override
+    public void assignRoleByName(Long userId, String roleName) {
+        try {
+            User user = userRepository.findById(userId).filter(User::isActive)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+            
+            // Get client token
+            TokenExchangeResponse token = identityClient.exchangeClientToken(TokenExchangeParam.builder()
+                    .grant_type("client_credentials")
+                    .client_id(clientId)
+                    .client_secret(clientSecret)
+                    .scope("openid")
+                    .build());
+            
+            // Get all roles and find by name
+            List<RoleResponseKeycloak> roles = identityClient.getRealmRoles("Bearer " + token.getAccessToken());
+            RoleResponseKeycloak roleToAssign = roles.stream()
+                    .filter(role -> role.getName().equals(roleName))
+                    .findFirst()
+                    .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+
+            // Assign role to user in Keycloak
+            RoleKeycloakRequest credential = RoleKeycloakRequest.builder()
+                    .id(roleToAssign.getId())
+                    .name(roleToAssign.getName())
+                    .build();
+
+            identityClient.assignRolesToUser("Bearer " + token.getAccessToken(), user.getKeycloakId(), List.of(credential));
+        } catch (FeignException exception) {
+            throw errorNormalizer.handleKeyCloakException(exception);
+        }
+    }
 }
