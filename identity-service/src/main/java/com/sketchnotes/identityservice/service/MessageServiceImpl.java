@@ -99,15 +99,38 @@ public class MessageServiceImpl implements MessageService {
 
         User currentUser = userRepository.findByKeycloakId(currentUserKeycloakId)
                 .orElseThrow(() -> new RuntimeException("Current user not found"));
-        
-        List<User> conversationPartners = messageRepository.findConversationPartners(currentUser.getId());
-        
+
+        // Get user IDs who sent messages to me
+        List<Long> senderIds = messageRepository.findUserIdsSentToMe(currentUser.getId());
+
+        // Get user IDs who received messages from me
+        List<Long> receiverIds = messageRepository.findUserIdsReceivedFromMe(currentUser.getId());
+
+        // Merge and deduplicate using Set
+        java.util.Set<Long> partnerIds = new java.util.HashSet<>();
+        partnerIds.addAll(senderIds);
+        partnerIds.addAll(receiverIds);
+
+        // Batch fetch all users at once to avoid N+1 problem
+        List<User> partners = userRepository.findAllById(partnerIds);
+        java.util.Map<Long, User> partnerMap = new java.util.HashMap<>();
+        for (User partner : partners) {
+            partnerMap.put(partner.getId(), partner);
+        }
+
+        // Build conversation responses
         List<ConversationResponse> conversations = new ArrayList<>();
-        for (User partner : conversationPartners) {
+        for (Long partnerId : partnerIds) {
+            User partner = partnerMap.get(partnerId);
+
+            if (partner == null) {
+                continue; // Skip if user not found
+            }
+
             Message lastMessage = messageRepository.findLastMessageBetweenUsers(
                     currentUser.getId(), partner.getId())
                     .orElse(null);
-            
+
 
             ConversationResponse conversation = ConversationResponse.builder()
                     .userId(partner.getId())
@@ -116,7 +139,7 @@ public class MessageServiceImpl implements MessageService {
                     .lastMessage(lastMessage != null ? lastMessage.getContent() : null)
                     .lastMessageTime(lastMessage != null ? lastMessage.getCreatedAt() : null)
                     .build();
-            
+
             conversations.add(conversation);
         }
 
@@ -125,7 +148,7 @@ public class MessageServiceImpl implements MessageService {
             if (c2.getLastMessageTime() == null) return -1;
             return c2.getLastMessageTime().compareTo(c1.getLastMessageTime());
         });
-        
+
         return conversations;
     }
 
@@ -171,8 +194,6 @@ public class MessageServiceImpl implements MessageService {
         // Soft delete
         message.setDeletedAt(LocalDateTime.now());
         messageRepository.save(message);
-        
-        log.info("Message {} deleted successfully", messageId);
     }
 
     @Override
