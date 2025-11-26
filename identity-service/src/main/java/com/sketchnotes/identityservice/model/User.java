@@ -1,5 +1,6 @@
 package com.sketchnotes.identityservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.sketchnotes.identityservice.enums.Role;
 import jakarta.persistence.*;
@@ -33,8 +34,10 @@ public class User{
     private LocalDateTime createAt;
     private  LocalDateTime  updateAt;
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Message> sentMessages;
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Message> receivedMessages;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
