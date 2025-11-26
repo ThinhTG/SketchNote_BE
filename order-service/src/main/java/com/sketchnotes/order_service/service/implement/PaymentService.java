@@ -1,6 +1,8 @@
 package com.sketchnotes.order_service.service.implement;
 
 import com.sketchnotes.order_service.client.IdentityClient;
+import com.sketchnotes.order_service.dtos.CreateNotificationRequest;
+import com.sketchnotes.order_service.entity.Order;
 import com.sketchnotes.order_service.entity.OrderDetail;
 import com.sketchnotes.order_service.entity.ResourceTemplate;
 import com.sketchnotes.order_service.events.PaymentFailedEvent;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -106,6 +109,10 @@ public class PaymentService {
                         }
                     }
                 }
+                
+                // 🔔 Send notifications to buyer and designers
+                sendPaymentSuccessNotifications(order);
+                
             } catch (Exception e) {
                 log.error("Error processing payment success for Order {}: {}", order.getOrderId(), e.getMessage(), e);
                 throw e;
@@ -126,5 +133,97 @@ public class PaymentService {
             orderRepository.save(order);
 
         }, () -> log.error("Order {} not found when processing PaymentFailedEvent", event.getOrderId()));
+    }
+    
+    /**
+     * Send notifications to buyer and designers when payment is successful.
+     * This method is called after payment processing is complete.
+     */
+    private void sendPaymentSuccessNotifications(Order order) {
+        try {
+            // 1️⃣ Send notification to buyer (purchase confirmation)
+            String buyerMessage = buildBuyerNotificationMessage(order);
+            CreateNotificationRequest buyerNotification = CreateNotificationRequest.builder()
+                    .userId(order.getUserId())
+                    .title("Thanh toán thành công")
+                    .message(buyerMessage)
+                    .type("PURCHASE_CONFIRM")
+                    .orderId(order.getOrderId())
+                    .build();
+            
+            identityClient.createNotification(buyerNotification);
+            log.info("✅ Sent purchase confirmation notification to user {}", order.getUserId());
+            
+            // 2️⃣ Send notifications to designers (one per unique template)
+            if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
+                order.getOrderDetails().stream()
+                        .collect(Collectors.groupingBy(OrderDetail::getResourceTemplateId))
+                        .forEach((templateId, details) -> {
+                            try {
+                                ResourceTemplate template = resourceTemplateRepository
+                                        .findById(templateId)
+                                        .orElse(null);
+                                
+                                if (template != null && template.getDesignerId() != null) {
+                                    String designerMessage = String.format(
+                                            "Tài nguyên '%s' của bạn đã được mua. Mã đơn: %s",
+                                            template.getName(),
+                                            order.getInvoiceNumber()
+                                    );
+                                    
+                                    CreateNotificationRequest designerNotification = CreateNotificationRequest.builder()
+                                            .userId(template.getDesignerId())
+                                            .title("Tài nguyên của bạn đã được mua")
+                                            .message(designerMessage)
+                                            .type("PURCHASE")
+                                            .orderId(order.getOrderId())
+                                            .resourceItemId(templateId)
+                                            .build();
+                                    
+                                    identityClient.createNotification(designerNotification);
+                                    log.info("✅ Sent purchase notification to designer {} for template {}", 
+                                            template.getDesignerId(), templateId);
+                                }
+                            } catch (Exception e) {
+                                log.error("❌ Failed to send notification to designer for template {}: {}", 
+                                        templateId, e.getMessage());
+                            }
+                        });
+            }
+            
+        } catch (Exception e) {
+            log.error("❌ Failed to send payment success notifications for order {}: {}", 
+                    order.getOrderId(), e.getMessage(), e);
+            // Don't throw exception - notifications are not critical to payment flow
+        }
+    }
+    
+    /**
+     * Build a detailed message for the buyer notification.
+     */
+    private String buildBuyerNotificationMessage(Order order) {
+        if (order.getOrderDetails() == null || order.getOrderDetails().isEmpty()) {
+            return String.format(
+                    "Bạn đã thanh toán thành công. Mã đơn: %s. Tổng tiền: %s VND",
+                    order.getInvoiceNumber(),
+                    order.getTotalAmount()
+            );
+        }
+        
+        String itemsList = order.getOrderDetails().stream()
+                .map(detail -> {
+                    ResourceTemplate template = resourceTemplateRepository
+                            .findById(detail.getResourceTemplateId())
+                            .orElse(null);
+                    return template != null ? template.getName() : "Template #" + detail.getResourceTemplateId();
+                })
+                .collect(Collectors.joining(", "));
+        
+        return String.format(
+                "Bạn đã mua thành công: %s. Mã đơn: %s. Tổng tiền: %s VND",
+                itemsList,
+                order.getInvoiceNumber(),
+                order.getTotalAmount()
+        );
     }
 }
