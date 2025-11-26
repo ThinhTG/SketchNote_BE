@@ -43,6 +43,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderEventLogRepository orderEventLogRepository;
     private final UserResourceRepository userResourceRepository;
     private final OrderDetailRepository orderDetailRepository;
+    private final IdentityClient identityClient;
 
 
 
@@ -183,9 +184,19 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDTO updateOrderStatus(Long id, String status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + id));
+        
+        String oldStatus = order.getOrderStatus();
         order.setOrderStatus(status);
         order.setUpdatedAt(LocalDateTime.now());
-        return enrichOrderResponse(orderMapper.toDto(orderRepository.save(order)));
+        Order savedOrder = orderRepository.save(order);
+        
+        // Send notifications if order becomes SUCCESS and payment is PAID
+        if ("SUCCESS".equals(status) && !"SUCCESS".equals(oldStatus) && "PAID".equals(order.getPaymentStatus())) {
+            log.info("Order {} status changed to SUCCESS with PAID payment, sending notifications", id);
+            sendPaymentSuccessNotifications(id);
+        }
+        
+        return enrichOrderResponse(orderMapper.toDto(savedOrder));
     }
 
     @Override
@@ -256,5 +267,83 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         return orderResponse;
+    }
+    
+    /**
+     * Send notifications to buyer and designers when payment is successful.
+     */
+    private void sendPaymentSuccessNotifications(Long orderId) {
+        try {
+            OrderResponseDTO order = getOrderById(orderId);
+            
+            // Notification to buyer
+            String buyerMessage = buildBuyerNotificationMessage(order);
+            CreateNotificationRequest buyerNotification = CreateNotificationRequest.builder()
+                    .userId(order.getUserId())
+                    .title("Thanh toán thành công")
+                    .message(buyerMessage)
+                    .type("PURCHASE_CONFIRM")
+                    .orderId(order.getOrderId())
+                    .build();
+            
+            identityClient.createNotification(buyerNotification);
+            log.info("Sent purchase confirmation notification to user {}", order.getUserId());
+            
+            // Notifications to designers (one per unique designer)
+            order.getItems().stream()
+                    .collect(java.util.stream.Collectors.groupingBy(OrderDetailDTO::getResourceTemplateId))
+                    .forEach((templateId, items) -> {
+                        try {
+                            ResourceTemplate template = resourceTemplateRepository
+                                    .findById(templateId)
+                                    .orElse(null);
+                            
+                            if (template != null) {
+                                String designerMessage = String.format(
+                                        "Tài nguyên '%s' của bạn đã được mua. Mã đơn: %s",
+                                        template.getName(),
+                                        order.getInvoiceNumber()
+                                );
+                                
+                                CreateNotificationRequest designerNotification = CreateNotificationRequest.builder()
+                                        .userId(template.getDesignerId())
+                                        .title("Tài nguyên của bạn đã được mua")
+                                        .message(designerMessage)
+                                        .type("PURCHASE")
+                                        .orderId(order.getOrderId())
+                                        .resourceItemId(templateId)
+                                        .build();
+                                
+                                identityClient.createNotification(designerNotification);
+                                log.info("Sent purchase notification to designer {} for template {}", 
+                                        template.getDesignerId(), templateId);
+                            }
+                        } catch (Exception e) {
+                            log.error("Failed to send notification to designer for template {}: {}", 
+                                    templateId, e.getMessage());
+                        }
+                    });
+            
+        } catch (Exception e) {
+            log.error("Failed to send payment success notifications for order {}: {}", 
+                    orderId, e.getMessage(), e);
+            // Don't throw exception - notifications are not critical
+        }
+    }
+    
+    /**
+     * Build a detailed message for the buyer notification.
+     */
+    private String buildBuyerNotificationMessage(OrderResponseDTO order) {
+        String itemsList = order.getItems().stream()
+                .map(item -> item.getTemplateName())
+                .collect(java.util.stream.Collectors.joining(", "));
+        
+        return String.format(
+                "Bạn đã mua thành công: %s. Mã đơn: %s. Tổng tiền: %s VND",
+                itemsList,
+                order.getInvoiceNumber(),
+                order.getTotalAmount()
+        );
     }
 }
