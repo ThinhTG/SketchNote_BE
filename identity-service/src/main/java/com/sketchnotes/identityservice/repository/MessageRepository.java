@@ -15,16 +15,10 @@ import java.util.Optional;
 public interface MessageRepository extends JpaRepository<Message, Long> {
     
     // Find messages between two users (conversation)
-    @Query(value = "SELECT * FROM message m WHERE " +
-           "((m.sender_id = :userId1 AND m.receiver_id = :userId2) OR " +
-           "(m.sender_id = :userId2 AND m.receiver_id = :userId1)) " +
-           "AND m.deleted_at IS NULL " +
-           "ORDER BY m.created_at DESC",
-           countQuery = "SELECT COUNT(*) FROM message m WHERE " +
-           "((m.sender_id = :userId1 AND m.receiver_id = :userId2) OR " +
-           "(m.sender_id = :userId2 AND m.receiver_id = :userId1)) " +
-           "AND m.deleted_at IS NULL",
-           nativeQuery = true)
+    @Query("SELECT m FROM Message m WHERE " +
+           "((m.sender.id = :userId1 AND m.receiver.id = :userId2) OR " +
+           "(m.sender.id = :userId2 AND m.receiver.id = :userId1)) " +
+           "AND m.deletedAt IS NULL")
     Page<Message> findConversationBetweenUsers(
         @Param("userId1") Long userId1, 
         @Param("userId2") Long userId2, 
@@ -32,31 +26,30 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     );
     
     // Find all users who sent messages to current user
-    @Query(value = "SELECT DISTINCT m.sender_id FROM message m WHERE " +
-           "m.receiver_id = :userId AND m.deleted_at IS NULL", nativeQuery = true)
+    @Query("SELECT DISTINCT m.sender.id FROM Message m WHERE " +
+           "m.receiver.id = :userId AND m.deletedAt IS NULL")
     List<Long> findUserIdsSentToMe(@Param("userId") Long userId);
     
     // Find all users who received messages from current user
-    @Query(value = "SELECT DISTINCT m.receiver_id FROM message m WHERE " +
-           "m.sender_id = :userId AND m.deleted_at IS NULL", nativeQuery = true)
+    @Query("SELECT DISTINCT m.receiver.id FROM Message m WHERE " +
+           "m.sender.id = :userId AND m.deletedAt IS NULL")
     List<Long> findUserIdsReceivedFromMe(@Param("userId") Long userId);
     
     // Find last message between two users
-    @Query(value = "SELECT * FROM message m WHERE " +
-           "((m.sender_id = :userId1 AND m.receiver_id = :userId2) OR " +
-           "(m.sender_id = :userId2 AND m.receiver_id = :userId1)) " +
-           "AND m.deleted_at IS NULL " +
-           "ORDER BY m.created_at DESC " +
-           "LIMIT 1", nativeQuery = true)
-    Optional<Message> findLastMessageBetweenUsers(
+    @Query("SELECT m FROM Message m WHERE " +
+           "((m.sender.id = :userId1 AND m.receiver.id = :userId2) OR " +
+           "(m.sender.id = :userId2 AND m.receiver.id = :userId1)) " +
+           "AND m.deletedAt IS NULL " +
+           "ORDER BY m.createdAt DESC")
+    List<Message> findLastMessageBetweenUsersList(
         @Param("userId1") Long userId1, 
         @Param("userId2") Long userId2
     );
 
     // Find message by id and check if user is sender or receiver
-    @Query(value = "SELECT * FROM message m WHERE m.id = :messageId AND " +
-           "(m.sender_id = :userId OR m.receiver_id = :userId) " +
-           "AND m.deleted_at IS NULL", nativeQuery = true)
+    @Query("SELECT m FROM Message m WHERE m.id = :messageId AND " +
+           "(m.sender.id = :userId OR m.receiver.id = :userId) " +
+           "AND m.deletedAt IS NULL")
     Optional<Message> findByIdAndUserId(
         @Param("messageId") Long messageId, 
         @Param("userId") Long userId

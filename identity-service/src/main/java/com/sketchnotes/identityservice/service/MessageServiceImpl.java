@@ -127,8 +127,10 @@ public class MessageServiceImpl implements MessageService {
                 continue; // Skip if user not found
             }
 
-            Message lastMessage = messageRepository.findLastMessageBetweenUsers(
+            Message lastMessage = messageRepository.findLastMessageBetweenUsersList(
                     currentUser.getId(), partner.getId())
+                    .stream()
+                    .findFirst()
                     .orElse(null);
 
 
