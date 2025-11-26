@@ -23,6 +23,7 @@ import com.sketchnotes.identityservice.repository.IUserSubscriptionRepository;
 import com.sketchnotes.identityservice.repository.IWalletRepository;
 import com.sketchnotes.identityservice.repository.ITransactionRepository;
 import com.sketchnotes.identityservice.service.interfaces.IUserSubscriptionService;
+import com.sketchnotes.identityservice.service.interfaces.IRoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -44,6 +45,7 @@ public class UserSubscriptionService implements IUserSubscriptionService {
     private final IWalletRepository walletRepository;
     private final ITransactionRepository transactionRepository;
     private final ProjectServiceClient projectServiceClient;
+    private final IRoleService roleService;
 
     @Override
     @Transactional
@@ -121,7 +123,17 @@ public class UserSubscriptionService implements IUserSubscriptionService {
         if (plan.getPlanType() == PlanType.DESIGNER && user.getRole() != Role.DESIGNER) {
             user.setRole(Role.DESIGNER);
             userRepository.save(user);
-            log.info("Upgraded user {} to DESIGNER role", userId);
+            log.info("Upgraded user {} to DESIGNER role in database", userId);
+            
+            // Also update role in Keycloak
+            try {
+                roleService.assignRoleByName(userId, "DESIGNER");
+                log.info("Upgraded user {} to DESIGNER role in Keycloak", userId);
+            } catch (Exception e) {
+                log.error("Failed to update Keycloak role for user {}: {}", userId, e.getMessage());
+                // Don't fail the whole transaction if Keycloak update fails
+                // The database role is already updated
+            }
         }
 
         log.info("Successfully created subscription {} for user {} with transaction {}", 
