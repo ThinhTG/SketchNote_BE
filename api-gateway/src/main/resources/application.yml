@@ -35,11 +35,6 @@ spring:
               predicates:
                 - Path=/api/orders/**
 
-            - id: interaction-service
-              uri: lb://interaction-service
-              predicates:
-                - Path=/api/interactions/**
-
 springdoc:
   swagger-ui:
     urls:
@@ -51,8 +46,6 @@ springdoc:
         url: /project-service/v3/api-docs
       - name: order-service
         url: /order-service/v3/api-docs
-      - name: interaction-service
-        url: /interaction-service/v3/api-docs
 
 eureka:
   client:
