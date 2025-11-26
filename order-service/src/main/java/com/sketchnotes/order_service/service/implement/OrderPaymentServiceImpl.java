@@ -2,7 +2,6 @@ package com.sketchnotes.order_service.service.implement;
 
 import com.sketchnotes.order_service.client.PaymentClient;
 import com.sketchnotes.order_service.client.IdentityClient;
-import com.sketchnotes.order_service.client.NotificationClient;
 import com.sketchnotes.order_service.dtos.*;
 import com.sketchnotes.order_service.entity.ResourceTemplate;
 import com.sketchnotes.order_service.repository.ResourceTemplateRepository;
@@ -22,7 +21,6 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
     private final OrderService orderService;
     private final PaymentClient paymentClient;
     private final IdentityClient identityClient;
-    private final NotificationClient notificationClient;
     private final ResourceTemplateRepository resourceTemplateRepository;
 
     @Override
@@ -160,7 +158,7 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
                     .orderId(order.getOrderId())
                     .build();
             
-            notificationClient.createNotification(buyerNotification);
+            identityClient.createNotification(buyerNotification);
             log.info("Sent purchase confirmation notification to user {}", order.getUserId());
             
             // Notifications to designers (one per unique designer)
@@ -188,7 +186,7 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
                                         .resourceItemId(templateId)
                                         .build();
                                 
-                                notificationClient.createNotification(designerNotification);
+                                identityClient.createNotification(designerNotification);
                                 log.info("Sent purchase notification to designer {} for template {}", 
                                         template.getDesignerId(), templateId);
                             }
