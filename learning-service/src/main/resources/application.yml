@@ -1,5 +1,11 @@
 server:
   port: 8085
+
+# Gateway configuration for Swagger (LOCAL)
+gateway:
+  url: http://localhost:8888  # Local gateway
+  learning-path: ""  # Không có prefix, routes trực tiếp /api/learning/**
+
 spring:
   application:
     name: learning-service

@@ -1,5 +1,11 @@
 server:
   port: 8085
+
+# Gateway configuration for Swagger (PRODUCTION)
+gateway:
+  url: https://sketchnote.litecsys.com
+  learning-path: ""  # Không có prefix, routes trực tiếp /api/learning/**
+
 spring:
   application:
     name: learning-service
