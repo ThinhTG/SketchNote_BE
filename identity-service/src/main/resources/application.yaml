@@ -1,11 +1,20 @@
 server:
   port: 8089
+
+# Gateway configuration for Swagger (LOCAL)
+gateway:
+  url: http://localhost:8888  # Local gateway
+  account-path: ""  # Không có prefix, routes trực tiếp /api/auth/**, /api/users/**...
+
 link:
   verify-email: https://love-haven.vercel.app/verify-result
+
 cors:
   allowed-origins: "http://34.126.134.243:8888"
+
 app:
   ip: 34.126.134.243
+
 websocket:
   allowed-origins: "http://localhost:3000,http://34.126.134.243:8888,https://love-haven.vercel.app"
 

@@ -1,6 +1,11 @@
 server:
   port: 8087
 
+# Gateway configuration for Swagger (LOCAL)
+gateway:
+  url: http://localhost:8888  # Local gateway
+  project-path: ""  # Không có prefix, routes trực tiếp /api/projects/**, /api/pages/**...
+
 cors:
   allowed-origins: "http://34.126.134.243:8888"
 

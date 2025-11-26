@@ -91,6 +91,7 @@ public class AuthenticationService implements  IAuthService {
             throw ex;
         }
     }
+    
     @Override
     public LoginResponse refreshToken(TokenRequest request) {
         try {
@@ -116,7 +117,9 @@ public class AuthenticationService implements  IAuthService {
     @Override
     public LoginResponse loginWithGoogle(LoginGoogleRequest request) {
         try {
-            // 1. Đổi code -> token
+            log.info("Starting Google OAuth login process");
+            
+            // 1. Exchange authorization code for tokens from Keycloak
             LoginExchangeResponse tokenResponse = identityClient.loginWithGoogle(
                     GoogleLoginParam.builder()
                             .grant_type("authorization_code")
@@ -127,39 +130,87 @@ public class AuthenticationService implements  IAuthService {
                             .build()
             );
 
-            // 2. Giải ID Token
+            // 2. Validate and extract user data from ID token
             String idToken = tokenResponse.getIdToken();
+            if (idToken == null || idToken.trim().isEmpty()) {
+                log.error("ID token is null or empty");
+                throw new AppException(ErrorCode.INVALID_TOKEN);
+            }
 
             DecodedJWT jwt = JWT.decode(idToken);
-
-            String keycloakId = jwt.getSubject(); // "sub" claim
-            System.out.println("KeycloakId: " + keycloakId);
+            
+            // Extract claims with validation
+            String keycloakId = jwt.getSubject();
             String email = jwt.getClaim("email").asString();
             String firstName = jwt.getClaim("given_name").asString();
             String lastName = jwt.getClaim("family_name").asString();
-            User user = userRepository.findByEmail(email).orElse(null);
-
-            if (user == null) {
-               var newUser =  userRepository.save(
-                        User.builder()
-                                .keycloakId(keycloakId)
-                                .email(email)
-                                .role(Role.CUSTOMER)
-                                .isActive(true)
-                                .firstName(firstName)
-                                .lastName(lastName)
-                                .build()
-                );
-                walletService.createWallet(newUser.getId());
-
+            
+            // Validate required claims
+            if (keycloakId == null || keycloakId.trim().isEmpty()) {
+                log.error("Missing 'sub' claim in ID token");
+                throw new AppException(ErrorCode.INVALID_TOKEN);
             }
+            
+            if (email == null || email.trim().isEmpty()) {
+                log.error("Missing 'email' claim in ID token");
+                throw new AppException(ErrorCode.INVALID_TOKEN);
+            }
+            
+            log.debug("Extracted user data - Email: {}, KeycloakId: {}", email, keycloakId);
+            
+            // 3. Find or create user
+            User user = userRepository.findByEmail(email).orElse(null);
+            
+            if (user == null) {
+                log.info("Creating new user from Google OAuth: {}", email);
+                
+                User newUser = User.builder()
+                        .keycloakId(keycloakId)
+                        .email(email)
+                        .firstName(firstName != null ? firstName : "")
+                        .lastName(lastName != null ? lastName : "")
+                        .role(Role.CUSTOMER)
+                        .isActive(true)
+                        .createAt(LocalDateTime.now())
+                        .build();
+                
+                user = userRepository.save(newUser);
+                
+                // Create wallet for new user
+                try {
+                    walletService.createWallet(user.getId());
+                    log.info("Wallet created for new user: {}", user.getId());
+                } catch (Exception ex) {
+                    log.error("Failed to create wallet for user: {}", user.getId(), ex);
+                    // Continue even if wallet creation fails
+                }
+                
+                log.info("Successfully created new user with ID: {}", user.getId());
+            }
+            
+            // 4. Validate user account status
+            if (!user.isActive()) {
+                log.warn("Inactive user attempted Google login: {}", user.getEmail());
+                throw new AppException(ErrorCode.USER_INACTIVE);
+            }
+            
+            log.info("Google login successful for user: {}", user.getEmail());
+            
             return LoginResponse.builder()
                     .accessToken(tokenResponse.getAccessToken())
                     .refreshToken(tokenResponse.getRefreshToken())
                     .build();
 
         } catch (FeignException ex) {
+            log.error("Keycloak error during Google login: Status={}, Message={}", 
+                    ex.status(), ex.getMessage());
             throw errorNormalizer.handleKeyCloakException(ex);
+        } catch (AppException ex) {
+            log.error("Application error during Google login: {}", ex.getMessage());
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error during Google login", ex);
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
 
@@ -208,6 +259,7 @@ public class AuthenticationService implements  IAuthService {
             throw errorNormalizer.handleKeyCloakException(exception);
         }
     }
+    
     private String extractUserId(ResponseEntity<?> response) {
         List<String> locations = response.getHeaders().get("Location");
         if (locations == null || locations.isEmpty()) {
