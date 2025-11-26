@@ -23,6 +23,10 @@ public class SecurityConfig {
             "/api/users/public/**",
             "/internal/deposit-for-designer",
             "/api/wallet/internal/**",
+            // WebSocket endpoints
+            "/ws-notifications/**",
+            // Internal notification endpoints (for service-to-service communication)
+            "/internal/notifications/**",
             // swagger endpoints
             "/v3/api-docs/**",
             "/swagger-ui/**",

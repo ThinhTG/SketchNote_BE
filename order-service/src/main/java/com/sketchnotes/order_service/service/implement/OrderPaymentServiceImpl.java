@@ -2,15 +2,17 @@ package com.sketchnotes.order_service.service.implement;
 
 import com.sketchnotes.order_service.client.PaymentClient;
 import com.sketchnotes.order_service.client.IdentityClient;
-import com.sketchnotes.order_service.dtos.OrderResponseDTO;
-import com.sketchnotes.order_service.dtos.PaymentRequestDTO;
-import com.sketchnotes.order_service.dtos.PaymentResponseDTO;
-import com.sketchnotes.order_service.dtos.ApiResponse;
+import com.sketchnotes.order_service.client.NotificationClient;
+import com.sketchnotes.order_service.dtos.*;
+import com.sketchnotes.order_service.entity.ResourceTemplate;
+import com.sketchnotes.order_service.repository.ResourceTemplateRepository;
 import com.sketchnotes.order_service.service.OrderPaymentService;
 import com.sketchnotes.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +22,8 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
     private final OrderService orderService;
     private final PaymentClient paymentClient;
     private final IdentityClient identityClient;
+    private final NotificationClient notificationClient;
+    private final ResourceTemplateRepository resourceTemplateRepository;
 
     @Override
     public PaymentResponseDTO createPaymentForOrder(Long orderId) {
@@ -82,6 +86,8 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
         switch (paymentStatus) {
             case "PAID":
                 orderService.updateOrderStatus(orderId, "SUCCESS");
+                // Send notifications on successful payment
+                sendPaymentSuccessNotifications(orderId);
                 break;
             case "FAILED":
             case "CANCELLED":
@@ -116,6 +122,9 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
         orderService.updateOrderStatus(orderId, "SUCCESS");
 
         log.info("Wallet payment successful for order: {}", orderId);
+        
+        // Send notifications on successful payment
+        sendPaymentSuccessNotifications(orderId);
 
         return PaymentResponseDTO.builder()
                 .paymentId("WALLET-" + orderId)
@@ -132,5 +141,83 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
             return order.getInvoiceNumber().replace("INV-", "");
         }
         return String.valueOf(order.getOrderId());
+    }
+    
+    /**
+     * Send notifications to buyer and designers when payment is successful.
+     */
+    private void sendPaymentSuccessNotifications(Long orderId) {
+        try {
+            OrderResponseDTO order = orderService.getOrderById(orderId);
+            
+            // Notification to buyer
+            String buyerMessage = buildBuyerNotificationMessage(order);
+            CreateNotificationRequest buyerNotification = CreateNotificationRequest.builder()
+                    .userId(order.getUserId())
+                    .title("Thanh toán thành công")
+                    .message(buyerMessage)
+                    .type("PURCHASE_CONFIRM")
+                    .orderId(order.getOrderId())
+                    .build();
+            
+            notificationClient.createNotification(buyerNotification);
+            log.info("Sent purchase confirmation notification to user {}", order.getUserId());
+            
+            // Notifications to designers (one per unique designer)
+            order.getItems().stream()
+                    .collect(Collectors.groupingBy(OrderDetailDTO::getResourceTemplateId))
+                    .forEach((templateId, items) -> {
+                        try {
+                            ResourceTemplate template = resourceTemplateRepository
+                                    .findById(templateId)
+                                    .orElse(null);
+                            
+                            if (template != null) {
+                                String designerMessage = String.format(
+                                        "Tài nguyên '%s' của bạn đã được mua. Mã đơn: %s",
+                                        template.getName(),
+                                        order.getInvoiceNumber()
+                                );
+                                
+                                CreateNotificationRequest designerNotification = CreateNotificationRequest.builder()
+                                        .userId(template.getDesignerId())
+                                        .title("Tài nguyên của bạn đã được mua")
+                                        .message(designerMessage)
+                                        .type("PURCHASE")
+                                        .orderId(order.getOrderId())
+                                        .resourceItemId(templateId)
+                                        .build();
+                                
+                                notificationClient.createNotification(designerNotification);
+                                log.info("Sent purchase notification to designer {} for template {}", 
+                                        template.getDesignerId(), templateId);
+                            }
+                        } catch (Exception e) {
+                            log.error("Failed to send notification to designer for template {}: {}", 
+                                    templateId, e.getMessage());
+                        }
+                    });
+            
+        } catch (Exception e) {
+            log.error("Failed to send payment success notifications for order {}: {}", 
+                    orderId, e.getMessage(), e);
+            // Don't throw exception - notifications are not critical
+        }
+    }
+    
+    /**
+     * Build a detailed message for the buyer notification.
+     */
+    private String buildBuyerNotificationMessage(OrderResponseDTO order) {
+        String itemsList = order.getItems().stream()
+                .map(item -> item.getTemplateName())
+                .collect(Collectors.joining(", "));
+        
+        return String.format(
+                "Bạn đã mua thành công: %s. Mã đơn: %s. Tổng tiền: %s VND",
+                itemsList,
+                order.getInvoiceNumber(),
+                order.getTotalAmount()
+        );
     }
 }
