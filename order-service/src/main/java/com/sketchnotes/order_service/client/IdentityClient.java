@@ -1,6 +1,8 @@
 package com.sketchnotes.order_service.client;
 
 import com.sketchnotes.order_service.dtos.ApiResponse;
+import com.sketchnotes.order_service.dtos.CreateNotificationRequest;
+import com.sketchnotes.order_service.dtos.NotificationDto;
 import com.sketchnotes.order_service.dtos.UserResponse;
 import com.sketchnotes.order_service.dtos.TransactionResponse;
 import com.sketchnotes.order_service.dtos.TransactionType;
@@ -8,6 +10,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
@@ -52,4 +55,13 @@ public interface IdentityClient {
             @RequestParam Long userId,
             @RequestParam BigDecimal amount,
             @RequestParam(required = false) String description);
+
+    /**
+     * Create a notification via the identity-service internal API.
+     *
+     * @param request the notification creation request
+     * @return the created notification DTO
+     */
+    @PostMapping("/internal/notifications")
+    NotificationDto createNotification(@RequestBody CreateNotificationRequest request);
 }
