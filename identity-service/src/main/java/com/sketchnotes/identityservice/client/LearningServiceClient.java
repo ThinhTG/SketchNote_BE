@@ -13,9 +13,16 @@ public interface LearningServiceClient {
      * Get course enrollment details for a specific user and course
      * Used to validate if user is enrolled and get their progress
      */
-    @GetMapping("/api/enrollments/user/{userId}/course/{courseId}")
+//    @GetMapping("/api/enrollments/user/{userId}/course/{courseId}")
+//    ApiResponse<CourseEnrollmentResponse> getEnrollment(
+//            @PathVariable("userId") Long userId,
+//            @PathVariable("courseId") Long courseId
+//    );
+
+    @GetMapping("/api/learning/enrollments/user/{userId}/course/{courseId}")
     ApiResponse<CourseEnrollmentResponse> getEnrollment(
             @PathVariable("userId") Long userId,
             @PathVariable("courseId") Long courseId
     );
 }
+
