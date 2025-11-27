@@ -235,6 +235,21 @@ public class UserSubscriptionService implements IUserSubscriptionService {
         UserQuotaResponse quota = getUserQuota(userId);
         return quota.getCanCreateProject();
     }
+    
+    @Override
+    public boolean hasActiveSubscription(Long userId) {
+        try {
+            User user = userRepository.findById(userId)
+                    .orElse(null);
+            if (user == null) {
+                return false;
+            }
+            return user.hasActiveSubscription();
+        } catch (Exception e) {
+            log.error("Error checking active subscription for user {}: {}", userId, e.getMessage());
+            return false;
+        }
+    }
 
     @Override
     @Scheduled(cron = "0 0 0 * * *") // Run daily at midnight

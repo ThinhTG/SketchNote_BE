@@ -59,4 +59,15 @@ public class UserSubscriptionController {
         UserQuotaResponse quota = userSubscriptionService.getUserQuota(userId);
         return ResponseEntity.ok(ApiResponse.success(quota, "Retrieved user quota"));
     }
+    
+    /**
+     * Check if current user has active subscription (for collaboration feature)
+     */
+    @GetMapping("/check")
+    public ResponseEntity<ApiResponse<Boolean>> checkActiveSubscription() {
+        Long userId = userService.getCurrentUser().getId();
+        boolean hasActive = userSubscriptionService.hasActiveSubscription(userId);
+        return ResponseEntity.ok(ApiResponse.success(hasActive, 
+            hasActive ? "User has active subscription" : "User does not have active subscription"));
+    }
 }
