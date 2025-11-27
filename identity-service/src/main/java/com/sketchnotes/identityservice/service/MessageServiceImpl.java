@@ -65,7 +65,7 @@ public class MessageServiceImpl implements MessageService {
     @Transactional(readOnly = true)
     public PagedResponse<MessageResponse> getConversation(Long otherUserId, int page, int size) {
         String currentUserKeycloakId = SecurityUtils.getCurrentUserId();
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"));
         
         User currentUser = userRepository.findByKeycloakId(currentUserKeycloakId)
                 .orElseThrow(() -> new RuntimeException("Current user not found"));
