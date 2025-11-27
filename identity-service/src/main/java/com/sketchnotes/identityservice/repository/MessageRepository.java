@@ -40,7 +40,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "((m.sender.id = :userId1 AND m.receiver.id = :userId2) OR " +
            "(m.sender.id = :userId2 AND m.receiver.id = :userId1)) " +
            "AND m.deletedAt IS NULL " +
-           "ORDER BY m.createdAt DESC")
+           "ORDER BY m.createdAt ASC")
     List<Message> findLastMessageBetweenUsersList(
         @Param("userId1") Long userId1, 
         @Param("userId2") Long userId2
