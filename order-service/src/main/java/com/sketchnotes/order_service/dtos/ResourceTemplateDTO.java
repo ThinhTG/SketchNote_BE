@@ -26,4 +26,8 @@ public class ResourceTemplateDTO {
     private java.util.List<ResourceImageDTO> images;
     private java.util.List<ResourceItemDTO> items;
     private DesignerInfoDTO designerInfo;
+    
+    // Indicates if the current user is the owner of this resource template
+    // Used by frontend to disable "Buy" button for own resources
+    private Boolean isOwner;
 }
