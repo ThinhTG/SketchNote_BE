@@ -20,5 +20,12 @@ public interface IUserSubscriptionService {
     
     boolean checkProjectQuota(Long userId);
     
+    /**
+     * Check if user has an active subscription (for collaboration feature)
+     * @param userId User ID to check
+     * @return true if user has active subscription, false otherwise
+     */
+    boolean hasActiveSubscription(Long userId);
+    
     void processExpiredSubscriptions();
 }

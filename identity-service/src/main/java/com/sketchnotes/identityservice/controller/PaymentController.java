@@ -17,7 +17,7 @@ import vn.payos.model.webhooks.ConfirmWebhookResponse;
 import java.math.BigDecimal;
 import java.util.Map;
 
-@CrossOrigin(origins = "*")
+
 @RestController
 @RequestMapping("/api/payment")
 @RequiredArgsConstructor
