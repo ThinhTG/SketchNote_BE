@@ -389,6 +389,7 @@ public class TemplateServiceImpl implements TemplateService {
                 ResourceTemplateItem item = new ResourceTemplateItem();
                 item.setItemIndex(p.getPageNumber());
                 item.setItemUrl(p.getStrokeUrl());
+                item.setImageUrl(p.getSnapshotUrl()); // Set image_url từ snapshotUrl của page
                 item.setResourceTemplate(template);
                 template.getItems().add(item);
             });
