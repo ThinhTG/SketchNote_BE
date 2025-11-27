@@ -148,6 +148,16 @@ public class OrderServiceImpl implements OrderService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Template id is required for each order item");
             }
 
+            // ✅ Validate: User cannot buy their own template
+            ResourceTemplate template = resourceTemplateRepository.findById(templateId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            String.format("Template %d not found", templateId)));
+            
+            if (template.getDesignerId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        String.format("You cannot purchase your own template (ID: %d)", templateId));
+            }
+
             if (userResourceRepository.existsByUserIdAndResourceTemplateIdAndActiveTrue(userId, templateId)) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
                         String.format("You already own template %d", templateId));

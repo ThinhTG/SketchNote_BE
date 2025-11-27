@@ -31,7 +31,10 @@ public class OrderTemplateController {
             @RequestParam(defaultValue = "desc") String sortDir) {
         var result = templateService.getAllActiveTemplates(page, size, sortBy, sortDir);
 
-        //  Gán thông tin designer vào từng ResourceTemplateDTO
+        // Get current user ID
+        Long currentUserId = getCurrentUserId();
+
+        //  Gán thông tin designer vào từng ResourceTemplateDTO và set isOwner
         if (result != null && result.getContent() != null && !result.getContent().isEmpty()) {
             result.getContent().forEach(template -> {
                 var apiResponse = identityClient.getUser(template.getDesignerId());
@@ -43,6 +46,9 @@ public class OrderTemplateController {
                 designerInfo.setAvatarUrl(user.getAvatarUrl());
                 template.setDesignerInfo(designerInfo);
             });
+            
+            // Set isOwner flag for all templates
+            setOwnerFlag(result, currentUserId);
         }
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates"));
     }
@@ -113,6 +119,7 @@ public class OrderTemplateController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         var result = templateService.getTemplatesByType(type, page, size, "createdAt", "desc");
+        setOwnerFlag(result, getCurrentUserId());
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates by type"));
     }
 
@@ -125,6 +132,7 @@ public class OrderTemplateController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         var result = templateService.searchTemplates(keyword, page, size, "createdAt", "desc");
+        setOwnerFlag(result, getCurrentUserId());
         return ResponseEntity.ok(ApiResponse.success(result, "Search results"));
     }
 
@@ -135,6 +143,7 @@ public class OrderTemplateController {
     public ResponseEntity<ApiResponse<List<ResourceTemplateDTO>>> getPopularTemplates(
             @RequestParam(defaultValue = "10") int limit) {
         var result = templateService.getPopularTemplates(limit);
+        setOwnerFlag(result, getCurrentUserId());
         return ResponseEntity.ok(ApiResponse.success(result, "Popular templates"));
     }
 
@@ -145,6 +154,7 @@ public class OrderTemplateController {
     public ResponseEntity<ApiResponse<List<ResourceTemplateDTO>>> getLatestTemplates(
             @RequestParam(defaultValue = "10") int limit) {
         var result = templateService.getLatestTemplates(limit);
+        setOwnerFlag(result, getCurrentUserId());
         return ResponseEntity.ok(ApiResponse.success(result, "Latest templates"));
     }
 
@@ -216,5 +226,42 @@ public class OrderTemplateController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(created, "Template created from project and pending review"));
+    }
+    
+    /**
+     * Helper method to set isOwner flag for templates based on current user
+     */
+    private void setOwnerFlag(List<ResourceTemplateDTO> templates, Long currentUserId) {
+        if (templates != null && !templates.isEmpty() && currentUserId != null) {
+            templates.forEach(template -> 
+                template.setIsOwner(currentUserId.equals(template.getDesignerId()))
+            );
+        }
+    }
+    
+    /**
+     * Helper method to set isOwner flag for paged templates based on current user
+     */
+    private void setOwnerFlag(PagedResponseDTO<ResourceTemplateDTO> pagedTemplates, Long currentUserId) {
+        if (pagedTemplates != null && pagedTemplates.getContent() != null && currentUserId != null) {
+            pagedTemplates.getContent().forEach(template -> 
+                template.setIsOwner(currentUserId.equals(template.getDesignerId()))
+            );
+        }
+    }
+    
+    /**
+     * Get current user ID safely (returns null if not authenticated)
+     */
+    private Long getCurrentUserId() {
+        try {
+            var userResponse = identityClient.getCurrentUser();
+            if (userResponse != null && userResponse.getResult() != null) {
+                return userResponse.getResult().getId();
+            }
+        } catch (Exception e) {
+            // User not authenticated or error getting user info
+        }
+        return null;
     }
 }
