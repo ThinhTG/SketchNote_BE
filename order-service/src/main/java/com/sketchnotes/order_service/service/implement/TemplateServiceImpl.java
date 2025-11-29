@@ -37,6 +37,8 @@ public class TemplateServiceImpl implements TemplateService {
     private final ResourceTemplateRepository resourceTemplateRepository;
     private final OrderMapper orderMapper;
     private final ProjectClient projectClient;
+    private final com.sketchnotes.order_service.repository.OrderRepository orderRepository;
+    private final com.sketchnotes.order_service.client.IdentityClient identityClient;
 
     @Override
     @Transactional(readOnly = true)
@@ -52,7 +54,12 @@ public class TemplateServiceImpl implements TemplateService {
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByStatus(
             ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
-        return convertToPagedResponse(templatePage);
+        PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
+        
+        // Populate statistics for all templates
+        populateStatistics(result.getContent());
+        
+        return result;
     }
 
     @Override
@@ -60,7 +67,12 @@ public class TemplateServiceImpl implements TemplateService {
     public ResourceTemplateDTO getTemplateById(Long id) {
     ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndStatus(id, ResourceTemplate.TemplateStatus.PUBLISHED)
         .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
-        return orderMapper.toDto(template);
+        ResourceTemplateDTO dto = orderMapper.toDto(template);
+        
+        // Populate statistics
+        populateStatistics(dto);
+        
+        return dto;
     }
 
     @Override
@@ -100,7 +112,9 @@ public class TemplateServiceImpl implements TemplateService {
             templatePage = resourceTemplateRepository.findByDesignerId(designerId, pageable);
         }
 
-        return convertToPagedResponse(templatePage);
+        PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
+        populateStatistics(result.getContent());
+        return result;
     }
 
 
@@ -123,7 +137,9 @@ public class TemplateServiceImpl implements TemplateService {
             Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
             Pageable pageable = PageRequest.of(page, size, sort);
             Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByTypeAndStatus(templateType, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
-            return convertToPagedResponse(templatePage);
+            PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
+            populateStatistics(result.getContent());
+            return result;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid template type: " + type);
         }
@@ -141,7 +157,9 @@ public class TemplateServiceImpl implements TemplateService {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
     Page<ResourceTemplate> templatePage = resourceTemplateRepository.searchByKeyword(keyword, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
-        return convertToPagedResponse(templatePage);
+        PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
+        populateStatistics(result.getContent());
+        return result;
     }
 
     @Override
@@ -156,7 +174,9 @@ public class TemplateServiceImpl implements TemplateService {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
     Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByPriceRange(minPrice, maxPrice, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
-        return convertToPagedResponse(templatePage);
+        PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
+        populateStatistics(result.getContent());
+        return result;
     }
 
     @Override
@@ -279,7 +299,9 @@ public class TemplateServiceImpl implements TemplateService {
                 .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()))
                 .limit(limit)
                 .toList();
-        return orderMapper.toTemplateDtoList(templates);
+        List<ResourceTemplateDTO> result = orderMapper.toTemplateDtoList(templates);
+        populateStatistics(result);
+        return result;
     }
 
     @Override
@@ -291,7 +313,9 @@ public class TemplateServiceImpl implements TemplateService {
                 .sorted((t1, t2) -> t2.getPrice().compareTo(t1.getPrice()))
                 .limit(limit)
                 .toList();
-        return orderMapper.toTemplateDtoList(templates);
+        List<ResourceTemplateDTO> result = orderMapper.toTemplateDtoList(templates);
+        populateStatistics(result);
+        return result;
     }
 
     // Helper method to convert Page to PagedResponseDTO
@@ -410,7 +434,9 @@ public class TemplateServiceImpl implements TemplateService {
             Pageable pageable = PageRequest.of(page, size, sort);
             
             Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByStatus(templateStatus, pageable);
-            return convertToPagedResponse(templatePage);
+            PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
+            populateStatistics(result.getContent());
+            return result;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid template status: " + status);
         }
@@ -430,5 +456,53 @@ public class TemplateServiceImpl implements TemplateService {
                 .hasNext(page.hasNext())
                 .hasPrevious(page.hasPrevious())
                 .build();
+    }
+    
+    /**
+     * Populate statistics fields for a single template DTO
+     */
+    private void populateStatistics(ResourceTemplateDTO dto) {
+        if (dto == null || dto.getResourceTemplateId() == null) {
+            return;
+        }
+        
+        try {
+            // Get purchase count from OrderRepository
+            Long purchaseCount = orderRepository.countSuccessfulOrdersByTemplateId(dto.getResourceTemplateId());
+            dto.setPurchaseCount(purchaseCount != null ? purchaseCount : 0L);
+            
+            // Get feedback statistics from IdentityClient
+            try {
+                var feedbackResponse = identityClient.getFeedbackStats(dto.getResourceTemplateId());
+                if (feedbackResponse != null && feedbackResponse.getResult() != null) {
+                    com.sketchnotes.order_service.dtos.FeedbackStatsResponse stats = feedbackResponse.getResult();
+                    dto.setFeedbackCount(stats.getTotalFeedbacks() != null ? stats.getTotalFeedbacks() : 0L);
+                    dto.setAverageRating(stats.getAverageRating());
+                } else {
+                    dto.setFeedbackCount(0L);
+                    dto.setAverageRating(null);
+                }
+            } catch (Exception e) {
+                // If feedback service is unavailable, set default values
+                dto.setFeedbackCount(0L);
+                dto.setAverageRating(null);
+            }
+        } catch (Exception e) {
+            // If any error occurs, set default values
+            dto.setPurchaseCount(0L);
+            dto.setFeedbackCount(0L);
+            dto.setAverageRating(null);
+        }
+    }
+    
+    /**
+     * Populate statistics fields for a list of template DTOs
+     */
+    private void populateStatistics(List<ResourceTemplateDTO> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            return;
+        }
+        
+        dtos.forEach(this::populateStatistics);
     }
 }
