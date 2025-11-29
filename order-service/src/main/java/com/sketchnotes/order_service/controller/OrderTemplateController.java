@@ -59,6 +59,27 @@ public class OrderTemplateController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ResourceTemplateDTO>> getTemplateById(@PathVariable Long id) {
         var result = templateService.getTemplateById(id);
+        
+        // Get current user ID
+        Long currentUserId = getCurrentUserId();
+        
+        // Set isOwner flag
+        if (currentUserId != null) {
+            result.setIsOwner(currentUserId.equals(result.getDesignerId()));
+        }
+        
+        // Set designer info
+        if (result.getDesignerId() != null) {
+            var apiResponse = identityClient.getUser(result.getDesignerId());
+            UserResponse user = apiResponse.getResult();
+            DesignerInfoDTO designerInfo = new DesignerInfoDTO();
+            designerInfo.setEmail(user.getEmail());
+            designerInfo.setFirstName(user.getFirstName());
+            designerInfo.setLastName(user.getLastName());
+            designerInfo.setAvatarUrl(user.getAvatarUrl());
+            result.setDesignerInfo(designerInfo);
+        }
+        
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched template"));
     }
 
@@ -72,6 +93,11 @@ public class OrderTemplateController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         var result = templateService.getTemplatesByDesigner(designerId, page, size, "createdAt", "desc");
+        
+        // Set isOwner flag
+        Long currentUserId = getCurrentUserId();
+        setOwnerFlag(result, currentUserId);
+        
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates by designer"));
     }
 
@@ -205,6 +231,11 @@ public class OrderTemplateController {
             @RequestParam(defaultValue = "desc") String sortDir) {
         // TODO: Add staff role check here
         var result = templateService.getTemplatesByReviewStatus(status, page, size, sortBy, sortDir);
+        
+        // Set isOwner flag
+        Long currentUserId = getCurrentUserId();
+        setOwnerFlag(result, currentUserId);
+        
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates by review status"));
     }
 
