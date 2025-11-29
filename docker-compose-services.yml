@@ -32,6 +32,8 @@ services:
     container_name: projectservice
     env_file:
       - .env
+    volumes:
+      - ./vertex-ai-key.json:/app/vertex-ai-key.json
     ports:
       - "8087:8087"
     environment:
@@ -43,6 +45,7 @@ services:
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
       - AWS_SECRET_KEY=${AWS_SECRET_KEY}
       - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/vertex-ai-key.json
     restart: unless-stopped
 
   # Order Service
