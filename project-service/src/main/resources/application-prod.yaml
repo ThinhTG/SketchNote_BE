@@ -41,6 +41,11 @@ spring:
     redis:
       host: 34.126.134.243
       port: 6379
+  gemini:
+    project-id: ${GOOGLE_CLOUD_PROJECT_ID}
+    location: us-central1
+    model: imagen-3.0-generate-002
+    num-images: 2
   aws:
     s3:
       access-key: ${AWS_ACCESS_KEY}

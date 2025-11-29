@@ -71,6 +71,11 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- ===== Vertex AI ===== -->
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-aiplatform</artifactId>
+			<version>3.53.0</version> </dependency>
 		<!-- ===== DATABASE ===== -->
 		<dependency>
 			<groupId>org.postgresql</groupId>

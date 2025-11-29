@@ -31,7 +31,8 @@ public enum ErrorCode {
     PAGE_NOT_FOUND(404, "Project not found", HttpStatus.BAD_REQUEST),
     FORBIDDEN_ACTION(403, "You do not have permission to perform this action", HttpStatus.FORBIDDEN),
     COLLAB_NOT_FOUND(403, "Collaboration not found", HttpStatus.FORBIDDEN),
-    PROJECT_QUOTA_EXCEEDED(400, "Project quota exceeded. Please upgrade your subscription", HttpStatus.BAD_REQUEST);
+    PROJECT_QUOTA_EXCEEDED(400, "Project quota exceeded. Please upgrade your subscription", HttpStatus.BAD_REQUEST),
+    IMAGE_GENERATION_FAILED(500, "Image generation failed", HttpStatus.INTERNAL_SERVER_ERROR);
 
 
 

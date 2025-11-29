@@ -1,0 +1,42 @@
+# Bỏ cache Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Bỏ virtual env
+venv/
+env/
+
+# Bỏ file/wrapper môi trường
+.env
+.env.*
+!.env.example
+
+# Bỏ Git
+.git/
+.gitignore
+
+# Bỏ IDE
+.vscode/
+.idea/
+
+# Bỏ tệp rác
+.DS_Store
+Thumbs.db
+
+# Bỏ rembg models (rất quan trọng!)
+.u2net/
+.u2netp/
+.ISNET/
+.ISNET-general-use/
+.ISNET-anime/
+
+# Bỏ log + test + temp
+*.log
+logs/
+.pytest_cache
+htmlcov
+.coverage
+
+# Không bao giờ ignore file Python trong project
+# Đặc biệt là main.py, app/, services/
