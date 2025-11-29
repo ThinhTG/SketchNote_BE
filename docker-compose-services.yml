@@ -64,6 +64,6 @@ services:
     image: ghcr.io/alarmistt/ai-background-remover:latest
     container_name: ai-background-remover
     ports:
-      - "5000:5000"
+      - "8000:8000"
     restart: unless-stopped
   
