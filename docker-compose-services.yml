@@ -58,4 +58,12 @@ services:
       - REDIS_HOST=139.59.119.65
       - REDIS_PORT=6379
     restart: unless-stopped
+
+  # AI Background Remover Service
+  ai-background-remover:
+    image: ghcr.io/alarmistt/ai-background-remover:latest
+    container_name: ai-background-remover
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
   

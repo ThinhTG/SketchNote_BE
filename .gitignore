@@ -4,7 +4,11 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+vertex-ai-key.json
+__pycache__/
+*.pyc
 firebase-admin.json
+
 .env
 ### STS ###
 .apt_generated
