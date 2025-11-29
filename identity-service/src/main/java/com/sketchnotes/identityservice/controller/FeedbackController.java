@@ -140,6 +140,30 @@ public class FeedbackController {
                 .build());
     }
     
+    @GetMapping("/resource/{resourceId}/stats")
+    @Operation(summary = "Get feedback statistics for a resource (lightweight)", 
+               description = "Retrieve only count and average rating for a resource. Used for template listings.")
+    public ResponseEntity<ApiResponse<FeedbackStatsResponse>> getResourceFeedbackStatsLightweight(
+            @PathVariable Long resourceId) {
+        
+        log.info("Getting lightweight feedback stats for resource: {}", resourceId);
+        
+        // Get stats without full feedback list for better performance
+        FeedbackStatsResponse stats = feedbackService.getResourceFeedbackStats(resourceId);
+        
+        // Create lightweight version with only count and average
+        FeedbackStatsResponse lightweightStats = FeedbackStatsResponse.builder()
+                .totalFeedbacks(stats.getTotalFeedbacks())
+                .averageRating(stats.getAverageRating())
+                .build();
+        
+        return ResponseEntity.ok(ApiResponse.<FeedbackStatsResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Resource feedback stats retrieved successfully")
+                .result(lightweightStats)
+                .build());
+    }
+    
     @GetMapping("/resource/{resourceId}/my-feedback")
     @PreAuthorize("hasAnyAuthority('STUDENT', 'DESIGNER')")
     @Operation(summary = "Get current user's feedback for a resource", 

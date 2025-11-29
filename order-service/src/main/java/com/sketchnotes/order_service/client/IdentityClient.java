@@ -64,4 +64,13 @@ public interface IdentityClient {
      */
     @PostMapping("/internal/notifications")
     NotificationDto createNotification(@RequestBody CreateNotificationRequest request);
+    
+    /**
+     * Get feedback statistics for a resource template
+     *
+     * @param resourceId the resource template ID
+     * @return feedback statistics including count and average rating
+     */
+    @GetMapping("/api/feedback/resource/{resourceId}/stats")
+    ApiResponse<com.sketchnotes.order_service.dtos.FeedbackStatsResponse> getFeedbackStats(@PathVariable Long resourceId);
 }

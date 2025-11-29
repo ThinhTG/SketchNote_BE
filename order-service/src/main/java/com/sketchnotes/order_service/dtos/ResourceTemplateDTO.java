@@ -30,4 +30,9 @@ public class ResourceTemplateDTO {
     // Indicates if the current user is the owner of this resource template
     // Used by frontend to disable "Buy" button for own resources
     private Boolean isOwner;
+    
+    // Statistics fields
+    private Long purchaseCount;      // Số lượt mua
+    private Long feedbackCount;      // Số feedback
+    private Double averageRating;    // Số sao trung bình (1-5)
 }
