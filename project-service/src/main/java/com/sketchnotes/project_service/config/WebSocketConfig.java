@@ -80,7 +80,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         log.info("✅ [WebSocket] Application destination prefix: /app");
         
         // broker (simple in-memory). Cho public topics
+        // Topics:
+        // - /topic/chat/{chatRoomId} - Chat messages
+        // - /topic/draw/{projectId} - Collaborative drawing events
+        // - /topic/notify/{projectId} - Project-wide notifications
+        // Queues:
+        // - /queue/private/{userId} - Private messages (1:1 chat)
+        // - /queue/notify/{userId} - Private notifications to specific user
         config.enableSimpleBroker("/topic", "/queue");
-        log.info("✅ [WebSocket] Simple broker enabled for: /topic, /queue");
+        log.info("✅ [WebSocket] Simple broker enabled for: /topic (chat, draw, notify), /queue (private messages, notifications)");
     }
 }
