@@ -1,4 +1,4 @@
-package com.sketchnotes.project_service.ultils;
+package com.sketchnotes.project_service.utils;
 
 import java.util.List;
 

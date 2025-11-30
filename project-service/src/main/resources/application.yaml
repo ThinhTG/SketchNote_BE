@@ -52,6 +52,12 @@ spring:
     location: us-central1
     model: imagen-3.0-generate-002
     num-images: 2
+  
+  # AI Background Remover Service
+  ai:
+    service:
+      url: http://34.126.98.83:8000
+  
   aws:
     s3:
       access-key: ${AWS_ACCESS_KEY}
