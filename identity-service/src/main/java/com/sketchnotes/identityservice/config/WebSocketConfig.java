@@ -39,11 +39,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     /**
      * Register STOMP endpoints for WebSocket connections.
      * Clients connect to /ws-notifications to establish WebSocket connection.
+     * Native WebSocket only (no SockJS fallback) for better performance.
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-notifications")
-                .setAllowedOriginPatterns(allowedOrigins.split(","))
-                .withSockJS(); // Enable SockJS fallback for browsers that don't support WebSocket
+                .setAllowedOriginPatterns(allowedOrigins.split(","));
+                // SockJS removed - using native WebSocket only
     }
 }
