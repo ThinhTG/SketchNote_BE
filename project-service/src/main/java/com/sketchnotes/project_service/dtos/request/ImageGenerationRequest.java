@@ -14,12 +14,7 @@ import lombok.Setter;
 public class ImageGenerationRequest {
 
     private String prompt;
-    private String style;
-    private ImageType imageType;
-
     private Integer width;
-
     private Integer height;
-
-    private Boolean removeBackground;
+    private Boolean isIcon;
 }
