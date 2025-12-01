@@ -6,8 +6,8 @@ gateway:
   url: https://sketchnote.litecsys.com
   project-path: ""  # Không có prefix, routes trực tiếp /api/projects/**, /api/pages/**...
 
-cors:
-  allowed-origins: "http://139.59.119.65:8888"
+ai:
+  url: http://34.126.98.83:8000
 spring:
   application:
     name: project-service

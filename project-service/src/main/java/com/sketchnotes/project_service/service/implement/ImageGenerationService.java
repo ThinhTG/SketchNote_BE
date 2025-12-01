@@ -1,6 +1,5 @@
 package com.sketchnotes.project_service.service.implement;
 
-// Imports cần thiết
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sketchnotes.project_service.config.GeminiProperties;
@@ -13,18 +12,15 @@ import com.sketchnotes.project_service.exception.ErrorCode;
 import com.sketchnotes.project_service.service.IAiImageService;
 import com.sketchnotes.project_service.service.IImageGenerationService;
 import com.sketchnotes.project_service.utils.ByteArrayMultipartFile;
-// Imports cho Vertex AI SDK
 import com.google.cloud.aiplatform.v1.EndpointName;
 import com.google.cloud.aiplatform.v1.PredictionServiceClient;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.JsonFormat;
-// Imports S3
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,7 +33,6 @@ import java.util.*;
  * Với icon: Gen ảnh → Xóa background bằng AI
  * Với ảnh thường: Chỉ gen ảnh
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImageGenerationService implements IImageGenerationService {
@@ -60,18 +55,10 @@ public class ImageGenerationService implements IImageGenerationService {
 
         try {
             boolean isIcon = request.getIsIcon() != null && request.getIsIcon();
-            log.info("Bắt đầu tạo {} bằng Imagen 3.0 với prompt: {}", 
-                    isIcon ? "icon" : "ảnh", request.getPrompt());
 
-            // Bước 1: Tạo ảnh bằng Vertex AI
             List<byte[]> imagesBytes = generateImagesWithImagen(request);
-            log.info("Vertex AI đã tạo {} ảnh", imagesBytes.size());
-
-            // Bước 2: Xử lý ảnh (xóa background nếu là icon)
             if (isIcon) {
-                log.info("Đang xóa background cho {} icon...", imagesBytes.size());
                 imagesBytes = removeBackgroundFromImages(imagesBytes);
-                log.info("Đã xóa xong background, có {} ảnh đã xử lý", imagesBytes.size());
             }
 
             // Bước 3: Upload tất cả ảnh lên S3
@@ -87,19 +74,15 @@ public class ImageGenerationService implements IImageGenerationService {
             }
 
             long generationTime = System.currentTimeMillis() - startTime;
-            log.info("Tạo và upload thành công {} {} trong {}ms", 
-                    s3Urls.size(), isIcon ? "icon" : "ảnh", generationTime);
 
             // Bước 4: Trả về DTO phản hồi
             return ImageGenerationResponse.builder()
                     .imageUrls(s3Urls)
                     .prompt(request.getPrompt())
                     .generationTime(generationTime)
-                    .fileName(primaryFileName)
                     .build();
 
         } catch (Exception e) {
-            log.error("Lỗi khi tạo ảnh bằng Imagen: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.IMAGE_GENERATION_FAILED);
         }
     }
@@ -109,43 +92,30 @@ public class ImageGenerationService implements IImageGenerationService {
      */
     private List<byte[]> removeBackgroundFromImages(List<byte[]> imagesBytes) {
         List<byte[]> processedImages = new ArrayList<>();
-        
-        log.info("=== BẮT ĐẦU XÓA BACKGROUND CHO {} ẢNH ===", imagesBytes.size());
-        
+
+
         for (int i = 0; i < imagesBytes.size(); i++) {
             try {
                 byte[] imageBytes = imagesBytes.get(i);
-                log.info("Xử lý ảnh {}/{} - Size: {} bytes", i + 1, imagesBytes.size(), imageBytes.length);
-                
+
                 // Tạo MultipartFile từ byte array sử dụng custom implementation
                 MultipartFile multipartFile = new ByteArrayMultipartFile(
-                    imageBytes,
-                    "file",
-                    "temp_image_" + i + ".png",
-                    "image/png"
+                        imageBytes,
+                        "file",
+                        "temp_image_" + i + ".png",
+                        "image/png"
                 );
-                
-                log.info("Đã tạo MultipartFile, đang gọi AI service...");
-                
-                // Gọi AI service để xóa background
+
+
                 byte[] processedImage = aiImageService.removeBackground(multipartFile);
-                
-                log.info("AI service trả về ảnh đã xóa background - Size: {} bytes", processedImage.length);
-                
+
                 processedImages.add(processedImage);
-                
-                log.info("✓ Đã xóa background cho ảnh {}/{}", i + 1, imagesBytes.size());
-                
+
             } catch (Exception e) {
-                log.error("✗ Lỗi khi xóa background cho ảnh {}: {}", i, e.getMessage(), e);
-                // Nếu lỗi, giữ nguyên ảnh gốc
-                processedImages.add(imagesBytes.get(i));
-                log.warn("Sử dụng ảnh gốc cho ảnh {}", i);
+                throw new AppException(ErrorCode.IMAGE_REMOVAL_FAILED);
             }
         }
-        
-        log.info("=== HOÀN TẤT XÓA BACKGROUND: {}/{} ảnh thành công ===", processedImages.size(), imagesBytes.size());
-        
+
         return processedImages;
     }
 
@@ -160,9 +130,6 @@ public class ImageGenerationService implements IImageGenerationService {
                     "google",
                     geminiProperties.getModel()
             );
-
-            log.info("Gọi Imagen 3.0 tại endpoint: {}", endpointName.toString());
-            log.info("Yêu cầu tạo {} ảnh", geminiProperties.getNumImages());
 
             // 2. Xây dựng instance (chỉ chứa prompt)
             String instanceJson = buildInstanceJson(enhancedPrompt);
@@ -187,7 +154,6 @@ public class ImageGenerationService implements IImageGenerationService {
             return extractImagesFromVertexAIResponse(response.getPredictionsList());
 
         } catch (Exception e) {
-            log.error("Lỗi khi gọi Imagen API: {}", e.getMessage(), e);
             throw new RuntimeException("Thất bại khi tạo ảnh bằng Imagen: " + e.getMessage(), e);
         }
     }
@@ -220,23 +186,22 @@ public class ImageGenerationService implements IImageGenerationService {
                     images.add(imageBytes);
                 }
             } catch (Exception e) {
-                log.error("Lỗi khi phân tích phản hồi Vertex AI", e);
+                throw new AppException(ErrorCode.IMAGE_EXTRACTION_FAILED);
             }
         }
 
         if (images.isEmpty()) {
             throw new RuntimeException("Không tìm thấy dữ liệu ảnh trong phản hồi Vertex AI");
         }
-        
-        log.info("Đã trích xuất {} ảnh từ Vertex AI response", images.size());
+
         return images;
     }
 
     private String buildEnhancedPrompt(ImageGenerationRequest request) {
         StringBuilder prompt = new StringBuilder(request.getPrompt());
-        
+
         boolean isIcon = request.getIsIcon() != null && request.getIsIcon();
-        
+
         if (isIcon) {
             prompt.append(", simple icon design, clean lines, minimalist");
             prompt.append(", flat design, vector style");
@@ -247,7 +212,7 @@ public class ImageGenerationService implements IImageGenerationService {
             prompt.append(", high quality, detailed, professional");
             prompt.append(", realistic, vibrant colors");
         }
-        
+
         return prompt.toString();
     }
 
@@ -268,11 +233,9 @@ public class ImageGenerationService implements IImageGenerationService {
                     s3Properties.getRegion(),
                     key);
 
-            log.info("Ảnh đã được upload lên S3: {}", s3Url);
             return s3Url;
 
         } catch (Exception e) {
-            log.error("Lỗi khi upload lên S3: {}", e.getMessage(), e);
             throw new RuntimeException("Thất bại khi upload ảnh lên S3: " + e.getMessage(), e);
         }
     }

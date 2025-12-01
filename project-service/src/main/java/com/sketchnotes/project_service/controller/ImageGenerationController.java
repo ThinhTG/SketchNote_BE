@@ -1,36 +1,51 @@
 package com.sketchnotes.project_service.controller;
 
+import com.sketchnotes.project_service.dtos.ApiResponse;
 import com.sketchnotes.project_service.dtos.request.ImageGenerationRequest;
 import com.sketchnotes.project_service.dtos.response.ImageGenerationResponse;
+import com.sketchnotes.project_service.service.IAiImageService;
 import com.sketchnotes.project_service.service.IImageGenerationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Controller xử lý các yêu cầu liên quan đến việc tạo ảnh AI (Imagen/Vertex AI).
- * Base path: /api/image
+ * Base path: /api/images
  */
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/images")
 public class ImageGenerationController {
 
     private final IImageGenerationService imageGenerationService;
+    private final IAiImageService aiImageService;
+    
     @PostMapping("/generate")
-    public ResponseEntity<ImageGenerationResponse> generateImage(@RequestBody ImageGenerationRequest request) {
-        log.info("Yêu cầu tạo ảnh mới được nhận. Prompt: {}", request.getPrompt());
-
-        if (request.getPrompt() == null || request.getPrompt().trim().isEmpty()) {
-            throw new IllegalArgumentException("Prompt không được để trống.");
-        }
+    public ResponseEntity<ApiResponse<ImageGenerationResponse>> generateImage(@RequestBody @Valid ImageGenerationRequest request) {
 
         ImageGenerationResponse response = imageGenerationService.generateAndUploadImage(request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Image generated successfully"));
+    }
 
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    @PostMapping(value = "/remove-background", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> removeBackground(@RequestParam("file") MultipartFile file) {
+        try {
+            
+            byte[] processedImage = aiImageService.removeBackground(file);
+            
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_PNG)
+                    .body(processedImage);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 }
