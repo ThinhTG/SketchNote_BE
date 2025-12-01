@@ -32,8 +32,9 @@ public enum ErrorCode {
     FORBIDDEN_ACTION(403, "You do not have permission to perform this action", HttpStatus.FORBIDDEN),
     COLLAB_NOT_FOUND(403, "Collaboration not found", HttpStatus.FORBIDDEN),
     PROJECT_QUOTA_EXCEEDED(400, "Project quota exceeded. Please upgrade your subscription", HttpStatus.BAD_REQUEST),
-    IMAGE_GENERATION_FAILED(500, "Image generation failed", HttpStatus.INTERNAL_SERVER_ERROR);
-
+    IMAGE_GENERATION_FAILED(500, "Image generation failed", HttpStatus.INTERNAL_SERVER_ERROR),
+     IMAGE_REMOVAL_FAILED(500, "Image removal failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    IMAGE_EXTRACTION_FAILED(500, "Image extraction failed", HttpStatus.INTERNAL_SERVER_ERROR);
 
 
     private final int code;

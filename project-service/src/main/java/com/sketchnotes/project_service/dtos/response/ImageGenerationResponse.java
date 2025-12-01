@@ -12,7 +12,6 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class ImageGenerationResponse {
     private String prompt;
-    private String fileName;
     private List<String> imageUrls;
     private Long generationTime;
 }
