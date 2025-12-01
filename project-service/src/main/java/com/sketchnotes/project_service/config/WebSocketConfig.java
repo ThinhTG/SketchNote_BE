@@ -23,7 +23,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        log.info("🔵 [WebSocket] Registering STOMP endpoints...");
+        log.info("🔵 [WebSocket] ===== REGISTERING STOMP ENDPOINTS =====");
+        log.info("🔵 [WebSocket] registerStompEndpoints() called");
         
         // Native WebSocket endpoint (no SockJS)
         registry.addEndpoint("/ws")
@@ -54,13 +55,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 });
         
         log.info("✅ [WebSocket] Native STOMP endpoint registered at /ws");
+        log.info("🔵 [WebSocket] ===== STOMP ENDPOINTS REGISTERED =====");
     }
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
+        log.info("🔵🔵🔵 [WebSocket] ===== CONFIGURING CLIENT INBOUND CHANNEL =====");
+        log.info("🔵 [WebSocket] configureClientInboundChannel() called");
         log.info("🔵 [WebSocket] Registering STOMP channel interceptor...");
         registration.interceptors(stompChannelInterceptor);
         log.info("✅ [WebSocket] STOMP channel interceptor registered");
+        log.info("✅✅✅ [WebSocket] ===== CLIENT INBOUND CHANNEL CONFIGURED =====");
     }
 
     @Override
