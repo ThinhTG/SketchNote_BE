@@ -44,11 +44,23 @@ public class StompChannelInterceptor implements ChannelInterceptor {
             }
             
             if (StompCommand.SUBSCRIBE.equals(command)) {
-                log.info("📥 [STOMP] SUBSCRIBE to: {}", accessor.getDestination());
+                String destination = accessor.getDestination();
+                String sessionId = accessor.getSessionId();
+                log.info("📥 [STOMP] SUBSCRIBE from session {} to: {}", sessionId, destination);
+                
+                if (destination != null && destination.startsWith("/topic/draw/")) {
+                    log.info("🎨 [STOMP] User subscribed to drawing topic: {}", destination);
+                }
             }
             
             if (StompCommand.SEND.equals(command)) {
-                log.info("📤 [STOMP] SEND to: {}", accessor.getDestination());
+                String destination = accessor.getDestination();
+                String sessionId = accessor.getSessionId();
+                log.info("📤 [STOMP] SEND from session {} to: {}", sessionId, destination);
+                
+                if (destination != null && destination.startsWith("/app/draw/")) {
+                    log.info("🎨 [STOMP] Drawing message received from client: {}", destination);
+                }
             }
         }
         
