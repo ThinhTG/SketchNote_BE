@@ -42,11 +42,17 @@ public class DrawingWebSocketController {
         log.debug("📊 [Drawing] Data: color={}, tool={}, width={}", 
                 drawMessage.getColor(), drawMessage.getToolType(), drawMessage.getStrokeWidth());
         
+        String destination = "/topic/draw/" + projectId;
+        log.info("🔊 [Drawing] BROADCASTING to: {}", destination);
+        log.debug("📤 [Drawing] Message content: {}", drawMessage);
+        
         // Broadcast to all users subscribed to this project's drawing topic
-        messagingTemplate.convertAndSend(
-                "/topic/draw/" + projectId,
-                drawMessage
-        );
+        try {
+            messagingTemplate.convertAndSend(destination, drawMessage);
+            log.info("✅ [Drawing] Message successfully sent to {}", destination);
+        } catch (Exception e) {
+            log.error("❌ [Drawing] Failed to broadcast message to {}: {}", destination, e.getMessage());
+        }
     }
 
     /**
