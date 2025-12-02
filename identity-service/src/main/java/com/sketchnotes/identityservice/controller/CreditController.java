@@ -5,6 +5,9 @@ import com.sketchnotes.identityservice.dtos.request.PurchaseCreditRequest;
 import com.sketchnotes.identityservice.dtos.request.UseCreditRequest;
 import com.sketchnotes.identityservice.dtos.response.CreditBalanceResponse;
 import com.sketchnotes.identityservice.dtos.response.CreditTransactionResponse;
+import com.sketchnotes.identityservice.exception.AppException;
+import com.sketchnotes.identityservice.exception.ErrorCode;
+import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.service.ICreditService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 public class CreditController {
     
     private final ICreditService creditService;
+    private final IUserRepository userRepository;
     
     /**
      * Lấy thông tin số dư credit của user hiện tại
@@ -117,6 +121,23 @@ public class CreditController {
      */
     private Long extractUserId(Authentication authentication) {
         Jwt jwt = (Jwt) authentication.getPrincipal();
-        return Long.parseLong(jwt.getClaim("userId"));
+        
+        // Get 'sub' claim (Keycloak user ID)
+        String keycloakId = jwt.getSubject();
+        if (keycloakId == null || keycloakId.isBlank()) {
+            log.error("Cannot extract 'sub' claim from JWT. Available claims: {}", jwt.getClaims().keySet());
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
+        
+        // Query User by keycloakId
+        return userRepository.findByKeycloakId(keycloakId)
+                .map(user -> {
+                    log.debug("User found for keycloakId: {} -> userId: {}", keycloakId, user.getId());
+                    return user.getId();
+                })
+                .orElseThrow(() -> {
+                    log.error("User not found for keycloakId: {}", keycloakId);
+                    return new AppException(ErrorCode.UNAUTHENTICATED);
+                });
     }
 }
