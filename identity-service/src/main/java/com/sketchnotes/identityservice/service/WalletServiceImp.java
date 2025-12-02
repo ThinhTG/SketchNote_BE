@@ -30,7 +30,7 @@ public class WalletServiceImp implements IWalletService {
     public Wallet createWallet(Long userId) {
         Optional<Wallet> existingWallet = walletRepository.findByUserId(userId);
         if (existingWallet.isPresent()) {
-            throw new IllegalStateException("User đã có ví, không thể tạo thêm.");
+            throw new IllegalStateException("User already has a wallet, cannot create another one.");
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));

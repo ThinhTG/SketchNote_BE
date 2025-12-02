@@ -59,7 +59,7 @@ public class CreditService implements ICreditService {
                 try {
                         String desc = "Purchase AI credits: " + request.getAmount() + " credits";
                             walletService.payWithType(user.getWallet().getWalletId(), totalAmount, com.sketchnotes.identityservice.enums.TransactionType.PURCHASE_AI_CREDITS, desc);
-                        log.info("User {} wallet deducted: {} VNĐ for AI credits", userId, totalAmount);
+                        log.info("User {} wallet deducted: {} VND for AI credits", userId, totalAmount);
         } catch (RuntimeException e) {
             log.error("Failed to deduct from wallet for user {}: {}", userId, e.getMessage());
             throw new AppException(ErrorCode.INSUFFICIENT_BALANCE);
@@ -77,7 +77,7 @@ public class CreditService implements ICreditService {
                 .type(CreditTransactionType.PURCHASE)
                 .amount(request.getAmount())
                 .balanceAfter(newBalance)
-                .description("Purchased " + request.getAmount() + " credits for " + totalAmount + " VNĐ")
+                .description("Purchased " + request.getAmount() + " credits for " + totalAmount + " VND")
                 .build();
         creditTransactionRepository.save(transaction);
         

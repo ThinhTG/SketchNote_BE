@@ -53,6 +53,8 @@ public enum ErrorCode{
     INVALID_CREDIT_AMOUNT(400, "Invalid credit amount", HttpStatus.BAD_REQUEST),
     CREDIT_TRANSACTION_FAILED(500, "Credit transaction failed", HttpStatus.INTERNAL_SERVER_ERROR),
     MINIMUM_PURCHASE_NOT_MET(400, "Minimum purchase is 100 credits", HttpStatus.BAD_REQUEST),
+    CREDIT_PACKAGE_NOT_FOUND(404, "Credit package not found", HttpStatus.NOT_FOUND),
+    INVALID_PRICE(400, "Discounted price cannot be greater than original price", HttpStatus.BAD_REQUEST),
     
     // Notification errors
     NOTIFICATION_NOT_FOUND(404, "Notification not found", HttpStatus.NOT_FOUND);
