@@ -109,5 +109,9 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
      */
     boolean existsByTemplateIdAndStatus(Long templateId, ResourceTemplate.TemplateStatus status);
 
+    /**
+     * Đếm tổng số template của designer
+     */
+    long countByDesignerId(Long designerId);
 
 }

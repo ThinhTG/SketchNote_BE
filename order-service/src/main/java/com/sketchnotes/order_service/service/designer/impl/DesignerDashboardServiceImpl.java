@@ -6,6 +6,7 @@ import com.sketchnotes.order_service.dtos.designer.RevenueDataPointDTO;
 import com.sketchnotes.order_service.dtos.designer.TimeSeriesPointDTO;
 import com.sketchnotes.order_service.dtos.designer.TopTemplateDTO;
 import com.sketchnotes.order_service.repository.DashboardRepository;
+import com.sketchnotes.order_service.repository.ResourceTemplateRepository;
 import com.sketchnotes.order_service.service.designer.DesignerDashboardService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -20,9 +21,12 @@ import java.util.List;
 public class DesignerDashboardServiceImpl implements DesignerDashboardService {
 
     private final DashboardRepository dashboardRepository;
+    private final ResourceTemplateRepository resourceTemplateRepository;
 
-    public DesignerDashboardServiceImpl(DashboardRepository dashboardRepository) {
+    public DesignerDashboardServiceImpl(DashboardRepository dashboardRepository, 
+                                       ResourceTemplateRepository resourceTemplateRepository) {
         this.dashboardRepository = dashboardRepository;
+        this.resourceTemplateRepository = resourceTemplateRepository;
     }
 
     @Override
@@ -34,7 +38,11 @@ public class DesignerDashboardServiceImpl implements DesignerDashboardService {
         for (Object[] r : byDay) {
             if (r[1] instanceof Number) totalSold += ((Number) r[1]).longValue();
         }
-        return new DesignerDashboardSummaryDTO(designerId, totalRevenue, totalSold);
+        
+        // Get total product count (resource templates) created by designer
+        long totalProductCount = resourceTemplateRepository.countByDesignerId(designerId);
+        
+        return new DesignerDashboardSummaryDTO(designerId, totalRevenue, totalSold, totalProductCount);
     }
 
     @Override

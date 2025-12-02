@@ -13,4 +13,5 @@ public class DesignerDashboardSummaryDTO {
     private Long designerId;
     private BigDecimal totalRevenue;
     private Long totalSoldCount;
+    private Long totalProductCount; // Tổng số lượng product (resource template) mà designer đăng bán
 }
