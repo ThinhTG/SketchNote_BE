@@ -34,7 +34,11 @@ public enum ErrorCode {
     PROJECT_QUOTA_EXCEEDED(400, "Project quota exceeded. Please upgrade your subscription", HttpStatus.BAD_REQUEST),
     IMAGE_GENERATION_FAILED(500, "Image generation failed", HttpStatus.INTERNAL_SERVER_ERROR),
      IMAGE_REMOVAL_FAILED(500, "Image removal failed", HttpStatus.INTERNAL_SERVER_ERROR),
-    IMAGE_EXTRACTION_FAILED(500, "Image extraction failed", HttpStatus.INTERNAL_SERVER_ERROR);
+    IMAGE_EXTRACTION_FAILED(500, "Image extraction failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    
+    // Credit errors
+    INSUFFICIENT_CREDITS(400, "Insufficient AI credits", HttpStatus.BAD_REQUEST),
+    CREDIT_CHECK_FAILED(500, "Failed to check credit balance", HttpStatus.INTERNAL_SERVER_ERROR);
 
 
     private final int code;

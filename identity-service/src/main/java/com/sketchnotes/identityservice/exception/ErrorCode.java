@@ -48,6 +48,12 @@ public enum ErrorCode{
     INSUFFICIENT_BALANCE(400, "Insufficient wallet balance", HttpStatus.BAD_REQUEST),
     PROJECT_QUOTA_EXCEEDED(400, "Project quota exceeded. Please upgrade your subscription", HttpStatus.BAD_REQUEST),
     
+    // Credit errors
+    INSUFFICIENT_CREDITS(400, "Insufficient AI credits", HttpStatus.BAD_REQUEST),
+    INVALID_CREDIT_AMOUNT(400, "Invalid credit amount", HttpStatus.BAD_REQUEST),
+    CREDIT_TRANSACTION_FAILED(500, "Credit transaction failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    MINIMUM_PURCHASE_NOT_MET(400, "Minimum purchase is 100 credits", HttpStatus.BAD_REQUEST),
+    
     // Notification errors
     NOTIFICATION_NOT_FOUND(404, "Notification not found", HttpStatus.NOT_FOUND);
 
