@@ -18,7 +18,5 @@ public class PurchaseCreditRequest {
     
     @NotNull(message = "Amount is required")
     @Min(value = 100, message = "Minimum purchase is 100 credits")
-    private Integer amount;
-    
-    private String paymentMethod; // Phương thức thanh toán (wallet, card, etc.)
+    private Integer amount;  // so luong credits muon mua ( 1 credit = 1k vnd)
 }
