@@ -1,6 +1,8 @@
 package com.sketchnotes.project_service.repository;
 
 import com.sketchnotes.project_service.entity.Project;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,5 +12,6 @@ import java.util.List;
 public interface IProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByOwnerId(Long ownerId);
     List<Project> findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long ownerId);
+    Page<Project> findByOwnerIdAndDeletedAtIsNull(Long ownerId, Pageable pageable);
     Long countByOwnerIdAndDeletedAtIsNull(Long ownerId);
 }

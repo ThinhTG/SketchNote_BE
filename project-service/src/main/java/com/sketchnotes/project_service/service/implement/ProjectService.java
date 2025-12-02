@@ -17,10 +17,15 @@ import com.sketchnotes.project_service.exception.ErrorCode;
 import com.sketchnotes.project_service.repository.IProjectCollaborationRepository;
 import com.sketchnotes.project_service.repository.IProjectRepository;
 import com.sketchnotes.project_service.service.IProjectService;
+import com.sketchnotes.project_service.utils.PagedResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -98,6 +103,27 @@ public class ProjectService implements IProjectService {
                 .map(ProjectMapper::toDTO)
                 .toList());
     }
+
+    @Override
+    public PagedResponse<ProjectResponse> getProjectsCurrentUserPaged(Long ownerId, int pageNo, int pageSize) {
+        ApiResponse<UserResponse> user = userClient.getCurrentUser();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Project> projectPage = projectRepository.findByOwnerIdAndDeletedAtIsNull(user.getResult().getId(), pageable);
+        
+        List<ProjectResponse> content = projectPage.getContent().stream()
+                .map(ProjectMapper::toDTO)
+                .toList();
+        
+        return new PagedResponse<>(
+                content,
+                projectPage.getNumber(),
+                projectPage.getSize(),
+                projectPage.getTotalElements(),
+                projectPage.getTotalPages(),
+                projectPage.isLast()
+        );
+    }
+
     @Override
 
     public ProjectListResponse getSharedProjectsCurrentUser() {
