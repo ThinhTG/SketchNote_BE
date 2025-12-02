@@ -18,6 +18,7 @@ public class SecurityConfig {
             "/api/blogs",
             "/api/auth/send-verify-email",
             "/api/auth/refresh-token",
+            "/api/auth/forgot-password",
             "/api/auth/login-google",
             "/api/payment/payos/webhook",
             "/api/users/public/**",
