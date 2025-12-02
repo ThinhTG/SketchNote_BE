@@ -2,11 +2,13 @@ package com.sketchnotes.project_service.service.implement;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sketchnotes.project_service.client.CreditClient;
 import com.sketchnotes.project_service.client.IUserClient;
 import com.sketchnotes.project_service.config.GeminiProperties;
 import com.sketchnotes.project_service.config.S3Properties;
 import com.sketchnotes.project_service.dtos.ApiResponse;
 import com.sketchnotes.project_service.dtos.request.ImageGenerationRequest;
+import com.sketchnotes.project_service.dtos.request.UseCreditRequest;
 import com.sketchnotes.project_service.dtos.response.ImageGenerationResponse;
 import com.sketchnotes.project_service.dtos.response.ImagePromptResponse;
 import com.sketchnotes.project_service.dtos.response.UserResponse;
@@ -33,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.swing.plaf.IconUIResource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -55,6 +56,9 @@ public class ImageGenerationService implements IImageGenerationService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private  final IImagePromptRepository imagePromptRepository;
     private final IUserClient userClient;
+    private final CreditClient creditClient;
+    private final int CREDIT_COST_PER_IMAGE = 5;
+    private final int CREDIT_COST_PER_BACKGROUND_REMOVAL = 10;
 
     /**
      * Phương thức chính: Tạo ảnh bằng Imagen 3.0 và Upload lên S3.
@@ -62,6 +66,32 @@ public class ImageGenerationService implements IImageGenerationService {
      */
     @Override
     public ImageGenerationResponse generateAndUploadImage(ImageGenerationRequest request) {
+        //check xem user co du token hay khong
+        if(request.getIsIcon() != null && request.getIsIcon()) {
+            ApiResponse<Boolean> creditCheckResponse = creditClient.checkCredits(CREDIT_COST_PER_BACKGROUND_REMOVAL).getBody();
+            if (!creditCheckResponse.getResult()) {
+                throw new AppException(ErrorCode.INSUFFICIENT_CREDITS);
+            }
+
+            creditClient.useCredits(UseCreditRequest.builder()
+                    .amount(CREDIT_COST_PER_BACKGROUND_REMOVAL)
+                    .description(request.getPrompt() + " - Background removal")
+                    .build());
+        } else {
+
+
+            ApiResponse<Boolean> creditCheckResponse = creditClient.checkCredits(CREDIT_COST_PER_IMAGE).getBody();
+            if ( !creditCheckResponse.getResult()) {
+                throw new AppException(ErrorCode.INSUFFICIENT_CREDITS);
+            }
+
+            creditClient.useCredits(UseCreditRequest.builder()
+                    .amount(CREDIT_COST_PER_IMAGE)
+                    .description(request.getPrompt() + " - Image generation")
+                    .build());
+
+        }
+        //bat dau gen anh va icon
         long startTime = System.currentTimeMillis();
 
         try {

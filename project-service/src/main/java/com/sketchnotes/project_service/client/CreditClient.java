@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * Feign Client để gọi Credit API từ Identity Service
  */
-@FeignClient(name = "identity-service", path = "/api/credits", contextId = "creditClient")
+@FeignClient(name = "account-service", path = "/api/credits", contextId = "creditClient")
 public interface CreditClient {
     
     /**
@@ -24,6 +24,5 @@ public interface CreditClient {
      */
     @GetMapping("/check")
     ResponseEntity<ApiResponse<Boolean>> checkCredits(
-            @RequestParam("userId") Long userId,
             @RequestParam("amount") Integer amount);
 }
