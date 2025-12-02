@@ -30,11 +30,6 @@ spring:
               predicates:
                 - Path=/api/projects/**, /api/pages/**,/api/collaborations/**, /api/images/**
 
-            - id: identity-service
-              uri: lb://identity-service
-              predicates:
-                - Path=/api/credits/**
-
             - id: order-service
               uri: lb://order-service
               predicates:
