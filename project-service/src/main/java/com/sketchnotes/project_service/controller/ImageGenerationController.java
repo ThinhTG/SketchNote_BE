@@ -3,8 +3,10 @@ package com.sketchnotes.project_service.controller;
 import com.sketchnotes.project_service.dtos.ApiResponse;
 import com.sketchnotes.project_service.dtos.request.ImageGenerationRequest;
 import com.sketchnotes.project_service.dtos.response.ImageGenerationResponse;
+import com.sketchnotes.project_service.dtos.response.ImagePromptResponse;
 import com.sketchnotes.project_service.service.IAiImageService;
 import com.sketchnotes.project_service.service.IImageGenerationService;
+import com.sketchnotes.project_service.utils.PagedResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,14 @@ public class ImageGenerationController {
 
         ImageGenerationResponse response = imageGenerationService.generateAndUploadImage(request);
         return ResponseEntity.ok(ApiResponse.success(response, "Image generated successfully"));
+    }
+    @GetMapping("/history")
+    public ResponseEntity<ApiResponse<PagedResponse<ImagePromptResponse>>> getImageHistory(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        PagedResponse<ImagePromptResponse> history = imageGenerationService.getImageGenerations(page, size);
+        return ResponseEntity.ok(ApiResponse.success(history, "Image history retrieved successfully"));
     }
 
     @PostMapping(value = "/remove-background", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.IMAGE_PNG_VALUE)
