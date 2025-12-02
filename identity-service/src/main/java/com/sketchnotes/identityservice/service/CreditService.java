@@ -55,10 +55,11 @@ public class CreditService implements ICreditService {
         // Tính tổng tiền cần thanh toán
         BigDecimal totalAmount = BigDecimal.valueOf(request.getAmount()).multiply(BigDecimal.valueOf(CREDIT_PRICE));
         
-        // Deduct from wallet
-        try {
-            walletService.pay(user.getWallet().getWalletId(), totalAmount);
-            log.info("User {} wallet deducted: {} VNĐ", userId, totalAmount);
+                // Deduct from wallet and record specific purchase type
+                try {
+                        String desc = "Purchase AI credits: " + request.getAmount() + " credits";
+                            walletService.payWithType(user.getWallet().getWalletId(), totalAmount, com.sketchnotes.identityservice.enums.TransactionType.PURCHASE_AI_CREDITS, desc);
+                        log.info("User {} wallet deducted: {} VNĐ for AI credits", userId, totalAmount);
         } catch (RuntimeException e) {
             log.error("Failed to deduct from wallet for user {}: {}", userId, e.getMessage());
             throw new AppException(ErrorCode.INSUFFICIENT_BALANCE);

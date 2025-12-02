@@ -5,5 +5,9 @@ public enum TransactionType {
     PAYMENT,
     WITHDRAW,
     COURSE_FEE,
-    SUBSCRIPTION
+    SUBSCRIPTION,
+    // Specific purchase types to distinguish payment reasons
+    PURCHASE_RESOURCE,
+    PURCHASE_AI_CREDITS,
+    PURCHASE_SUBSCRIPTION
 }

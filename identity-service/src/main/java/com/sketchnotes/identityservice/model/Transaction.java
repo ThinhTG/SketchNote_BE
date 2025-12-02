@@ -40,6 +40,8 @@ public class Transaction {
 
     private String externalTransactionId; // transactionId từ MoMo/PayOS
 
+    private String description; // optional description for the transaction (e.g., "Purchase AI credits")
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
 
