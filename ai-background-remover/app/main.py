@@ -3,7 +3,7 @@ from api.router import api_router
 
 app = FastAPI(
     title="AI Background Remover",
-    description="API xóa phông nền sử dụng rembg",
+    description="API for removing image background using rembg",
     version="1.0.0"
 )
 
