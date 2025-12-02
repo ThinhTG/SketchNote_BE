@@ -7,6 +7,7 @@ import com.sketchnotes.project_service.dtos.response.ProjectListResponse;
 import com.sketchnotes.project_service.dtos.response.ProjectResponse;
 import com.sketchnotes.project_service.dtos.response.ProjectDetailResponse;
 import com.sketchnotes.project_service.service.IProjectService;
+import com.sketchnotes.project_service.utils.PagedResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
@@ -39,8 +40,11 @@ public class ProjectController {
         return ResponseEntity.ok(ApiResponse.success(response, "Get data successful"));
     }
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<ProjectListResponse>> getByCurrentUser() {
-        ProjectListResponse response = projectService.getProjectsCurrentUser(userClient.getCurrentUser().getResult().getId());
+    public ResponseEntity<ApiResponse<PagedResponse<ProjectResponse>>> getByCurrentUser(
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        PagedResponse<ProjectResponse> response = projectService.getProjectsCurrentUserPaged(
+                userClient.getCurrentUser().getResult().getId(), pageNo, pageSize);
         return ResponseEntity.ok(ApiResponse.success(response, "Get data successful"));
     }
     @GetMapping("/me/shared")
