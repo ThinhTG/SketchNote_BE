@@ -290,7 +290,7 @@ public class OrderServiceImpl implements OrderService {
             String buyerMessage = buildBuyerNotificationMessage(order);
             CreateNotificationRequest buyerNotification = CreateNotificationRequest.builder()
                     .userId(order.getUserId())
-                    .title("Thanh toán thành công")
+                    .title("Payment Successful")
                     .message(buyerMessage)
                     .type("PURCHASE_CONFIRM")
                     .orderId(order.getOrderId())
@@ -310,14 +310,14 @@ public class OrderServiceImpl implements OrderService {
                             
                             if (template != null) {
                                 String designerMessage = String.format(
-                                        "Tài nguyên '%s' của bạn đã được mua. Mã đơn: %s",
+                                        "Your resource '%s' has been purchased. Order ID: %s",
                                         template.getName(),
                                         order.getInvoiceNumber()
                                 );
                                 
                                 CreateNotificationRequest designerNotification = CreateNotificationRequest.builder()
                                         .userId(template.getDesignerId())
-                                        .title("Tài nguyên của bạn đã được mua")
+                                        .title("Your resource has been purchased")
                                         .message(designerMessage)
                                         .type("PURCHASE")
                                         .orderId(order.getOrderId())
@@ -350,7 +350,7 @@ public class OrderServiceImpl implements OrderService {
                 .collect(java.util.stream.Collectors.joining(", "));
         
         return String.format(
-                "Bạn đã mua thành công: %s. Mã đơn: %s. Tổng tiền: %s VND",
+                "You have successfully purchased: %s. Order ID: %s. Total: %s VND",
                 itemsList,
                 order.getInvoiceNumber(),
                 order.getTotalAmount()
