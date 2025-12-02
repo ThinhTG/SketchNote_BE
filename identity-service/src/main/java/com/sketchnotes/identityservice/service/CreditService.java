@@ -89,21 +89,21 @@ public class CreditService implements ICreditService {
     
     @Override
     @Transactional
-    public CreditBalanceResponse useCredits(UseCreditRequest request) {
+    public CreditBalanceResponse useCredits(Long userId, UseCreditRequest request) {
         log.info("User {} using {} credits for: {}", 
-                request.getUserId(), request.getAmount(), request.getDescription());
+                userId, request.getAmount(), request.getDescription());
         
         if (request.getAmount() <= 0) {
             throw new AppException(ErrorCode.INVALID_CREDIT_AMOUNT);
         }
         
-        User user = userRepository.findById(request.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         
         // Kiểm tra số dư
         if (user.getAiCredits() < request.getAmount()) {
             log.warn("User {} has insufficient credits. Required: {}, Available: {}", 
-                    request.getUserId(), request.getAmount(), user.getAiCredits());
+                    userId, request.getAmount(), user.getAiCredits());
             throw new AppException(ErrorCode.INSUFFICIENT_CREDITS);
         }
         
@@ -121,12 +121,11 @@ public class CreditService implements ICreditService {
                 .balanceAfter(newBalance)
                 .description(request.getDescription() != null ? 
                         request.getDescription() : "AI service usage")
-                .referenceId(request.getReferenceId())
                 .build();
         creditTransactionRepository.save(transaction);
         
         log.info("User {} successfully used {} credits. New balance: {}", 
-                request.getUserId(), request.getAmount(), newBalance);
+                userId, request.getAmount(), newBalance);
         
         return buildCreditBalanceResponse(user);
     }

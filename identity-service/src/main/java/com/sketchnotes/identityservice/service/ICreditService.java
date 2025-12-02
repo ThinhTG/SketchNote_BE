@@ -20,7 +20,7 @@ public interface ICreditService {
     /**
      * Sử dụng credit (được gọi từ AI service)
      */
-    CreditBalanceResponse useCredits(UseCreditRequest request);
+    CreditBalanceResponse useCredits(Long userId, UseCreditRequest request);
     
     /**
      * Kiểm tra xem user có đủ credit không
