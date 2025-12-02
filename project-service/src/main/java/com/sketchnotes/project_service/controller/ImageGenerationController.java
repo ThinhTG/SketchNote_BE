@@ -36,8 +36,8 @@ public class ImageGenerationController {
     private final CreditClient creditClient;
     
     // Cost configuration
-    private static final int CREDITS_PER_IMAGE = 10; // 10 credits per generated image
-    private static final int CREDITS_PER_BACKGROUND_REMOVAL = 5; // 5 credits per background removal
+    private static final int CREDITS_PER_IMAGE = 1; // 1 credit per generated image
+    private static final int CREDITS_PER_BACKGROUND_REMOVAL = 1; // 1 credit per background removal
     
     @PostMapping("/generate")
     public ResponseEntity<ApiResponse<ImageGenerationResponse>> generateImage(
