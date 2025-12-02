@@ -2,13 +2,19 @@ package com.sketchnotes.project_service.service.implement;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sketchnotes.project_service.client.IUserClient;
 import com.sketchnotes.project_service.config.GeminiProperties;
 import com.sketchnotes.project_service.config.S3Properties;
+import com.sketchnotes.project_service.dtos.ApiResponse;
 import com.sketchnotes.project_service.dtos.request.ImageGenerationRequest;
 import com.sketchnotes.project_service.dtos.response.ImageGenerationResponse;
+import com.sketchnotes.project_service.dtos.response.ImagePromptResponse;
+import com.sketchnotes.project_service.dtos.response.UserResponse;
+import com.sketchnotes.project_service.entity.ImagePrompt;
 import com.sketchnotes.project_service.enums.ImageType;
 import com.sketchnotes.project_service.exception.AppException;
 import com.sketchnotes.project_service.exception.ErrorCode;
+import com.sketchnotes.project_service.repository.IImagePromptRepository;
 import com.sketchnotes.project_service.service.IAiImageService;
 import com.sketchnotes.project_service.service.IImageGenerationService;
 import com.sketchnotes.project_service.utils.ByteArrayMultipartFile;
@@ -16,6 +22,9 @@ import com.google.cloud.aiplatform.v1.EndpointName;
 import com.google.cloud.aiplatform.v1.PredictionServiceClient;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.JsonFormat;
+import com.sketchnotes.project_service.utils.PagedResponse;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -24,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.swing.plaf.IconUIResource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -37,13 +47,14 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ImageGenerationService implements IImageGenerationService {
 
-    // Inject các dependency cần thiết
-    private final GeminiProperties geminiProperties; // Chứa project-id, location, model
-    private final S3Properties s3Properties; // Cấu hình S3
-    private final S3Client s3Client; // Client S3
-    private final PredictionServiceClient predictionServiceClient; // Client Vertex AI đã cấu hình
-    private final IAiImageService aiImageService; // Service xóa background
-    private final ObjectMapper objectMapper = new ObjectMapper(); // Dùng để parse JSON
+    private final GeminiProperties geminiProperties;
+    private final S3Properties s3Properties;
+    private final S3Client s3Client;
+    private final PredictionServiceClient predictionServiceClient;
+    private final IAiImageService aiImageService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private  final IImagePromptRepository imagePromptRepository;
+    private final IUserClient userClient;
 
     /**
      * Phương thức chính: Tạo ảnh bằng Imagen 3.0 và Upload lên S3.
@@ -64,13 +75,19 @@ public class ImageGenerationService implements IImageGenerationService {
             // Bước 3: Upload tất cả ảnh lên S3
             List<String> s3Urls = new ArrayList<>();
             String primaryFileName = null;
-
+            ApiResponse<UserResponse> user = userClient.getCurrentUser();
             for (byte[] imageBytes : imagesBytes) {
                 String fileName = generateFileName(ImageType.PNG);
                 if (primaryFileName == null) primaryFileName = fileName;
 
                 String s3Url = uploadToS3(imageBytes, fileName, ImageType.PNG);
                 s3Urls.add(s3Url);
+                // Lưu prompt và URL ảnh vào DB
+                imagePromptRepository.save(ImagePrompt.builder()
+                        .imageUrl(s3Url)
+                        .createdAt(LocalDateTime.now())
+                        .ownerId(user.getResult().getId())
+                        .build());
             }
 
             long generationTime = System.currentTimeMillis() - startTime;
@@ -87,6 +104,27 @@ public class ImageGenerationService implements IImageGenerationService {
         }
     }
 
+    @Override
+    public PagedResponse<ImagePromptResponse> getImageGenerations(int page, int size) {
+        ApiResponse<UserResponse> user = userClient.getCurrentUser();
+        Pageable pageable = PageRequest.of(page, size);
+        var imagePromptsPage = imagePromptRepository.findByOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(user.getResult().getId(), pageable);
+        var imageGenerations = imagePromptsPage.getContent().stream()
+                .map(imagePrompt -> ImagePromptResponse.builder()
+                        .imagePromptId(imagePrompt.getImagePromptId())
+                        .imageUrl(imagePrompt.getImageUrl())
+                        .createdAt(imagePrompt.getCreatedAt())
+                        .build())
+                .toList();
+        return new PagedResponse<>(
+                imageGenerations,
+                imagePromptsPage.getNumber(),
+                imagePromptsPage.getSize(),
+                (int) imagePromptsPage.getTotalElements(),
+                imagePromptsPage.getTotalPages(),
+                imagePromptsPage.isLast()
+        );
+    }
     /**
      * Xóa background cho TẤT CẢ ảnh trong danh sách sử dụng AI Background Remover
      */
@@ -123,7 +161,7 @@ public class ImageGenerationService implements IImageGenerationService {
         try {
             String enhancedPrompt = buildEnhancedPrompt(request);
 
-            // 1. Xây dựng Resource Name (Endpoint)
+
             EndpointName endpointName = EndpointName.ofProjectLocationPublisherModelName(
                     geminiProperties.getProjectId(),
                     geminiProperties.getLocation(),
