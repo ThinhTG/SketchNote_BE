@@ -23,7 +23,6 @@ public class S3Config {
                 s3Properties.getAccessKey(),
                 s3Properties.getSecretKey()
         );
-        System.out.println("✅ Loaded AWS Key: " + s3Properties.getAccessKey());
         return S3Presigner.builder()
                 .region(Region.of(s3Properties.getRegion()))
                 .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
