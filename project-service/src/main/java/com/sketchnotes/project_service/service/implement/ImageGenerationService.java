@@ -192,7 +192,7 @@ public class ImageGenerationService implements IImageGenerationService {
             return extractImagesFromVertexAIResponse(response.getPredictionsList());
 
         } catch (Exception e) {
-            throw new RuntimeException("Thất bại khi tạo ảnh bằng Imagen: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to generate image with Imagen: " + e.getMessage(), e);
         }
     }
 
@@ -229,7 +229,7 @@ public class ImageGenerationService implements IImageGenerationService {
         }
 
         if (images.isEmpty()) {
-            throw new RuntimeException("Không tìm thấy dữ liệu ảnh trong phản hồi Vertex AI");
+            throw new RuntimeException("No image data found in Vertex AI response");
         }
 
         return images;
@@ -274,7 +274,7 @@ public class ImageGenerationService implements IImageGenerationService {
             return s3Url;
 
         } catch (Exception e) {
-            throw new RuntimeException("Thất bại khi upload ảnh lên S3: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to upload image to S3: " + e.getMessage(), e);
         }
     }
 
