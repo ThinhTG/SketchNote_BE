@@ -149,6 +149,31 @@ public class WalletServiceImp implements IWalletService {
     }
 
     @Override
+    @Transactional
+    public Transaction payWithType(Long walletId, BigDecimal amount, TransactionType type, String description) {
+        Wallet wallet = getWallet(walletId);
+        if (wallet.getBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient balance");
+        }
+
+        wallet.setBalance(wallet.getBalance().subtract(amount));
+        wallet.setUpdatedAt(LocalDateTime.now());
+        walletRepository.save(wallet);
+
+        Transaction transaction = Transaction.builder()
+                .wallet(wallet)
+                .amount(amount)
+                .balance(wallet.getBalance())
+                .type(type)
+                .status(PaymentStatus.SUCCESS)
+                .description(description)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        return transactionRepository.save(transaction);
+    }
+
+    @Override
     public List<Transaction> getTransactions(Long walletId) {
         return transactionRepository.findAll(
                 (root, query, cb) -> cb.equal(root.get("wallet").get("id"), walletId)

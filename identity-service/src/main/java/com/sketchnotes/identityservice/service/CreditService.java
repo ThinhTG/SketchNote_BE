@@ -11,12 +11,15 @@ import com.sketchnotes.identityservice.model.CreditTransaction;
 import com.sketchnotes.identityservice.model.User;
 import com.sketchnotes.identityservice.repository.CreditTransactionRepository;
 import com.sketchnotes.identityservice.repository.IUserRepository;
+import com.sketchnotes.identityservice.service.interfaces.IWalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 /**
  * Service implementation cho quản lý AI Credits
@@ -28,6 +31,7 @@ public class CreditService implements ICreditService {
     
     private final IUserRepository userRepository;
     private final CreditTransactionRepository creditTransactionRepository;
+    private final IWalletService walletService;
     
     // Số credit miễn phí cho user mới
     private static final Integer INITIAL_FREE_CREDITS = 50;
@@ -49,10 +53,17 @@ public class CreditService implements ICreditService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         
         // Tính tổng tiền cần thanh toán
-        Integer totalAmount = request.getAmount() * CREDIT_PRICE;
+        BigDecimal totalAmount = BigDecimal.valueOf(request.getAmount()).multiply(BigDecimal.valueOf(CREDIT_PRICE));
         
-        // TODO: Tích hợp với payment gateway hoặc wallet
-        // Hiện tại giả sử thanh toán thành công
+                // Deduct from wallet and record specific purchase type
+                try {
+                        String desc = "Purchase AI credits: " + request.getAmount() + " credits";
+                            walletService.payWithType(user.getWallet().getWalletId(), totalAmount, com.sketchnotes.identityservice.enums.TransactionType.PURCHASE_AI_CREDITS, desc);
+                        log.info("User {} wallet deducted: {} VNĐ for AI credits", userId, totalAmount);
+        } catch (RuntimeException e) {
+            log.error("Failed to deduct from wallet for user {}: {}", userId, e.getMessage());
+            throw new AppException(ErrorCode.INSUFFICIENT_BALANCE);
+        }
         
         // Cập nhật số credit của user
         Integer oldBalance = user.getAiCredits();
@@ -60,13 +71,13 @@ public class CreditService implements ICreditService {
         user.setAiCredits(newBalance);
         userRepository.save(user);
         
-        // Tạo transaction record
+        // Tạo transaction record cho credit
         CreditTransaction transaction = CreditTransaction.builder()
                 .user(user)
                 .type(CreditTransactionType.PURCHASE)
                 .amount(request.getAmount())
                 .balanceAfter(newBalance)
-                .description("Purchased " + request.getAmount() + " credits")
+                .description("Purchased " + request.getAmount() + " credits for " + totalAmount + " VNĐ")
                 .build();
         creditTransactionRepository.save(transaction);
         
