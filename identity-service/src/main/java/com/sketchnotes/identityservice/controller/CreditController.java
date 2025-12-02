@@ -9,6 +9,7 @@ import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.service.ICreditService;
+import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,7 @@ public class CreditController {
     
     private final ICreditService creditService;
     private final IUserRepository userRepository;
+    private final IUserService userService;
     
     /**
      * Lấy thông tin số dư credit của user hiện tại
@@ -72,10 +74,12 @@ public class CreditController {
     @PostMapping("/use")
     public ResponseEntity<ApiResponse<CreditBalanceResponse>> useCredits(
             @Valid @RequestBody UseCreditRequest request) {
+
+        Long userId = userService.getCurrentUser().getId();
         
-        log.info("Using credits for user {}: {} credits", request.getUserId(), request.getAmount());
+        log.info("Using credits for user {}: {} credits", userId, request.getAmount());
         
-        CreditBalanceResponse response = creditService.useCredits(request);
+        CreditBalanceResponse response = creditService.useCredits(userId, request);
         return ResponseEntity.ok(ApiResponse.success(response, 
                 "Successfully used " + request.getAmount() + " credits"));
     }
