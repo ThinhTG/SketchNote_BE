@@ -15,15 +15,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UseCreditRequest {
-    
-    @NotNull(message = "User ID is required")
-    private Long userId;
-    
     @NotNull(message = "Amount is required")
     @Min(value = 1, message = "Amount must be at least 1")
     private Integer amount;
     
     private String description;
-    
-    private String referenceId;
 }
