@@ -35,9 +35,9 @@ public class User{
     private  LocalDateTime  updateAt;
     
     // AI Credits management
-    @Column(nullable = false, columnDefinition = "integer default 0")
+    @Column(nullable = false, columnDefinition = "integer default 3")
     @Builder.Default
-    private Integer aiCredits = 0; // Số credit AI còn lại
+    private Integer aiCredits = 3; // Số credit AI còn lại
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
