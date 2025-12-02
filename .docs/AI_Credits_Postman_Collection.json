@@ -1,0 +1,331 @@
+{
+  "info": {
+    "name": "AI Credits System",
+    "_postman_id": "ai-credits-collection",
+    "description": "Collection để test hệ thống AI Credits",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register New User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"access_token\", jsonData.data.accessToken);",
+                  "pm.environment.set(\"refresh_token\", jsonData.data.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Credits Management",
+      "item": [
+        {
+          "name": "Get Credit Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/credits/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "credits", "balance"]
+            }
+          }
+        },
+        {
+          "name": "Purchase Credits",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100,\n  \"paymentMethod\": \"wallet\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/credits/purchase",
+              "host": ["{{base_url}}"],
+              "path": ["api", "credits", "purchase"]
+            }
+          }
+        },
+        {
+          "name": "Check Credits",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/credits/check?amount=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "credits", "check"],
+              "query": [
+                {
+                  "key": "amount",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Credit History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/credits/history?page=0&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "credits", "history"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Features",
+      "item": [
+        {
+          "name": "Generate Image",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"A beautiful sunset over mountains with vibrant colors\",\n  \"isIcon\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/images/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "images", "generate"]
+            }
+          }
+        },
+        {
+          "name": "Generate Icon",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Shopping cart icon\",\n  \"isIcon\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/images/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "images", "generate"]
+            }
+          }
+        },
+        {
+          "name": "Remove Background",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/your/image.png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/images/remove-background",
+              "host": ["{{base_url}}"],
+              "path": ["api", "images", "remove-background"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Test Scenarios",
+      "item": [
+        {
+          "name": "Test Insufficient Credits",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// This test assumes user has less than 10 credits",
+                  "// Use credits until balance < 10 before running this test"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Test image\",\n  \"isIcon\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/images/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "images", "generate"]
+            }
+          }
+        },
+        {
+          "name": "Test Minimum Purchase Validation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50,\n  \"paymentMethod\": \"wallet\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/credits/purchase",
+              "host": ["{{base_url}}"],
+              "path": ["api", "credits", "purchase"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

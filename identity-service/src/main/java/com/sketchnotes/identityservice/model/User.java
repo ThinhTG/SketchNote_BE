@@ -33,6 +33,16 @@ public class User{
     private String avatarUrl;
     private LocalDateTime createAt;
     private  LocalDateTime  updateAt;
+    
+    // AI Credits management
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    @Builder.Default
+    private Integer aiCredits = 0; // Số credit AI còn lại
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<CreditTransaction> creditTransactions;
+    
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Message> sentMessages;
