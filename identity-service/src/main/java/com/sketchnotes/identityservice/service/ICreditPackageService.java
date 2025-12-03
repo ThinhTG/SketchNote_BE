@@ -1,7 +1,9 @@
 package com.sketchnotes.identityservice.service;
 
 import com.sketchnotes.identityservice.dtos.request.CreditPackageRequest;
+import com.sketchnotes.identityservice.dtos.response.CreditBalanceResponse;
 import com.sketchnotes.identityservice.dtos.response.CreditPackageResponse;
+import com.sketchnotes.identityservice.dtos.response.PurchasePackageResponse;
 
 import java.util.List;
 
@@ -44,4 +46,12 @@ public interface ICreditPackageService {
      * Kích hoạt/Vô hiệu hóa gói credit (Admin)
      */
     CreditPackageResponse togglePackageStatus(Long id);
+    
+    /**
+     * Mua gói credit package (User)
+     * @param userId ID của user
+     * @param packageId ID của gói credit package
+     * @return PurchasePackageResponse chứa thông tin giao dịch và số dư mới
+     */
+    PurchasePackageResponse purchasePackage(Long userId, Long packageId);
 }

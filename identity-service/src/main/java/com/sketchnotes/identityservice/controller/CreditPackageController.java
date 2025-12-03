@@ -3,11 +3,17 @@ package com.sketchnotes.identityservice.controller;
 import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.dtos.request.CreditPackageRequest;
 import com.sketchnotes.identityservice.dtos.response.CreditPackageResponse;
+import com.sketchnotes.identityservice.dtos.response.PurchasePackageResponse;
+import com.sketchnotes.identityservice.exception.AppException;
+import com.sketchnotes.identityservice.exception.ErrorCode;
+import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.service.ICreditPackageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +29,7 @@ import java.util.List;
 public class CreditPackageController {
     
     private final ICreditPackageService creditPackageService;
+    private final IUserRepository userRepository;
     
     /**
      * Lấy danh sách các gói credit đang active (cho User)
@@ -44,6 +51,27 @@ public class CreditPackageController {
         log.info("Getting credit package by ID: {}", id);
         CreditPackageResponse response = creditPackageService.getPackageById(id);
         return ResponseEntity.ok(ApiResponse.success(response, "Credit package retrieved successfully"));
+    }
+    
+    // ==================== USER APIs ====================
+    
+    /**
+     * Mua gói credit package (User)
+     * POST /api/credit-packages/{packageId}/purchase
+     * 
+     * Thanh toán bằng wallet, cộng credits vào tài khoản user
+     */
+    @PostMapping("/{packageId}/purchase")
+    public ResponseEntity<ApiResponse<PurchasePackageResponse>> purchasePackage(
+            Authentication authentication,
+            @PathVariable Long packageId) {
+        
+        Long userId = extractUserId(authentication);
+        log.info("User {} purchasing credit package: {}", userId, packageId);
+        
+        PurchasePackageResponse response = creditPackageService.purchasePackage(userId, packageId);
+        
+        return ResponseEntity.ok(ApiResponse.success(response, response.getMessage()));
     }
     
     // ==================== ADMIN APIs ====================
@@ -104,5 +132,37 @@ public class CreditPackageController {
         log.info("Admin: Toggling status for credit package ID: {}", id);
         CreditPackageResponse response = creditPackageService.togglePackageStatus(id);
         return ResponseEntity.ok(ApiResponse.success(response, "Credit package status toggled successfully"));
+    }
+    
+    // ==================== HELPER METHODS ====================
+    
+    /**
+     * Helper method để extract userId từ JWT token
+     */
+    private Long extractUserId(Authentication authentication) {
+        if (authentication == null || authentication.getPrincipal() == null) {
+            log.error("Authentication is null or principal is null");
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        
+        // Get 'sub' claim (Keycloak user ID)
+        String keycloakId = jwt.getSubject();
+        if (keycloakId == null || keycloakId.isBlank()) {
+            log.error("Cannot extract 'sub' claim from JWT. Available claims: {}", jwt.getClaims().keySet());
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
+        
+        // Query User by keycloakId
+        return userRepository.findByKeycloakId(keycloakId)
+                .map(user -> {
+                    log.debug("User found for keycloakId: {} -> userId: {}", keycloakId, user.getId());
+                    return user.getId();
+                })
+                .orElseThrow(() -> {
+                    log.error("User not found for keycloakId: {}", keycloakId);
+                    return new AppException(ErrorCode.UNAUTHENTICATED);
+                });
     }
 }

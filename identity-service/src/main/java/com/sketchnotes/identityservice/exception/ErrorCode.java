@@ -54,7 +54,9 @@ public enum ErrorCode{
     CREDIT_TRANSACTION_FAILED(500, "Credit transaction failed", HttpStatus.INTERNAL_SERVER_ERROR),
     MINIMUM_PURCHASE_NOT_MET(400, "Minimum purchase is 100 credits", HttpStatus.BAD_REQUEST),
     CREDIT_PACKAGE_NOT_FOUND(404, "Credit package not found", HttpStatus.NOT_FOUND),
+    CREDIT_PACKAGE_NOT_ACTIVE(400, "Credit package is not active", HttpStatus.BAD_REQUEST),
     INVALID_PRICE(400, "Discounted price cannot be greater than original price", HttpStatus.BAD_REQUEST),
+    WALLET_NOT_FOUND(404, "Wallet not found. Please create a wallet first", HttpStatus.NOT_FOUND),
     
     // Notification errors
     NOTIFICATION_NOT_FOUND(404, "Notification not found", HttpStatus.NOT_FOUND);
