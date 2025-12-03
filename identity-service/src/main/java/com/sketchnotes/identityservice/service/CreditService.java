@@ -11,6 +11,7 @@ import com.sketchnotes.identityservice.model.CreditTransaction;
 import com.sketchnotes.identityservice.model.User;
 import com.sketchnotes.identityservice.repository.CreditTransactionRepository;
 import com.sketchnotes.identityservice.repository.IUserRepository;
+import com.sketchnotes.identityservice.service.interfaces.ICreditService;
 import com.sketchnotes.identityservice.service.interfaces.IWalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

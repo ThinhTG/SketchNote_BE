@@ -35,6 +35,7 @@ public enum ErrorCode {
     IMAGE_GENERATION_FAILED(500, "Image generation failed", HttpStatus.INTERNAL_SERVER_ERROR),
      IMAGE_REMOVAL_FAILED(500, "Image removal failed", HttpStatus.INTERNAL_SERVER_ERROR),
     IMAGE_EXTRACTION_FAILED(500, "Image extraction failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    FILE_URL_INVALID(400, "File URL is invalid or inaccessible", HttpStatus.BAD_REQUEST),
     
     // Credit errors
     INSUFFICIENT_CREDITS(400, "Insufficient AI credits", HttpStatus.BAD_REQUEST),

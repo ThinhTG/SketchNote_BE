@@ -1,6 +1,6 @@
 package com.sketchnotes.identityservice.events;
 
-import com.sketchnotes.identityservice.service.ICreditService;
+import com.sketchnotes.identityservice.service.interfaces.ICreditService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
