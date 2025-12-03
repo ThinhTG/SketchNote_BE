@@ -19,6 +19,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -51,7 +52,7 @@ public class UserService implements IUserService {
     @Override
     @Cacheable(value = "users", key = "#pageNo + '-' + #pageSize")
     public PagedResponse<UserResponse> getAllUsers(int pageNo, int pageSize) {
-        Pageable pageable =  PageRequest.of(pageNo, pageSize);
+        Pageable pageable =  PageRequest.of(pageNo, pageSize, Sort.by(Sort.Direction.ASC, "createdAt"));
         Page<User> users = userRepository.findAllByIsActiveTrue(pageable);
         List<UserResponse> userResponses = users.stream().map(user -> UserResponse.builder()
                 .id(user.getId())
