@@ -18,5 +18,5 @@ public class UserResponse  implements Serializable {
     private String lastName;
     private String role;
     private String avatarUrl;
-    private LocalDateTime createdAt;
+
 }
