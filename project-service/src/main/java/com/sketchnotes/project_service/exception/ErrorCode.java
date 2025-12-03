@@ -39,7 +39,15 @@ public enum ErrorCode {
     
     // Credit errors
     INSUFFICIENT_CREDITS(400, "Insufficient AI credits", HttpStatus.BAD_REQUEST),
-    CREDIT_CHECK_FAILED(500, "Failed to check credit balance", HttpStatus.INTERNAL_SERVER_ERROR);
+    CREDIT_CHECK_FAILED(500, "Failed to check credit balance", HttpStatus.INTERNAL_SERVER_ERROR),
+    
+    // Category Paper errors
+    CATEGORY_PAPER_NOT_FOUND(404, "Category paper not found", HttpStatus.NOT_FOUND),
+    CATEGORY_PAPER_NAME_EXISTED(400, "Category paper name already exists", HttpStatus.BAD_REQUEST),
+    
+    // Paper Template errors
+    PAPER_TEMPLATE_NOT_FOUND(404, "Paper template not found", HttpStatus.NOT_FOUND),
+    PAPER_TEMPLATE_NAME_EXISTED(400, "Paper template name already exists", HttpStatus.BAD_REQUEST);
 
 
     private final int code;

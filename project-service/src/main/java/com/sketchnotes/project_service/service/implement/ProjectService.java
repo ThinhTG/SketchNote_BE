@@ -20,7 +20,6 @@ import com.sketchnotes.project_service.service.IProjectService;
 import com.sketchnotes.project_service.utils.PagedResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -151,6 +150,7 @@ public class ProjectService implements IProjectService {
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
         project.setName(dto.getName());
         project.setDescription(dto.getDescription());
+        project.setImageUrl(dto.getImageUrl());
         Project updated = projectRepository.save(project);
         return ProjectMapper.toDTO(updated);
     }

@@ -40,3 +40,4 @@ public class CanvasAction {
      */
     private Map<String, Object> payload;
 }
+
