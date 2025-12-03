@@ -28,7 +28,7 @@ spring:
             - id: project-service
               uri: lb://project-service
               predicates:
-                - Path=/api/projects/**, /api/pages/**,/api/collaborations/**, /api/images/**
+                - Path=/api/projects/**, /api/pages/**,/api/collaborations/**, /api/images/**,/api/category-papers/**, /api/paper-templates/**
 
             - id: order-service
               uri: lb://order-service
