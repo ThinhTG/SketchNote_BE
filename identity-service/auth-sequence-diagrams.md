@@ -1,6 +1,6 @@
-# Login Sequence Diagram - Identity Service
+# Authentication Sequence Diagrams - Identity Service
 
-This document contains sequence diagrams for the login flows in the SketchNote Identity Service.
+This document contains sequence diagrams for the authentication flows (login and registration) in the SketchNote Identity Service.
 
 ## 1. Standard Login Flow (Email/Password)
 
@@ -178,6 +178,97 @@ sequenceDiagram
     end
 ```
 
+## 4. User Registration Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client as Client Application
+    participant Controller as AuthController
+    participant Service as AuthenticationService
+    participant Keycloak as Keycloak IDP
+    participant DB as User Database
+    participant Wallet as WalletService
+    
+    User->>Client: Fill registration form<br/>(email, password, firstName, lastName, avatarUrl)
+    Client->>Client: Validate input<br/>(email format, password min 6 chars)
+    
+    Client->>Controller: POST /api/auth/register<br/>RegisterRequest
+    Controller->>Controller: Validate @Valid annotations
+    
+    alt Validation Failed
+        Controller-->>Client: 400 Bad Request<br/>(Validation errors)
+        Client-->>User: Show validation errors
+    else Validation Passed
+        Controller->>Service: register(RegisterRequest)
+        
+        Note over Service: Step 1: Get Admin Token
+        Service->>Keycloak: POST /realms/{realm}/protocol/openid-connect/token<br/>(grant_type=client_credentials,<br/>client_id, client_secret)
+        
+        alt Token Exchange Failed
+            Keycloak-->>Service: FeignException
+            Service->>Service: errorNormalizer.handleKeyCloakException()
+            Service-->>Controller: throw AppException
+            Controller-->>Client: Error Response
+            Client-->>User: Registration failed
+        else Token Exchange Success
+            Keycloak-->>Service: TokenExchangeResponse<br/>(admin access_token)
+            
+            Note over Service: Step 2: Create User in Keycloak
+            Service->>Service: Build UserCreationParam<br/>(username=email, firstName, lastName,<br/>email, enabled=true,<br/>emailVerified=false,<br/>credentials=[password])
+            
+            Service->>Keycloak: POST /admin/realms/{realm}/users<br/>(Bearer token, UserCreationParam)
+            
+            alt User Already Exists
+                Keycloak-->>Service: FeignException (409 Conflict)
+                Service->>Service: errorNormalizer.handleKeyCloakException()
+                Service-->>Controller: throw AppException<br/>(USER_ALREADY_EXISTS)
+                Controller-->>Client: 409 Conflict
+                Client-->>User: Email already registered
+            else User Creation Success
+                Keycloak-->>Service: 201 Created<br/>(Location header with userId)
+                
+                Note over Service: Step 3: Extract Keycloak User ID
+                Service->>Service: extractUserId(response)<br/>(parse Location header)
+                
+                Note over Service: Step 4: Create User in Database
+                Service->>Service: Build User entity<br/>(keycloakId, email, firstName,<br/>lastName, role=CUSTOMER,<br/>isActive=true, avatarUrl,<br/>createAt=now())
+                
+                Service->>DB: save(user)
+                
+                alt Database Save Failed
+                    DB-->>Service: Exception
+                    Note over Service: User created in Keycloak<br/>but not in DB (inconsistent state)
+                    Service-->>Controller: throw Exception
+                    Controller-->>Client: 500 Internal Server Error
+                    Client-->>User: Registration failed
+                else Database Save Success
+                    DB-->>Service: Saved User entity
+                    
+                    Note over Service: Step 5: Create Wallet
+                    Service->>Wallet: createWallet(userId)
+                    
+                    alt Wallet Creation Failed
+                        Wallet-->>Service: Exception
+                        Note over Service: User created but wallet failed<br/>(inconsistent state)
+                        Service-->>Controller: throw Exception
+                        Controller-->>Client: 500 Internal Server Error
+                        Client-->>User: Registration failed
+                    else Wallet Creation Success
+                        Wallet-->>Service: Wallet created
+                        
+                        Service-->>Controller: void (success)
+                        Controller-->>Client: 200 OK<br/>ApiResponse("Register successful")
+                        Client-->>User: Registration successful!<br/>Please verify your email
+                        
+                        Note over User: User should receive<br/>verification email<br/>(if configured in Keycloak)
+                    end
+                end
+            end
+        end
+    end
+```
+
 ## Key Components
 
 ### Controllers
@@ -196,19 +287,46 @@ sequenceDiagram
 - **User**: User entity stored in application database
 - **LoginRequest**: Email and password for standard login
 - **LoginGoogleRequest**: Authorization code and redirect URI for Google OAuth
+- **RegisterRequest**: User registration data (email, password, firstName, lastName, avatarUrl)
 - **LoginResponse**: Contains access_token and refresh_token
 - **TokenRequest**: Contains refresh_token for token refresh
+- **UserCreationParam**: Keycloak user creation parameters
+- **TokenExchangeResponse**: Admin token from Keycloak for service-to-service calls
 
 ### Security Validations
-1. Email verification check (standard login)
-2. User existence check
-3. User active status check
-4. JWT token validation
-5. Required claims validation (Google OAuth)
+1. **Login Validations**:
+   - Email verification check (standard login)
+   - User existence check
+   - User active status check
+   - JWT token validation
+   - Required claims validation (Google OAuth)
+
+2. **Registration Validations**:
+   - Email format validation (must be valid email)
+   - Email minimum length (4 characters)
+   - Password minimum length (6 characters)
+   - Non-blank email and password fields
+   - Duplicate email check (via Keycloak)
+
+### Registration Process Steps
+1. **Get Admin Token**: Service obtains admin access token using client credentials
+2. **Create User in Keycloak**: User account created in identity provider with credentials
+3. **Extract User ID**: Parse Keycloak user ID from Location header
+4. **Save to Database**: Create user record in application database
+5. **Create Wallet**: Initialize user wallet for transactions
+
+### Potential Issues & Inconsistent States
+⚠️ **Important**: The registration process has potential consistency issues:
+- If Keycloak user creation succeeds but database save fails → User exists in Keycloak but not in app DB
+- If database save succeeds but wallet creation fails → User exists without a wallet
+- **Recommendation**: Implement compensating transactions or use distributed transaction patterns (Saga pattern)
 
 ### Error Handling
-- `EMAIL_NOT_VERIFIED`: Email not verified in Keycloak
-- `NOT_FOUND`: User not found in database
-- `USER_INACTIVE`: User account is inactive
-- `INVALID_TOKEN`: Invalid or missing JWT claims
+- `EMAIL_NOT_VERIFIED`: Email not verified in Keycloak (login)
+- `NOT_FOUND`: User not found in database (login)
+- `USER_INACTIVE`: User account is inactive (login)
+- `INVALID_TOKEN`: Invalid or missing JWT claims (Google OAuth)
+- `USER_ALREADY_EXISTS`: Email already registered (registration)
+- `INVALID_USERNAME`: Email format invalid or too short (registration)
+- `INVALID_PASSWORD`: Password too short (registration)
 - `FeignException`: Keycloak API errors (handled by ErrorNormalizer)

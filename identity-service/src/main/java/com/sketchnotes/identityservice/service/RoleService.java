@@ -17,6 +17,7 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import java.util.List;
 @Service
@@ -48,6 +49,7 @@ public class RoleService implements IRoleService {
     }
 
     @Override
+    @CacheEvict(value = "users", allEntries = true)
     public void updateRolesForUser(RoleRequest request) {
         try {
             User user = userRepository.findById(request.getUserId()).filter(User::isActive)

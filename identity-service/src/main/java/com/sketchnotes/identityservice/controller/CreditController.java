@@ -8,7 +8,7 @@ import com.sketchnotes.identityservice.dtos.response.CreditTransactionResponse;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.repository.IUserRepository;
-import com.sketchnotes.identityservice.service.ICreditService;
+import com.sketchnotes.identityservice.service.interfaces.ICreditService;
 import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

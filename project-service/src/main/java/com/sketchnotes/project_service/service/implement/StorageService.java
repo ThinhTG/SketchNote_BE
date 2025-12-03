@@ -2,6 +2,8 @@ package com.sketchnotes.project_service.service.implement;
 
 import com.sketchnotes.project_service.config.S3Properties;
 import com.sketchnotes.project_service.enums.FileContentType;
+import com.sketchnotes.project_service.exception.AppException;
+import com.sketchnotes.project_service.exception.ErrorCode;
 import com.sketchnotes.project_service.service.IStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +21,6 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class StorageService implements IStorageService {
 
     private final S3Presigner s3Presigner;
@@ -62,10 +63,8 @@ public class StorageService implements IStorageService {
                         .build();
                 
                 s3Client.deleteObject(deleteRequest);
-                log.info("Deleted file from S3: {}", key);
             }
         } catch (Exception e) {
-            log.error("Error deleting file from S3: {}", fileUrl, e);
             // Don't throw exception to avoid blocking the version cleanup
         }
     }
@@ -95,14 +94,11 @@ public class StorageService implements IStorageService {
                     .build();
             
             s3Client.copyObject(copyRequest);
-            log.info("Copied file from {} to {}", sourceKey, destinationKey);
             
             // Return new file URL
             return "https://" + s3Properties.getBucketName() + ".s3." +
                     s3Properties.getRegion() + ".amazonaws.com/" + destinationKey;
-                    
         } catch (Exception e) {
-            log.error("Error copying file from S3: {}", sourceFileUrl, e);
             throw new RuntimeException("Failed to copy file: " + e.getMessage(), e);
         }
     }
@@ -111,15 +107,13 @@ public class StorageService implements IStorageService {
         if (fileUrl == null || fileUrl.isEmpty()) {
             return null;
         }
-        
         try {
-            // URL format: https://bucket-name.s3.region.amazonaws.com/notes/uuid/filename
             String[] parts = fileUrl.split(".amazonaws.com/");
             if (parts.length > 1) {
                 return parts[1];
             }
         } catch (Exception e) {
-            log.error("Error extracting key from URL: {}", fileUrl, e);
+            throw new AppException(ErrorCode.FILE_URL_INVALID);
         }
         
         return null;

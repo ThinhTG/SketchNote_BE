@@ -3,6 +3,7 @@ package com.sketchnotes.identityservice.dtos.response;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,4 +18,5 @@ public class UserResponse  implements Serializable {
     private String lastName;
     private String role;
     private String avatarUrl;
+    private LocalDateTime createdAt;
 }

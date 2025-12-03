@@ -1,4 +1,4 @@
-package com.sketchnotes.identityservice.service;
+package com.sketchnotes.identityservice.service.interfaces;
 
 import com.sketchnotes.identityservice.dtos.request.PurchaseCreditRequest;
 import com.sketchnotes.identityservice.dtos.request.UseCreditRequest;
