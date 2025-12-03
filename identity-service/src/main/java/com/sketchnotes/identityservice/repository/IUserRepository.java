@@ -15,4 +15,8 @@ public interface IUserRepository extends JpaRepository<User, Long> {
     Optional<User> findByKeycloakId(String keycloakId);
     
     long countByRole(com.sketchnotes.identityservice.enums.Role role);
+    
+    // Admin search methods
+    Page<User> findByEmailContainingIgnoreCaseOrFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(
+            String email, String firstName, String lastName, Pageable pageable);
 }

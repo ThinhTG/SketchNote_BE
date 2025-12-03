@@ -13,6 +13,9 @@ import com.sketchnotes.order_service.repository.ResourceTemplateRepository;
 import com.sketchnotes.order_service.repository.UserResourceRepository;
 import com.sketchnotes.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.cloud.stream.function.StreamBridge;
@@ -29,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -355,5 +359,50 @@ public class OrderServiceImpl implements OrderService {
                 order.getInvoiceNumber(),
                 order.getTotalAmount()
         );
+    }
+    
+    // ==================== ADMIN APIs ====================
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<OrderResponseDTO> getAllOrders(String search, String orderStatus, String paymentStatus, Pageable pageable) {
+        log.info("Admin: Getting all orders - search='{}', orderStatus='{}', paymentStatus='{}'", 
+                search, orderStatus, paymentStatus);
+        
+        Page<Order> orders;
+        
+        // Handle different filter combinations
+        if (search != null && !search.trim().isEmpty()) {
+            // Search by invoice number
+            orders = orderRepository.findByInvoiceNumberContainingIgnoreCase(search.trim(), pageable);
+        } else if (orderStatus != null && paymentStatus != null) {
+            orders = orderRepository.findByOrderStatusAndPaymentStatus(orderStatus, paymentStatus, pageable);
+        } else if (orderStatus != null) {
+            orders = orderRepository.findByOrderStatus(orderStatus, pageable);
+        } else if (paymentStatus != null) {
+            orders = orderRepository.findByPaymentStatus(paymentStatus, pageable);
+        } else {
+            orders = orderRepository.findAll(pageable);
+        }
+        
+        return orders.map(order -> enrichOrderResponse(orderMapper.toDto(order)));
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<OrderResponseDTO> getOrdersByUserId(Long userId, Pageable pageable) {
+        log.info("Admin: Getting orders for user {}", userId);
+        
+        List<Order> userOrders = orderRepository.findByUserId(userId);
+        
+        // Apply pagination manually
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), userOrders.size());
+        
+        List<OrderResponseDTO> pagedList = userOrders.subList(start, end).stream()
+                .map(order -> enrichOrderResponse(orderMapper.toDto(order)))
+                .collect(Collectors.toList());
+        
+        return new PageImpl<>(pagedList, pageable, userOrders.size());
     }
 }
