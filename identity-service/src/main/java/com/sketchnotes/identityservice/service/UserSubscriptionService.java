@@ -276,9 +276,15 @@ public class UserSubscriptionService implements IUserSubscriptionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        return userSubscriptionRepository.findActiveSubscriptionByUser(user, LocalDateTime.now())
-                .map(this::mapToResponse)
-                .orElse(null);
+        List<UserSubscription> activeSubscriptions = userSubscriptionRepository
+                .findActiveSubscriptionsByUser(user, LocalDateTime.now());
+        
+        if (activeSubscriptions.isEmpty()) {
+            return null;
+        }
+        
+        // Return the latest active subscription
+        return mapToResponse(activeSubscriptions.get(0));
     }
 
     @Override
