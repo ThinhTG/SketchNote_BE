@@ -18,6 +18,8 @@ import com.sketchnotes.identityservice.service.interfaces.INotificationService;
 import com.sketchnotes.identityservice.service.interfaces.IWithdrawalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,6 +110,16 @@ public class WithdrawalService implements IWithdrawalService {
         return requests.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    public Page<WithdrawalResponse> getWithdrawalHistoryPaged(Long userId, Pageable pageable) {
+        log.info("Getting withdrawal history for user {} with pagination - page={}, size={}", 
+                userId, pageable.getPageNumber(), pageable.getPageSize());
+        
+        Page<WithdrawalRequest> requests = withdrawalRequestRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        
+        return requests.map(this::mapToResponse);
     }
     
     @Override
@@ -202,14 +214,30 @@ public class WithdrawalService implements IWithdrawalService {
     }
     
     @Override
-    public List<WithdrawalResponse> getAllWithdrawals() {
-        log.info("Getting all withdrawal requests");
+    public Page<WithdrawalResponse> getAllWithdrawals(String search, WithdrawalStatus status, Pageable pageable) {
+        log.info("Getting all withdrawal requests with search='{}', status='{}', page={}, size={}", 
+                search, status, pageable.getPageNumber(), pageable.getPageSize());
         
-        List<WithdrawalRequest> requests = withdrawalRequestRepository.findAll();
+        Page<WithdrawalRequest> requests;
         
-        return requests.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        // Case 1: Search with status filter
+        if (search != null && !search.trim().isEmpty() && status != null) {
+            requests = withdrawalRequestRepository.searchWithdrawalsByStatus(search.trim(), status, pageable);
+        }
+        // Case 2: Search only
+        else if (search != null && !search.trim().isEmpty()) {
+            requests = withdrawalRequestRepository.searchWithdrawals(search.trim(), pageable);
+        }
+        // Case 3: Status filter only
+        else if (status != null) {
+            requests = withdrawalRequestRepository.findByStatus(status, pageable);
+        }
+        // Case 4: No filter, return all
+        else {
+            requests = withdrawalRequestRepository.findAll(pageable);
+        }
+        
+        return requests.map(this::mapToResponse);
     }
     
     /**

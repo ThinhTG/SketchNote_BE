@@ -8,6 +8,10 @@ import com.sketchnotes.identityservice.service.interfaces.IWithdrawalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,13 +48,31 @@ public class WithdrawalController {
     }
     
     /**
-     * Customer gets their withdrawal history.
-     * GET /api/withdraw/my-history
+     * Customer gets their withdrawal history with pagination.
+     * GET /api/withdraw/my-history?page=0&size=10&sort=createdAt,desc
+     * 
+     * @param page Page number (default: 0)
+     * @param size Page size (default: 10)
+     * @param sortBy Sort field (default: createdAt)
+     * @param sortDirection Sort direction (default: desc)
      */
     @GetMapping("/my-history")
-    public ResponseEntity<ApiResponse<List<WithdrawalResponse>>> getMyWithdrawalHistory() {
+    public ResponseEntity<ApiResponse<Page<WithdrawalResponse>>> getMyWithdrawalHistory(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection) {
+        
         Long userId = userService.getCurrentUser().getId();
-        List<WithdrawalResponse> response = withdrawalService.getWithdrawalHistory(userId);
+        
+        // Create sort object
+        Sort sort = sortDirection.equalsIgnoreCase("asc") 
+                ? Sort.by(sortBy).ascending() 
+                : Sort.by(sortBy).descending();
+        
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
+        Page<WithdrawalResponse> response = withdrawalService.getWithdrawalHistoryPaged(userId, pageable);
         
         return ResponseEntity.ok(ApiResponse.success(
                 response,

@@ -46,7 +46,7 @@ spring:
       idle-timeout: 30000
       connection-timeout: 20000
       max-lifetime: 600000
-    url: jdbc:postgresql://34.126.134.243:6432/usersdb
+    url: jdbc:postgresql://34.126.134.243:6432/usersdb?preparedStatementCacheQueries=0
     username: admin
     password: admin
   jpa:

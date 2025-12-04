@@ -3,10 +3,15 @@ package com.sketchnotes.identityservice.controller;
 import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.dtos.request.RejectWithdrawalRequest;
 import com.sketchnotes.identityservice.dtos.response.WithdrawalResponse;
+import com.sketchnotes.identityservice.enums.WithdrawalStatus;
 import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import com.sketchnotes.identityservice.service.interfaces.IWithdrawalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -82,14 +87,36 @@ public class AdminWithdrawalController {
     }
     
     /**
-     * Get all withdrawal requests.
-     * GET /api/admin/withdraw/all
+     * Get all withdrawal requests with pagination and search.
+     * GET /api/admin/withdraw/all?search=&status=&page=0&size=10&sort=createdAt,desc
+     * 
+     * @param search Search keyword (optional) - searches in bank name, account number, account holder
+     * @param status Filter by status (optional) - PENDING, APPROVED, REJECTED
+     * @param page Page number (default: 0)
+     * @param size Page size (default: 10)
+     * @param sortBy Sort field (default: createdAt)
+     * @param sortDirection Sort direction (default: desc)
      */
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<WithdrawalResponse>>> getAllWithdrawals() {
-        log.info("Getting all withdrawal requests");
+    public ResponseEntity<ApiResponse<Page<WithdrawalResponse>>> getAllWithdrawals(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) WithdrawalStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection) {
         
-        List<WithdrawalResponse> response = withdrawalService.getAllWithdrawals();
+        log.info("Getting all withdrawal requests - search: {}, status: {}, page: {}, size: {}", 
+                search, status, page, size);
+        
+        // Create sort object
+        Sort sort = sortDirection.equalsIgnoreCase("asc") 
+                ? Sort.by(sortBy).ascending() 
+                : Sort.by(sortBy).descending();
+        
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
+        Page<WithdrawalResponse> response = withdrawalService.getAllWithdrawals(search, status, pageable);
         
         return ResponseEntity.ok(ApiResponse.success(
                 response,
