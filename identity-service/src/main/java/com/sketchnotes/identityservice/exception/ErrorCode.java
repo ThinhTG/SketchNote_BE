@@ -59,7 +59,14 @@ public enum ErrorCode{
     WALLET_NOT_FOUND(404, "Wallet not found. Please create a wallet first", HttpStatus.NOT_FOUND),
     
     // Notification errors
-    NOTIFICATION_NOT_FOUND(404, "Notification not found", HttpStatus.NOT_FOUND);
+    NOTIFICATION_NOT_FOUND(404, "Notification not found", HttpStatus.NOT_FOUND),
+    
+    // Withdrawal errors
+    WITHDRAWAL_NOT_FOUND(404, "Withdrawal request not found", HttpStatus.NOT_FOUND),
+    PENDING_WITHDRAWAL_EXISTS(409, "You already have a pending withdrawal request", HttpStatus.CONFLICT),
+    INVALID_WITHDRAWAL_AMOUNT(400, "Invalid withdrawal amount", HttpStatus.BAD_REQUEST),
+    WITHDRAWAL_ALREADY_PROCESSED(409, "Request is already processed", HttpStatus.CONFLICT),
+    WITHDRAWAL_FAILED(500, "Failed to create withdrawal request", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;
     private final HttpStatusCode statusCode;
