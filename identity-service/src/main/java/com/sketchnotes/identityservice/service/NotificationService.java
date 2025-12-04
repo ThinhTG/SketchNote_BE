@@ -47,7 +47,7 @@ public class NotificationService implements INotificationService {
         
         // Push real-time notification via WebSocket
         try {
-            String destination = "/topic/notifications." + request.getUserId();
+            String destination = "/queue/notifications/" + request.getUserId();
             messagingTemplate.convertAndSend(destination, dto);
             log.debug("Notification pushed to WebSocket destination: {}", destination);
         } catch (Exception e) {
