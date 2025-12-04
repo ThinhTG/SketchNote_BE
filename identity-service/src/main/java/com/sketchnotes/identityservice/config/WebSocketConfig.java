@@ -1,5 +1,6 @@
 package com.sketchnotes.identityservice.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -11,6 +12,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  * WebSocket configuration for real-time notifications.
  * Configures STOMP over WebSocket with SockJS fallback.
  */
+@Slf4j
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
@@ -43,8 +45,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        log.info("🔵 [Notification WebSocket] ===== REGISTERING STOMP ENDPOINTS =====");
+        log.info("🔵 [Notification WebSocket] Registering endpoint: /ws-notifications");
+        
         registry.addEndpoint("/ws-notifications")
                 .setAllowedOriginPatterns(allowedOrigins.split(","));
                 // SockJS removed - using native WebSocket only
+        
+        log.info("✅ [Notification WebSocket] Endpoint registered successfully at /ws-notifications");
+        log.info("✅ [Notification WebSocket] Allowed origins: {}", allowedOrigins);
+        log.info("🔵 [Notification WebSocket] ===== STOMP ENDPOINTS REGISTERED =====");
     }
 }
