@@ -3,6 +3,9 @@ package com.sketchnotes.identityservice.service.interfaces;
 import com.sketchnotes.identityservice.dtos.request.RejectWithdrawalRequest;
 import com.sketchnotes.identityservice.dtos.request.WithdrawalRequestDto;
 import com.sketchnotes.identityservice.dtos.response.WithdrawalResponse;
+import com.sketchnotes.identityservice.enums.WithdrawalStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -27,6 +30,15 @@ public interface IWithdrawalService {
      * @return list of withdrawal responses
      */
     List<WithdrawalResponse> getWithdrawalHistory(Long userId);
+    
+    /**
+     * Get withdrawal history for a user with pagination.
+     *
+     * @param userId the user ID
+     * @param pageable pagination information
+     * @return page of withdrawal responses
+     */
+    Page<WithdrawalResponse> getWithdrawalHistoryPaged(Long userId, Pageable pageable);
     
     /**
      * Staff approves a withdrawal request.
@@ -55,9 +67,12 @@ public interface IWithdrawalService {
     List<WithdrawalResponse> getPendingWithdrawals();
     
     /**
-     * Get all withdrawal requests (for admin/staff).
+     * Get all withdrawal requests with pagination and search (for admin/staff).
      *
-     * @return list of all withdrawal responses
+     * @param search search keyword (optional)
+     * @param status filter by status (optional)
+     * @param pageable pagination information
+     * @return page of withdrawal responses
      */
-    List<WithdrawalResponse> getAllWithdrawals();
+    Page<WithdrawalResponse> getAllWithdrawals(String search, WithdrawalStatus status, Pageable pageable);
 }
