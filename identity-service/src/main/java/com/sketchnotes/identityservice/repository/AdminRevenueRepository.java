@@ -1,0 +1,221 @@
+package com.sketchnotes.identityservice.repository;
+
+import com.sketchnotes.identityservice.enums.TransactionType;
+import com.sketchnotes.identityservice.model.Transaction;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * Repository chuyên dụng cho Admin Revenue Dashboard
+ * Chỉ truy vấn các giao dịch tạo ra doanh thu cho Admin (Subscription, Token)
+ */
+@Repository
+public interface AdminRevenueRepository extends JpaRepository<Transaction, Long> {
+
+    // ==================== TỔNG DOANH THU ====================
+    
+    /**
+     * Tổng doanh thu từ Subscription trong khoảng thời gian
+     * Bao gồm cả SUBSCRIPTION và PURCHASE_SUBSCRIPTION để cover tất cả cases
+     */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS' " +
+           "AND t.createdAt BETWEEN :start AND :end")
+    BigDecimal getTotalSubscriptionRevenue(@Param("start") LocalDateTime start, 
+                                           @Param("end") LocalDateTime end);
+    
+    /**
+     * Tổng doanh thu từ Token/AI Credits trong khoảng thời gian
+     */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS' " +
+           "AND t.createdAt BETWEEN :start AND :end")
+    BigDecimal getTotalTokenRevenue(@Param("start") LocalDateTime start, 
+                                    @Param("end") LocalDateTime end);
+    
+    /**
+     * Tổng doanh thu từ tất cả nguồn (Subscription + Token)
+     */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS') AND t.status = 'SUCCESS' " +
+           "AND t.createdAt BETWEEN :start AND :end")
+    BigDecimal getTotalRevenue(@Param("start") LocalDateTime start, 
+                               @Param("end") LocalDateTime end);
+    
+    // ==================== ĐẾM GIAO DỊCH ====================
+    
+    /**
+     * Đếm số giao dịch subscription thành công
+     */
+    @Query("SELECT COUNT(t) FROM Transaction t " +
+           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS' " +
+           "AND t.createdAt BETWEEN :start AND :end")
+    Long countSubscriptionTransactions(@Param("start") LocalDateTime start, 
+                                       @Param("end") LocalDateTime end);
+    
+    /**
+     * Đếm số giao dịch mua token thành công
+     */
+    @Query("SELECT COUNT(t) FROM Transaction t " +
+           "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS' " +
+           "AND t.createdAt BETWEEN :start AND :end")
+    Long countTokenTransactions(@Param("start") LocalDateTime start, 
+                                @Param("end") LocalDateTime end);
+    
+    // ==================== DOANH THU THEO NGÀY ====================
+    
+    /**
+     * Doanh thu subscription theo ngày
+     */
+    @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM-DD') as period, " +
+                   "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
+                   "FROM transaction t " +
+                   "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS' " +
+                   "AND t.created_at BETWEEN :start AND :end " +
+                   "GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getSubscriptionRevenueByDay(@Param("start") LocalDateTime start, 
+                                               @Param("end") LocalDateTime end);
+    
+    /**
+     * Doanh thu token theo ngày
+     */
+    @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM-DD') as period, " +
+                   "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
+                   "FROM transaction t " +
+                   "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS' " +
+                   "AND t.created_at BETWEEN :start AND :end " +
+                   "GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getTokenRevenueByDay(@Param("start") LocalDateTime start, 
+                                        @Param("end") LocalDateTime end);
+    
+    /**
+     * Tổng doanh thu theo ngày (Subscription + Token)
+     */
+    @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM-DD') as period, " +
+                   "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
+                   "FROM transaction t " +
+                   "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS') AND t.status = 'SUCCESS' " +
+                   "AND t.created_at BETWEEN :start AND :end " +
+                   "GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getTotalRevenueByDay(@Param("start") LocalDateTime start, 
+                                        @Param("end") LocalDateTime end);
+    
+    // ==================== DOANH THU THEO THÁNG ====================
+    
+    /**
+     * Doanh thu subscription theo tháng
+     */
+    @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM') as period, " +
+                   "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
+                   "FROM transaction t " +
+                   "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS' " +
+                   "AND t.created_at BETWEEN :start AND :end " +
+                   "GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getSubscriptionRevenueByMonth(@Param("start") LocalDateTime start, 
+                                                 @Param("end") LocalDateTime end);
+    
+    /**
+     * Doanh thu token theo tháng
+     */
+    @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM') as period, " +
+                   "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
+                   "FROM transaction t " +
+                   "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS' " +
+                   "AND t.created_at BETWEEN :start AND :end " +
+                   "GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getTokenRevenueByMonth(@Param("start") LocalDateTime start, 
+                                          @Param("end") LocalDateTime end);
+    
+    /**
+     * Tổng doanh thu theo tháng
+     */
+    @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM') as period, " +
+                   "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
+                   "FROM transaction t " +
+                   "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS') AND t.status = 'SUCCESS' " +
+                   "AND t.created_at BETWEEN :start AND :end " +
+                   "GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getTotalRevenueByMonth(@Param("start") LocalDateTime start, 
+                                          @Param("end") LocalDateTime end);
+    
+    // ==================== DOANH THU THEO NĂM ====================
+    
+    /**
+     * Doanh thu subscription theo năm
+     */
+    @Query(value = "SELECT to_char(t.created_at, 'YYYY') as period, " +
+                   "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
+                   "FROM transaction t " +
+                   "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS' " +
+                   "AND t.created_at BETWEEN :start AND :end " +
+                   "GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getSubscriptionRevenueByYear(@Param("start") LocalDateTime start, 
+                                                @Param("end") LocalDateTime end);
+    
+    /**
+     * Doanh thu token theo năm
+     */
+    @Query(value = "SELECT to_char(t.created_at, 'YYYY') as period, " +
+                   "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
+                   "FROM transaction t " +
+                   "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS' " +
+                   "AND t.created_at BETWEEN :start AND :end " +
+                   "GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getTokenRevenueByYear(@Param("start") LocalDateTime start, 
+                                         @Param("end") LocalDateTime end);
+    
+    /**
+     * Tổng doanh thu theo năm
+     */
+    @Query(value = "SELECT to_char(t.created_at, 'YYYY') as period, " +
+                   "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
+                   "FROM transaction t " +
+                   "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS') AND t.status = 'SUCCESS' " +
+                   "AND t.created_at BETWEEN :start AND :end " +
+                   "GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getTotalRevenueByYear(@Param("start") LocalDateTime start, 
+                                         @Param("end") LocalDateTime end);
+    
+    // ==================== WALLET OVERVIEW (THAM KHẢO) ====================
+    
+    /**
+     * Tổng tiền user đã deposit (để tham khảo, không phải revenue)
+     */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.type = 'DEPOSIT' AND t.status = 'SUCCESS'")
+    BigDecimal getTotalUserDeposits();
+    
+    /**
+     * Tổng tiền user đã withdraw (để tham khảo)
+     */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.type = 'WITHDRAW' AND t.status = 'SUCCESS'")
+    BigDecimal getTotalUserWithdrawals();
+    
+    /**
+     * Tổng doanh thu từ tất cả thời gian (All-time revenue)
+     */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS') AND t.status = 'SUCCESS'")
+    BigDecimal getAllTimeRevenue();
+    
+    /**
+     * Tổng doanh thu subscription từ tất cả thời gian
+     */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS'")
+    BigDecimal getAllTimeSubscriptionRevenue();
+    
+    /**
+     * Tổng doanh thu token từ tất cả thời gian
+     */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS'")
+    BigDecimal getAllTimeTokenRevenue();
+}

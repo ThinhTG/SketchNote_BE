@@ -13,6 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Service implementation cho Admin Dashboard - Order Service
+ * 
+ * LƯU Ý: Logic thống kê REVENUE đã được chuyển sang identity-service.
+ * Method getRevenueStats() đã deprecated, sử dụng AdminRevenueServiceImpl trong identity-service.
+ */
 @Service
 public class AdminDashboardServiceImpl implements AdminDashboardService {
 
@@ -39,77 +45,25 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
                 .build();
     }
 
+    /**
+     * @deprecated Logic revenue đã chuyển sang identity-service.
+     * Sử dụng GET /api/admin/revenue/stats trong identity-service.
+     * 
+     * Logic mới:
+     * - Revenue = Subscription + Token/AI Credits
+     * - KHÔNG bao gồm Deposit/Withdraw (đây là tiền của user)
+     */
     @Override
+    @Deprecated
     public AdminDashboardResponseDTO.RevenueStatsDTO getRevenueStats(LocalDateTime start, LocalDateTime end, String groupBy, String type) {
-        List<AdminDashboardResponseDTO.RevenueDataPoint> courseRevenue = new ArrayList<>();
-        BigDecimal totalCourseRevenue = BigDecimal.ZERO;
-
-        List<AdminDashboardResponseDTO.RevenueDataPoint> subscriptionRevenue = new ArrayList<>();
-        BigDecimal totalSubscriptionRevenue = BigDecimal.ZERO;
-
-        List<AdminDashboardResponseDTO.RevenueDataPoint> resourceCommissionRevenue = new ArrayList<>();
-        BigDecimal totalResourceCommissionRevenue = BigDecimal.ZERO;
-
-        boolean fetchAll = type == null || "all".equalsIgnoreCase(type);
-
-        // 1. Course Revenue
-        if (fetchAll || "course".equalsIgnoreCase(type)) {
-            List<Map<String, Object>> courseRevenueRaw = identityClient.getCourseRevenue(start.toString(), end.toString(), groupBy);
-            for (Map<String, Object> item : courseRevenueRaw) {
-                String period = (String) item.get("period");
-                BigDecimal amount = new BigDecimal(item.get("revenue").toString());
-                courseRevenue.add(new AdminDashboardResponseDTO.RevenueDataPoint(period, amount));
-                totalCourseRevenue = totalCourseRevenue.add(amount);
-            }
-        }
-
-        // 2. Subscription Revenue
-        if (fetchAll || "subscription".equalsIgnoreCase(type)) {
-            List<Object[]> subRevenueRaw;
-            if ("month".equalsIgnoreCase(groupBy)) {
-                subRevenueRaw = adminDashboardRepository.subscriptionRevenueByMonth(start, end);
-            } else if ("year".equalsIgnoreCase(groupBy)) {
-                subRevenueRaw = adminDashboardRepository.subscriptionRevenueByYear(start, end);
-            } else {
-                subRevenueRaw = adminDashboardRepository.subscriptionRevenueByDay(start, end);
-            }
-
-            for (Object[] row : subRevenueRaw) {
-                String period = row[0] == null ? null : row[0].toString();
-                BigDecimal amount = row[1] == null ? BigDecimal.ZERO : new BigDecimal(row[1].toString());
-                subscriptionRevenue.add(new AdminDashboardResponseDTO.RevenueDataPoint(period, amount));
-                totalSubscriptionRevenue = totalSubscriptionRevenue.add(amount);
-            }
-        }
-
-        // 3. Resource Commission Revenue
-        if (fetchAll || "commission".equalsIgnoreCase(type)) {
-            List<Object[]> resourceRevenueRaw;
-            if ("month".equalsIgnoreCase(groupBy)) {
-                resourceRevenueRaw = adminDashboardRepository.resourceRevenueByMonth(start, end);
-            } else if ("year".equalsIgnoreCase(groupBy)) {
-                resourceRevenueRaw = adminDashboardRepository.resourceRevenueByYear(start, end);
-            } else {
-                resourceRevenueRaw = adminDashboardRepository.resourceRevenueByDay(start, end);
-            }
-
-            for (Object[] row : resourceRevenueRaw) {
-                String period = row[0] == null ? null : row[0].toString();
-                BigDecimal totalResourceSales = row[1] == null ? BigDecimal.ZERO : new BigDecimal(row[1].toString());
-                BigDecimal commission = totalResourceSales.multiply(COMMISSION_RATE);
-
-                resourceCommissionRevenue.add(new AdminDashboardResponseDTO.RevenueDataPoint(period, commission));
-                totalResourceCommissionRevenue = totalResourceCommissionRevenue.add(commission);
-            }
-        }
-
+        // Return empty stats - logic đã chuyển sang identity-service
         return AdminDashboardResponseDTO.RevenueStatsDTO.builder()
-                .courseRevenue(courseRevenue)
-                .subscriptionRevenue(subscriptionRevenue)
-                .resourceCommissionRevenue(resourceCommissionRevenue)
-                .totalCourseRevenue(totalCourseRevenue)
-                .totalSubscriptionRevenue(totalSubscriptionRevenue)
-                .totalResourceCommissionRevenue(totalResourceCommissionRevenue)
+                .courseRevenue(new ArrayList<>())
+                .subscriptionRevenue(new ArrayList<>())
+                .resourceCommissionRevenue(new ArrayList<>())
+                .totalCourseRevenue(BigDecimal.ZERO)
+                .totalSubscriptionRevenue(BigDecimal.ZERO)
+                .totalResourceCommissionRevenue(BigDecimal.ZERO)
                 .build();
     }
 
