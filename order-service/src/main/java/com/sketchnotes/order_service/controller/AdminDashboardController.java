@@ -15,6 +15,18 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 
+/**
+ * Controller cho Admin Dashboard - Order Service
+ * 
+ * LƯU Ý: Logic thống kê REVENUE đã được chuyển sang identity-service.
+ * Sử dụng API mới: /api/admin/revenue/* trong identity-service
+ * 
+ * Controller này chỉ còn quản lý:
+ * - User stats (proxy từ identity-service)
+ * - Order management
+ * - Top selling items (resources, courses)
+ * - Top designers
+ */
 @RestController
 @RequestMapping("/api/orders/admin/dashboard")
 public class AdminDashboardController {
@@ -33,18 +45,25 @@ public class AdminDashboardController {
         return ResponseEntity.ok(ApiResponse.success(result, "Admin dashboard user stats"));
     }
 
+    /**
+     * @deprecated Sử dụng API mới: GET /api/admin/revenue/stats trong identity-service
+     * 
+     * API mới cung cấp:
+     * - Doanh thu từ Subscription
+     * - Doanh thu từ Token/AI Credits  
+     * - KHÔNG bao gồm Deposit/Withdraw (đây là tiền của user, không phải revenue)
+     */
+    @Deprecated
     @GetMapping("/revenue")
-    public ResponseEntity<ApiResponse<AdminDashboardResponseDTO.RevenueStatsDTO>> getRevenue(
+    public ResponseEntity<ApiResponse<String>> getRevenue(
             @RequestParam(required = false) String start,
             @RequestParam(required = false) String end,
             @RequestParam(defaultValue = "day") String groupBy,
             @RequestParam(required = false) String type) {
         
-        LocalDateTime s = parseOrDefaultStart(start);
-        LocalDateTime e = parseOrDefaultEnd(end);
-        
-        AdminDashboardResponseDTO.RevenueStatsDTO result = adminDashboardService.getRevenueStats(s, e, groupBy, type);
-        return ResponseEntity.ok(ApiResponse.success(result, "Admin dashboard revenue stats"));
+        return ResponseEntity.ok(ApiResponse.success(
+            "API này đã deprecated. Vui lòng sử dụng GET /api/admin/revenue/stats trong identity-service",
+            "Revenue API moved to identity-service"));
     }
 
     @GetMapping("/overview")
