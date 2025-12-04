@@ -18,8 +18,18 @@ public interface IUserSubscriptionRepository extends JpaRepository<UserSubscript
     
     List<UserSubscription> findByUser(User user);
     
-    @Query("SELECT us FROM UserSubscription us WHERE us.user = :user AND us.status = 'ACTIVE' AND us.endDate > :now")
-    Optional<UserSubscription> findActiveSubscriptionByUser(User user, LocalDateTime now);
+    /**
+     * Find all active subscriptions for a user (not expired)
+     * Returns list because user might have multiple active subscriptions (edge case)
+     */
+    @Query("SELECT us FROM UserSubscription us WHERE us.user = :user AND us.status = 'ACTIVE' AND us.endDate > :now ORDER BY us.startDate DESC")
+    List<UserSubscription> findActiveSubscriptionsByUser(User user, LocalDateTime now);
+    
+    /**
+     * Find the most recent active subscription for a user
+     */
+    @Query("SELECT us FROM UserSubscription us WHERE us.user = :user AND us.status = 'ACTIVE' AND us.endDate > :now ORDER BY us.startDate DESC LIMIT 1")
+    Optional<UserSubscription> findLatestActiveSubscriptionByUser(User user, LocalDateTime now);
     
     @Query("SELECT us FROM UserSubscription us WHERE us.status = 'ACTIVE' AND us.endDate < :now")
     List<UserSubscription> findExpiredSubscriptions(LocalDateTime now);

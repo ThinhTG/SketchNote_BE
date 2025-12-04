@@ -14,4 +14,10 @@ public class PurchaseSubscriptionRequest {
     private Long planId;
 
     private Boolean autoRenew = false;
+    
+    /**
+     * Set to true to confirm upgrade when user has an active subscription
+     * that has not expired yet
+     */
+    private Boolean confirmUpgrade = false;
 }

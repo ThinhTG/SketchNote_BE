@@ -45,6 +45,8 @@ public enum ErrorCode{
     // Subscription errors
     SUBSCRIPTION_PLAN_NOT_FOUND(404, "Subscription plan not found", HttpStatus.NOT_FOUND),
     SUBSCRIPTION_NOT_FOUND(404, "Subscription not found", HttpStatus.NOT_FOUND),
+    SUBSCRIPTION_ALREADY_ACTIVE(409, "You already have this subscription plan active. Please wait until it expires or cancel it first.", HttpStatus.CONFLICT),
+    SUBSCRIPTION_UPGRADE_CONFIRMATION_REQUIRED(400, "Your current subscription has not expired yet. Please confirm upgrade by setting confirmUpgrade=true to proceed.", HttpStatus.BAD_REQUEST),
     INSUFFICIENT_BALANCE(400, "Insufficient wallet balance", HttpStatus.BAD_REQUEST),
     PROJECT_QUOTA_EXCEEDED(400, "Project quota exceeded. Please upgrade your subscription", HttpStatus.BAD_REQUEST),
     
