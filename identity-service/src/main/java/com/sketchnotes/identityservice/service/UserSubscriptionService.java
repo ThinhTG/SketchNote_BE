@@ -3,6 +3,7 @@ package com.sketchnotes.identityservice.service;
 import com.sketchnotes.identityservice.client.ProjectServiceClient;
 import com.sketchnotes.identityservice.dtos.request.PurchaseSubscriptionRequest;
 import com.sketchnotes.identityservice.dtos.response.SubscriptionPlanResponse;
+import com.sketchnotes.identityservice.dtos.response.SubscriptionUpgradeCheckResponse;
 import com.sketchnotes.identityservice.dtos.response.UserQuotaResponse;
 import com.sketchnotes.identityservice.dtos.response.UserSubscriptionResponse;
 import com.sketchnotes.identityservice.enums.PlanType;
@@ -31,7 +32,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,6 +51,86 @@ public class UserSubscriptionService implements IUserSubscriptionService {
     private final IRoleService roleService;
 
     @Override
+    public SubscriptionUpgradeCheckResponse checkUpgrade(Long userId, Long planId) {
+        log.info("Checking upgrade eligibility for user {} to plan {}", userId, planId);
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        
+        SubscriptionPlan newPlan = subscriptionPlanRepository.findById(planId)
+                .orElseThrow(() -> new AppException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
+        
+        if (!newPlan.getIsActive()) {
+            throw new AppException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND);
+        }
+        
+        // Check for active subscriptions - get the latest one
+        List<UserSubscription> activeSubscriptions = userSubscriptionRepository
+                .findActiveSubscriptionsByUser(user, LocalDateTime.now());
+        
+        SubscriptionUpgradeCheckResponse.NewPlanInfo newPlanInfo = SubscriptionUpgradeCheckResponse.NewPlanInfo.builder()
+                .planId(newPlan.getPlanId())
+                .planName(newPlan.getPlanName())
+                .planType(newPlan.getPlanType().name())
+                .price(newPlan.getPrice())
+                .durationDays(newPlan.getDurationDays())
+                .build();
+        
+        if (activeSubscriptions.isEmpty()) {
+            // No active subscription - can purchase freely
+            return SubscriptionUpgradeCheckResponse.builder()
+                    .canUpgrade(true)
+                    .hasActiveSubscription(false)
+                    .warningMessage(null)
+                    .currentSubscription(null)
+                    .newPlan(newPlanInfo)
+                    .build();
+        }
+        
+        // Has active subscription - get the latest one
+        UserSubscription activeSub = activeSubscriptions.get(0);
+        int remainingDays = (int) ChronoUnit.DAYS.between(LocalDateTime.now(), activeSub.getEndDate());
+        
+        SubscriptionUpgradeCheckResponse.CurrentSubscriptionInfo currentInfo = 
+                SubscriptionUpgradeCheckResponse.CurrentSubscriptionInfo.builder()
+                        .subscriptionId(activeSub.getSubscriptionId())
+                        .planName(activeSub.getSubscriptionPlan().getPlanName())
+                        .planType(activeSub.getSubscriptionPlan().getPlanType().name())
+                        .endDate(activeSub.getEndDate())
+                        .remainingDays(Math.max(0, remainingDays))
+                        .build();
+        
+        // Check if trying to buy the same plan
+        if (activeSub.getSubscriptionPlan().getPlanId().equals(planId)) {
+            return SubscriptionUpgradeCheckResponse.builder()
+                    .canUpgrade(false)
+                    .hasActiveSubscription(true)
+                    .warningMessage("You already have this subscription plan active. Please wait until it expires or cancel it first.")
+                    .currentSubscription(currentInfo)
+                    .newPlan(newPlanInfo)
+                    .build();
+        }
+        
+        // Can upgrade but with warning
+        String warningMessage = String.format(
+                "Your current subscription '%s' has not expired yet (%d days remaining). " +
+                "If you proceed, your current subscription will be cancelled and replaced with the new plan '%s'. " +
+                "Are you sure you want to upgrade?",
+                activeSub.getSubscriptionPlan().getPlanName(),
+                Math.max(0, remainingDays),
+                newPlan.getPlanName()
+        );
+        
+        return SubscriptionUpgradeCheckResponse.builder()
+                .canUpgrade(true)
+                .hasActiveSubscription(true)
+                .warningMessage(warningMessage)
+                .currentSubscription(currentInfo)
+                .newPlan(newPlanInfo)
+                .build();
+    }
+
+    @Override
     @Transactional
     public UserSubscriptionResponse purchaseSubscription(Long userId, PurchaseSubscriptionRequest request) {
         log.info("User {} purchasing subscription plan {}", userId, request.getPlanId());
@@ -62,6 +145,33 @@ public class UserSubscriptionService implements IUserSubscriptionService {
 
         if (!plan.getIsActive()) {
             throw new AppException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND);
+        }
+
+        // Check for active subscriptions - get all and cancel them if user confirms upgrade
+        List<UserSubscription> activeSubscriptions = userSubscriptionRepository
+                .findActiveSubscriptionsByUser(user, LocalDateTime.now());
+        
+        if (!activeSubscriptions.isEmpty()) {
+            // Check if trying to buy the same plan (check against the latest active sub)
+            UserSubscription latestActiveSub = activeSubscriptions.get(0);
+            if (latestActiveSub.getSubscriptionPlan().getPlanId().equals(request.getPlanId())) {
+                throw new AppException(ErrorCode.SUBSCRIPTION_ALREADY_ACTIVE);
+            }
+            
+            // If user hasn't confirmed upgrade, return error with warning
+            if (request.getConfirmUpgrade() == null || !request.getConfirmUpgrade()) {
+                throw new AppException(ErrorCode.SUBSCRIPTION_UPGRADE_CONFIRMATION_REQUIRED);
+            }
+            
+            // User confirmed upgrade - cancel ALL old active subscriptions
+            log.info("User {} confirmed upgrade. Cancelling {} old subscription(s)", 
+                    userId, activeSubscriptions.size());
+            for (UserSubscription activeSub : activeSubscriptions) {
+                activeSub.setStatus(SubscriptionStatus.CANCELLED);
+                activeSub.setAutoRenew(false);
+                userSubscriptionRepository.save(activeSub);
+                log.info("Cancelled subscription {}", activeSub.getSubscriptionId());
+            }
         }
 
         // Get user's wallet

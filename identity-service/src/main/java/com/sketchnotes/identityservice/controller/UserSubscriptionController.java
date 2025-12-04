@@ -1,6 +1,7 @@
 package com.sketchnotes.identityservice.controller;
 
 import com.sketchnotes.identityservice.dtos.request.PurchaseSubscriptionRequest;
+import com.sketchnotes.identityservice.dtos.response.SubscriptionUpgradeCheckResponse;
 import com.sketchnotes.identityservice.dtos.response.UserQuotaResponse;
 import com.sketchnotes.identityservice.dtos.response.UserSubscriptionResponse;
 import com.sketchnotes.identityservice.service.interfaces.IUserSubscriptionService;
@@ -22,6 +23,30 @@ public class UserSubscriptionController {
     private final IUserSubscriptionService userSubscriptionService;
     private final IUserService userService;
 
+    /**
+     * Check if user can upgrade to a new plan
+     * Returns warning if user has an active subscription that will be replaced
+     * 
+     * GET /api/users/me/subscriptions/check-upgrade?planId=2
+     */
+    @GetMapping("/check-upgrade")
+    public ResponseEntity<ApiResponse<SubscriptionUpgradeCheckResponse>> checkUpgrade(
+            @RequestParam Long planId) {
+        Long userId = userService.getCurrentUser().getId();
+        SubscriptionUpgradeCheckResponse response = userSubscriptionService.checkUpgrade(userId, planId);
+        return ResponseEntity.ok(ApiResponse.success(response, "Upgrade check completed"));
+    }
+
+    /**
+     * Purchase a subscription plan
+     * 
+     * If user has an active subscription:
+     * - First call checkUpgrade to see warning
+     * - Then call this endpoint with confirmUpgrade=true to proceed
+     * 
+     * POST /api/users/me/subscriptions
+     * Body: { "planId": 2, "autoRenew": false, "confirmUpgrade": true }
+     */
     @PostMapping
     public ResponseEntity<ApiResponse<UserSubscriptionResponse>> purchaseSubscription(
             @Valid @RequestBody PurchaseSubscriptionRequest request) {
