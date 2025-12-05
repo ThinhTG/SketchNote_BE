@@ -8,6 +8,7 @@ import com.sketchnotes.project_service.dtos.response.ProjectResponse;
 import com.sketchnotes.project_service.dtos.response.ProjectDetailResponse;
 import com.sketchnotes.project_service.service.IProjectService;
 import com.sketchnotes.project_service.utils.PagedResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class ProjectController {
     private final IUserClient userClient;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ProjectResponse>> create(@RequestBody ProjectRequest dto) {
+    public ResponseEntity<ApiResponse<ProjectResponse>> create(@RequestBody @Valid ProjectRequest dto) {
         ProjectResponse response = projectService.createProject(dto,userClient.getCurrentUser().getResult().getId());
         return ResponseEntity.ok(ApiResponse.success(response, "Project created successfully"));
     }

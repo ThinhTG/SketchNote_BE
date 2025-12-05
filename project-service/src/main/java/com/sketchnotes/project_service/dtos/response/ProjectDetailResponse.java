@@ -17,6 +17,7 @@ public class ProjectDetailResponse {
     private String description;
     private String imageUrl;
     private Long ownerId;
+    private String paperType;
     private boolean isOwner;
     private boolean isEdited;
     private boolean hasCollaboration;
