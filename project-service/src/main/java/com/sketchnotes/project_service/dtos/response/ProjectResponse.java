@@ -19,5 +19,6 @@ public class ProjectResponse {
     private Long ownerId;
     private boolean isOwner;
     private boolean isEdited;
+    private String paperType;
     private List<PageResponse> pages;
 }

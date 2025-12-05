@@ -51,13 +51,12 @@ public class ProjectService implements IProjectService {
                 throw new AppException(ErrorCode.PROJECT_QUOTA_EXCEEDED);
             }
         } catch (Exception e) {
-            // If identity-service is down, log error but allow creation (fail-open)
-            // In production, you might want to fail-closed instead
             System.err.println("Failed to check quota: " + e.getMessage());
         }
 
         Project project = Project.builder()
                 .name(dto.getName())
+                .paperType(dto.getPaperType())
                 .description(dto.getDescription())
                 .ownerId(user.getResult().getId())
                 .imageUrl(dto.getImageUrl())
