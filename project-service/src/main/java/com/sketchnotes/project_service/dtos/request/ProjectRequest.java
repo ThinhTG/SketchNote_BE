@@ -19,6 +19,6 @@ public class ProjectRequest {
     @NotBlank(message = "Description is required")
     private String description;
     private String imageUrl;
-    @NotNull(message = "Paper size is required")
-    private PaperSize paperSize;
+    @NotBlank(message = "Paper size is required")
+    private String paperSize;
 }
