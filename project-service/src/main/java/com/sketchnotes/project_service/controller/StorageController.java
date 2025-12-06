@@ -1,6 +1,7 @@
 package com.sketchnotes.project_service.controller;
 
 import com.sketchnotes.project_service.dtos.ApiResponse;
+import com.sketchnotes.project_service.dtos.request.FileRequest;
 import com.sketchnotes.project_service.enums.FileContentType;
 import com.sketchnotes.project_service.service.IStorageService;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +27,8 @@ public class StorageController {
 
     @PostMapping("/storage/copy")
     public ResponseEntity<ApiResponse<Map<String, String>>> copyFile(
-                @RequestParam String sourceFileUrl) {
-        String newFileUrl = storageService.copyFile(sourceFileUrl);
+                @RequestParam FileRequest fileRequest) {
+        String newFileUrl = storageService.copyFile(fileRequest.getSourceFileUrl());
         Map<String, String> response = Map.of("newFileUrl", newFileUrl);
         return ResponseEntity.ok(ApiResponse.success(response, "File copied successfully"));
     }

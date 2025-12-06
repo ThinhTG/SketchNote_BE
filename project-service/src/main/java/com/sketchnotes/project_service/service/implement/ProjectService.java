@@ -12,6 +12,7 @@ import com.sketchnotes.project_service.dtos.response.UserQuotaResponse;
 import com.sketchnotes.project_service.dtos.response.UserResponse;
 import com.sketchnotes.project_service.entity.Project;
 import com.sketchnotes.project_service.entity.ProjectCollaboration;
+import com.sketchnotes.project_service.enums.PaperSize;
 import com.sketchnotes.project_service.exception.AppException;
 import com.sketchnotes.project_service.exception.ErrorCode;
 import com.sketchnotes.project_service.repository.IProjectCollaborationRepository;
@@ -56,7 +57,7 @@ public class ProjectService implements IProjectService {
 
         Project project = Project.builder()
                 .name(dto.getName())
-                .paperSize(dto.getPaperSize())
+                .paperSize(PaperSize.valueOf(dto.getPaperSize()))
                 .description(dto.getDescription())
                 .ownerId(user.getResult().getId())
                 .imageUrl(dto.getImageUrl())
@@ -150,7 +151,7 @@ public class ProjectService implements IProjectService {
         project.setName(dto.getName());
         project.setDescription(dto.getDescription());
         project.setImageUrl(dto.getImageUrl());
-        project.setPaperSize(dto.getPaperSize());
+        project.setPaperSize(PaperSize.valueOf(dto.getPaperSize()));
         Project updated = projectRepository.save(project);
         return ProjectMapper.toDTO(updated);
     }
