@@ -393,42 +393,12 @@ public class TemplateServiceImpl implements TemplateService {
         template.setName(pendingVersion.getName());
         template.setDescription(pendingVersion.getDescription());
         template.setPrice(pendingVersion.getPrice());
-        template.setType(pendingVersion.getType()); // Already TemplateType enum, no conversion needed
+        template.setType(pendingVersion.getType());
         
-        // 🔹 Sync images from version to template
-        if (pendingVersion.getImages() != null && !pendingVersion.getImages().isEmpty()) {
-            // Clear old images
-            template.getImages().clear();
-            // Add new images from version
-            List<ResourcesTemplateImage> newImages = pendingVersion.getImages().stream()
-                    .map(vImg -> {
-                        ResourcesTemplateImage img = new ResourcesTemplateImage();
-                        img.setImageUrl(vImg.getImageUrl());
-                        img.setIsThumbnail(vImg.getIsThumbnail());
-                        img.setResourceTemplate(template);
-                        return img;
-                    }).toList();
-            template.getImages().addAll(newImages);
-        }
-        
-        // 🔹 Sync items from version to template
-        if (pendingVersion.getItems() != null && !pendingVersion.getItems().isEmpty()) {
-            // Clear old items
-            if (template.getItems() != null) {
-                template.getItems().clear();
-            }
-            // Add new items from version
-            List<ResourceTemplateItem> newItems = pendingVersion.getItems().stream()
-                    .map(vItem -> {
-                        ResourceTemplateItem item = new ResourceTemplateItem();
-                        item.setItemIndex(vItem.getItemIndex());
-                        item.setItemUrl(vItem.getItemUrl());
-                        item.setImageUrl(vItem.getImageUrl());
-                        item.setResourceTemplate(template);
-                        return item;
-                    }).toList();
-            template.setItems(newItems);
-        }
+        // Note: We don't sync images and items here because:
+        // 1. Version already has its own images/items in separate tables
+        // 2. Syncing would create new database records and could cause constraint issues
+        // 3. When users fetch the template, they'll get data from the published version via API
         
         // 🔹 Update template status and set currentPublishedVersionId
         template.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
