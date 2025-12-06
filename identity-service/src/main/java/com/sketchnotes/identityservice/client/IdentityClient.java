@@ -32,7 +32,7 @@ public interface IdentityClient {
     @Headers("Content-Type: application/x-www-form-urlencoded")
     LoginExchangeResponse refreshToken(RefreshTokenParam param);
     //login with google
-    @PostMapping(value = "/realms/${idp.client-id}/protocol/openid-connect  /token",
+    @PostMapping(value = "/realms/${idp.client-id}/protocol/openid-connect/token",
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     @Headers("Content-Type: application/x-www-form-urlencoded")
     LoginExchangeResponse loginWithGoogle(GoogleLoginParam param);

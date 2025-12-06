@@ -57,8 +57,8 @@ public class ImageGenerationService implements IImageGenerationService {
     private  final IImagePromptRepository imagePromptRepository;
     private final IUserClient userClient;
     private final CreditClient creditClient;
-    private final int CREDIT_COST_PER_IMAGE = 5;
-    private final int CREDIT_COST_PER_BACKGROUND_REMOVAL = 10;
+    private final int CREDIT_COST_PER_IMAGE = 1;
+    private final int CREDIT_COST_PER_BACKGROUND_REMOVAL = 2;
 
     /**
      * Phương thức chính: Tạo ảnh bằng Imagen 3.0 và Upload lên S3.
