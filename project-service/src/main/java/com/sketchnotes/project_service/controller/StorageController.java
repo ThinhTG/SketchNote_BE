@@ -27,7 +27,7 @@ public class StorageController {
 
     @PostMapping("/storage/copy")
     public ResponseEntity<ApiResponse<Map<String, String>>> copyFile(
-                @RequestParam FileRequest fileRequest) {
+                @RequestBody FileRequest fileRequest) {
         String newFileUrl = storageService.copyFile(fileRequest.getSourceFileUrl());
         Map<String, String> response = Map.of("newFileUrl", newFileUrl);
         return ResponseEntity.ok(ApiResponse.success(response, "File copied successfully"));
