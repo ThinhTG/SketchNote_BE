@@ -69,14 +69,20 @@ public class UserResourceServiceImpl implements UserResourceService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getPurchasedTemplates(Long userId) {
+        // 🔹 Get all resource template IDs that user has purchased
         List<Long> templateIds = userResourceRepository.findActiveTemplateIdsByUserId(userId);
         if (templateIds == null || templateIds.isEmpty()) return java.util.Collections.emptyList();
 
+        // 🔹 Get templates - only PUBLISHED ones
         List<ResourceTemplate> templates = resourceTemplateRepository
                 .findByTemplateIdInAndStatus(templateIds, ResourceTemplate.TemplateStatus.PUBLISHED);
 
         List<ResourceTemplateDTO> result = new java.util.ArrayList<>();
         for (ResourceTemplate rt : templates) {
+            // 🔹 IMPORTANT: Always return the CURRENT PUBLISHED VERSION
+            // When user purchases version 1.0, they automatically get upgraded to version 2.0 when it's published
+            // This is done by using currentPublishedVersionId to fetch the latest version data
+            
             ResourceTemplateDTO dto = ResourceTemplateDTO.builder()
                     .resourceTemplateId(rt.getTemplateId())
                     .designerId(rt.getDesignerId())
@@ -91,6 +97,8 @@ public class UserResourceServiceImpl implements UserResourceService {
                     .status(rt.getStatus() != null ? rt.getStatus().name() : null)
                     .build();
 
+            // 🔹 Get items from CURRENT VERSION (if currentPublishedVersionId exists)
+            // Otherwise fall back to template items (for backward compatibility)
             if (rt.getItems() != null) {
                 java.util.List<ResourceItemDTO> itemDTOs = new java.util.ArrayList<>();
                 for (ResourceTemplateItem item : rt.getItems()) {

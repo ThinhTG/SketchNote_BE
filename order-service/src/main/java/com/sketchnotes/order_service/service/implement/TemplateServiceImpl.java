@@ -10,9 +10,13 @@ import com.sketchnotes.order_service.dtos.project.ProjectResponse;
 import com.sketchnotes.order_service.entity.ResourceTemplate;
 import com.sketchnotes.order_service.entity.ResourcesTemplateImage;
 import com.sketchnotes.order_service.entity.ResourceTemplateItem;
+import com.sketchnotes.order_service.entity.ResourceTemplateVersion;
+import com.sketchnotes.order_service.entity.ResourceTemplateVersionImage;
+import com.sketchnotes.order_service.entity.ResourceTemplateVersionItem;
 import com.sketchnotes.order_service.exception.ResourceTemplateNotFoundException;
 import com.sketchnotes.order_service.mapper.OrderMapper;
 import com.sketchnotes.order_service.repository.ResourceTemplateRepository;
+import com.sketchnotes.order_service.repository.ResourceTemplateVersionRepository;
 import com.sketchnotes.order_service.service.TemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,6 +39,7 @@ import java.util.List;
 public class TemplateServiceImpl implements TemplateService {
     
     private final ResourceTemplateRepository resourceTemplateRepository;
+    private final ResourceTemplateVersionRepository versionRepository;
     private final OrderMapper orderMapper;
     private final ProjectClient projectClient;
     private final com.sketchnotes.order_service.repository.OrderRepository orderRepository;
@@ -222,7 +227,49 @@ public class TemplateServiceImpl implements TemplateService {
             }
         }
         
+        // Save template first to get ID
         ResourceTemplate saved = resourceTemplateRepository.save(template);
+        
+        // 🔹 AUTO-CREATE VERSION 1.0 with PENDING_REVIEW status
+        ResourceTemplateVersion version = new ResourceTemplateVersion();
+        version.setTemplateId(saved.getTemplateId());
+        version.setVersionNumber("1.0");
+        version.setName(saved.getName());
+        version.setDescription(saved.getDescription());
+        version.setPrice(saved.getPrice());
+        version.setType(saved.getType());
+        version.setStatus(ResourceTemplate.TemplateStatus.PENDING_REVIEW);
+        version.setCreatedBy(templateDTO.getDesignerId());
+        
+        // Copy images to version
+        if (saved.getImages() != null && !saved.getImages().isEmpty()) {
+            List<ResourceTemplateVersionImage> versionImages = saved.getImages().stream()
+                    .map(img -> {
+                        ResourceTemplateVersionImage vImg = new ResourceTemplateVersionImage();
+                        vImg.setImageUrl(img.getImageUrl());
+                        vImg.setIsThumbnail(img.getIsThumbnail());
+                        vImg.setVersion(version);
+                        return vImg;
+                    }).toList();
+            version.setImages(versionImages);
+        }
+        
+        // Copy items to version
+        if (saved.getItems() != null && !saved.getItems().isEmpty()) {
+            List<ResourceTemplateVersionItem> versionItems = saved.getItems().stream()
+                    .map(item -> {
+                        ResourceTemplateVersionItem vItem = new ResourceTemplateVersionItem();
+                        vItem.setItemIndex(item.getItemIndex());
+                        vItem.setItemUrl(item.getItemUrl());
+                        vItem.setImageUrl(item.getImageUrl());
+                        vItem.setVersion(version);
+                        return vItem;
+                    }).toList();
+            version.setItems(versionItems);
+        }
+        
+        versionRepository.save(version);
+        
         return orderMapper.toDto(saved);
     }
 
@@ -329,7 +376,63 @@ public class TemplateServiceImpl implements TemplateService {
             throw new IllegalStateException("Template with id " + id + " is not in PENDING_REVIEW status");
         }
         
+        // 🔹 Find the PENDING_REVIEW version for this template
+        ResourceTemplateVersion pendingVersion = versionRepository
+                .findByTemplateIdAndStatus(id, ResourceTemplate.TemplateStatus.PENDING_REVIEW)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No pending version found for template " + id));
+        
+        // 🔹 Update version status to PUBLISHED
+        pendingVersion.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
+        pendingVersion.setReviewedAt(java.time.LocalDateTime.now());
+        versionRepository.save(pendingVersion);
+        
+        // 🔹 SYNC VERSION DATA TO TEMPLATE (for auto-upgrade)
+        // This ensures users who bought old versions automatically see new version
+        template.setName(pendingVersion.getName());
+        template.setDescription(pendingVersion.getDescription());
+        template.setPrice(pendingVersion.getPrice());
+        template.setType(pendingVersion.getType()); // Already TemplateType enum, no conversion needed
+        
+        // 🔹 Sync images from version to template
+        if (pendingVersion.getImages() != null && !pendingVersion.getImages().isEmpty()) {
+            // Clear old images
+            template.getImages().clear();
+            // Add new images from version
+            List<ResourcesTemplateImage> newImages = pendingVersion.getImages().stream()
+                    .map(vImg -> {
+                        ResourcesTemplateImage img = new ResourcesTemplateImage();
+                        img.setImageUrl(vImg.getImageUrl());
+                        img.setIsThumbnail(vImg.getIsThumbnail());
+                        img.setResourceTemplate(template);
+                        return img;
+                    }).toList();
+            template.getImages().addAll(newImages);
+        }
+        
+        // 🔹 Sync items from version to template
+        if (pendingVersion.getItems() != null && !pendingVersion.getItems().isEmpty()) {
+            // Clear old items
+            if (template.getItems() != null) {
+                template.getItems().clear();
+            }
+            // Add new items from version
+            List<ResourceTemplateItem> newItems = pendingVersion.getItems().stream()
+                    .map(vItem -> {
+                        ResourceTemplateItem item = new ResourceTemplateItem();
+                        item.setItemIndex(vItem.getItemIndex());
+                        item.setItemUrl(vItem.getItemUrl());
+                        item.setImageUrl(vItem.getImageUrl());
+                        item.setResourceTemplate(template);
+                        return item;
+                    }).toList();
+            template.setItems(newItems);
+        }
+        
+        // 🔹 Update template status and set currentPublishedVersionId
         template.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
+        template.setCurrentPublishedVersionId(pendingVersion.getVersionId());
         ResourceTemplate saved = resourceTemplateRepository.save(template);
         return orderMapper.toDto(saved);
     }
@@ -344,6 +447,21 @@ public class TemplateServiceImpl implements TemplateService {
             throw new IllegalStateException("Template with id " + id + " is not in PENDING_REVIEW status");
         }
         
+        // 🔹 Find the PENDING_REVIEW version for this template
+        ResourceTemplateVersion pendingVersion = versionRepository
+                .findByTemplateIdAndStatus(id, ResourceTemplate.TemplateStatus.PENDING_REVIEW)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No pending version found for template " + id));
+        
+        // 🔹 Update version status to REJECTED
+        pendingVersion.setStatus(ResourceTemplate.TemplateStatus.REJECTED);
+        pendingVersion.setReviewedAt(java.time.LocalDateTime.now());
+        // Optional: Set review comment if needed
+        // pendingVersion.setReviewComment("Rejected by admin");
+        versionRepository.save(pendingVersion);
+        
+        // 🔹 Update template status
         template.setStatus(ResourceTemplate.TemplateStatus.REJECTED);
         ResourceTemplate saved = resourceTemplateRepository.save(template);
         return orderMapper.toDto(saved);
