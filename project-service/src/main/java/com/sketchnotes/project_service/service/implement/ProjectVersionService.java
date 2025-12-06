@@ -98,7 +98,7 @@ public class ProjectVersionService implements IProjectVersionService {
                     .projectVersion(newVersion)
                     .pageNumber(oldPage.getPageNumber())
                     .snapshotUrl(oldPage.getSnapshotUrl())
-                    .strokeUrl(oldPage.getStrokeUrl())
+                    .strokeUrl(storageService.copyFile(oldPage.getStrokeUrl()))
                     .build();
             pageRepository.save(newPage);
         }
