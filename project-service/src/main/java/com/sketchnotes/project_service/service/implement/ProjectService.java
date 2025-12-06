@@ -56,7 +56,7 @@ public class ProjectService implements IProjectService {
 
         Project project = Project.builder()
                 .name(dto.getName())
-                .paperType(dto.getPaperType())
+                .paperSize(dto.getPaperSize())
                 .description(dto.getDescription())
                 .ownerId(user.getResult().getId())
                 .imageUrl(dto.getImageUrl())

@@ -20,5 +20,5 @@ public class ProjectRequest {
     private String description;
     private String imageUrl;
     @NotNull(message = "Paper size is required")
-    private PaperType paperType;
+    private PaperSize paperSize;
 }
