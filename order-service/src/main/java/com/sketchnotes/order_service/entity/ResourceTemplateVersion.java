@@ -14,14 +14,17 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "resource_template")
-public class ResourceTemplate {
+@Table(name = "resource_template_version")
+public class ResourceTemplateVersion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long versionId;
+
+    @Column(name = "template_id", nullable = false)
     private Long templateId;
 
-    @Column(name = "designer_id", nullable = false)
-    private Long designerId;
+    @Column(name = "version_number", nullable = false)
+    private String versionNumber; // e.g., "1.0", "2.0", "3.0"
 
     @Column(name = "name", length = 50, nullable = false)
     private String name;
@@ -31,7 +34,7 @@ public class ResourceTemplate {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
-    private TemplateType type;
+    private ResourceTemplate.TemplateType type;
 
     @Column(name = "price", precision = 15, scale = 2, nullable = false)
     private BigDecimal price;
@@ -42,23 +45,33 @@ public class ResourceTemplate {
     @Column(name = "release_date")
     private LocalDate releaseDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private ResourceTemplate.TemplateStatus status = ResourceTemplate.TemplateStatus.PENDING_REVIEW;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "resourceTemplate", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ResourcesTemplateImage> images = new ArrayList<>();
+    @Column(name = "created_by", nullable = false)
+    private Long createdBy; // designer ID
 
-    @OneToMany(mappedBy = "resourceTemplate", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ResourceTemplateItem> items = new ArrayList<>();
+    @Column(name = "reviewed_by")
+    private Long reviewedBy; // staff ID who reviewed
 
-    @Column(name = "current_published_version_id")
-    private Long currentPublishedVersionId; // ID of the currently published version
+    @Column(name = "reviewed_at")
+    private LocalDateTime reviewedAt;
 
-    @Column(name = "is_archived")
-    private Boolean isArchived = false; // true when designer archives the product
+    @Column(name = "review_comment")
+    private String reviewComment; // Lý do từ chối hoặc comment khi approve
+
+    @OneToMany(mappedBy = "version", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ResourceTemplateVersionImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "version", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ResourceTemplateVersionItem> items = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -67,27 +80,10 @@ public class ResourceTemplate {
         if (releaseDate == null) {
             releaseDate = LocalDate.now();
         }
-        if (isArchived == null) {
-            isArchived = false;
-        }
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
-    public enum TemplateType {
-       ICONS, TEMPLATES, FONT, ILLUSTRATIONS, MOCKUPS, PHOTOS, TITLES, OTHER
-    }
-
-    public enum TemplateStatus {
-        PENDING_REVIEW,
-        PUBLISHED,
-        REJECTED
-    }
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private TemplateStatus status = TemplateStatus.PENDING_REVIEW;
 }

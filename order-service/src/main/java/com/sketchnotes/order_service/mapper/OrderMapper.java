@@ -1,6 +1,7 @@
 package com.sketchnotes.order_service.mapper;
 
 import com.sketchnotes.order_service.dtos.*;
+import com.sketchnotes.order_service.dtos.designer.ResourceTemplateVersionDTO;
 import com.sketchnotes.order_service.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -106,6 +107,44 @@ public interface OrderMapper {
     // TemplateCreateUpdateDTO mappings
     ResourceTemplate toEntity(TemplateCreateUpdateDTO dto);
     TemplateCreateUpdateDTO toCreateUpdateDto(ResourceTemplate template);
+
+    // ResourceTemplateVersion mappings
+    @Mapping(target = "type", expression = "java(version.getType() != null ? version.getType().name() : null)")
+    @Mapping(target = "status", expression = "java(version.getStatus() != null ? version.getStatus().name() : null)")
+    @Mapping(target = "images", source = "images")
+    @Mapping(target = "items", source = "items")
+    ResourceTemplateVersionDTO toVersionDto(ResourceTemplateVersion version);
+
+    // ResourceTemplateVersionImage -> ResourceImageDTO
+    default com.sketchnotes.order_service.dtos.ResourceImageDTO toImageDtoFromVersion(com.sketchnotes.order_service.entity.ResourceTemplateVersionImage image) {
+        if (image == null) return null;
+        return com.sketchnotes.order_service.dtos.ResourceImageDTO.builder()
+                .id(image.getImageId())
+                .imageUrl(image.getImageUrl())
+                .isThumbnail(image.getIsThumbnail())
+                .build();
+    }
+
+    default java.util.List<com.sketchnotes.order_service.dtos.ResourceImageDTO> mapVersionImages(java.util.List<com.sketchnotes.order_service.entity.ResourceTemplateVersionImage> images) {
+        if (images == null) return null;
+        return images.stream().map(this::toImageDtoFromVersion).toList();
+    }
+
+    // ResourceTemplateVersionItem -> ResourceItemDTO
+    default com.sketchnotes.order_service.dtos.ResourceItemDTO toItemDtoFromVersion(com.sketchnotes.order_service.entity.ResourceTemplateVersionItem item) {
+        if (item == null) return null;
+        return com.sketchnotes.order_service.dtos.ResourceItemDTO.builder()
+                .resourceItemId(item.getItemId())
+                .itemIndex(item.getItemIndex())
+                .itemUrl(item.getItemUrl())
+                .imageUrl(item.getImageUrl())
+                .build();
+    }
+
+    default java.util.List<com.sketchnotes.order_service.dtos.ResourceItemDTO> mapVersionItems(java.util.List<com.sketchnotes.order_service.entity.ResourceTemplateVersionItem> items) {
+        if (items == null) return null;
+        return items.stream().map(this::toItemDtoFromVersion).toList();
+    }
 
     @Named("mapOrderDetailRequests")
     default List<OrderDetail> mapOrderDetailRequests(List<OrderRequestDTO.OrderDetailRequestDTO> items) {
