@@ -1,5 +1,6 @@
 package com.sketchnotes.project_service.entity;
 
+import com.sketchnotes.project_service.enums.PaperSize;
 import com.sketchnotes.project_service.enums.PaperType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
@@ -27,7 +28,7 @@ public class Project {
     private String imageUrl;
     private Long ownerId;
     @Enumerated(EnumType.STRING)
-    private PaperType paperType;
+    private PaperSize paperSize;
     @OneToMany(mappedBy = "project")
     private List<Page> pages = new ArrayList<>();
     @OneToMany(mappedBy = "project")
