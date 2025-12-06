@@ -4,6 +4,7 @@ import com.sketchnotes.project_service.dtos.request.ProjectRequest;
 import com.sketchnotes.project_service.dtos.response.ProjectResponse;
 import com.sketchnotes.project_service.dtos.response.ProjectDetailResponse;
 import com.sketchnotes.project_service.entity.Project;
+import com.sketchnotes.project_service.enums.PaperSize;
 
 public class ProjectMapper {
     public static ProjectResponse toDTO(Project project) {
@@ -13,7 +14,7 @@ public class ProjectMapper {
                         .name(project.getName())
                         .description(project.getDescription())
                         .ownerId(project.getOwnerId())
-                        .paperType(project.getPaperSize() == null ? null : project.getPaperSize().toString())
+                        .paperSize(project.getPaperSize() == null ? null : project.getPaperSize().toString())
                         .imageUrl(project.getImageUrl())
                         .isEdited(true)
                         .isOwner(true)
@@ -33,7 +34,7 @@ public class ProjectMapper {
                 .description(project.getDescription())
                 .ownerId(project.getOwnerId())
                 .imageUrl(project.getImageUrl())
-                .paperType(project.getPaperSize() == null ? null : project.getPaperSize().toString())
+                .paperSize(project.getPaperSize() == null ? null : project.getPaperSize().toString())
                 .isEdited(true)
                 .isOwner(true)
                 .pages(activePages)
@@ -44,7 +45,7 @@ public class ProjectMapper {
         return Project.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
-                .paperSize(dto.getPaperSize())
+                .paperSize(PaperSize.valueOf(dto.getPaperSize()))
                 .imageUrl(dto.getImageUrl())
                 .build();
     }
@@ -55,7 +56,7 @@ public class ProjectMapper {
                     .projectId(project.getProjectId())
                     .name(project.getName())
                     .description(project.getDescription())
-                    .paperType(project.getPaperSize() == null ? null : project.getPaperSize().toString())
+                    .paperSize(project.getPaperSize() == null ? null : project.getPaperSize().toString())
                     .ownerId(project.getOwnerId())
                     .imageUrl(project.getImageUrl())
                     .isEdited(isEdited)
@@ -76,7 +77,7 @@ public class ProjectMapper {
                 .description(project.getDescription())
                 .ownerId(project.getOwnerId())
                 .imageUrl(project.getImageUrl())
-                .paperType(project.getPaperSize() == null ? null : project.getPaperSize().toString())
+                .paperSize(project.getPaperSize() == null ? null : project.getPaperSize().toString())
                 .isEdited(isEdited)
                 .isOwner(false)
                 .pages(activePages)
