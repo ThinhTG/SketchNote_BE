@@ -371,36 +371,26 @@ public class TemplateServiceImpl implements TemplateService {
         ResourceTemplate template = resourceTemplateRepository.findById(id)
                 .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
         
-        // Validate current status
-        if (template.getStatus() != ResourceTemplate.TemplateStatus.PENDING_REVIEW) {
-            throw new IllegalStateException("Template with id " + id + " is not in PENDING_REVIEW status");
-        }
-        
-        // 🔹 Find the PENDING_REVIEW version for this template
+        // Remove template status check for correct versioning flow
+        // Find the PENDING_REVIEW version for this template
         ResourceTemplateVersion pendingVersion = versionRepository
                 .findByTemplateIdAndStatus(id, ResourceTemplate.TemplateStatus.PENDING_REVIEW)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No pending version found for template " + id));
         
-        // 🔹 Update version status to PUBLISHED
+        // Update version status to PUBLISHED
         pendingVersion.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
         pendingVersion.setReviewedAt(java.time.LocalDateTime.now());
         versionRepository.save(pendingVersion);
         
-        // 🔹 SYNC VERSION DATA TO TEMPLATE (for auto-upgrade)
-        // This ensures users who bought old versions automatically see new version
+        // Sync basic fields from version to template
         template.setName(pendingVersion.getName());
         template.setDescription(pendingVersion.getDescription());
         template.setPrice(pendingVersion.getPrice());
         template.setType(pendingVersion.getType());
         
-        // Note: We don't sync images and items here because:
-        // 1. Version already has its own images/items in separate tables
-        // 2. Syncing would create new database records and could cause constraint issues
-        // 3. When users fetch the template, they'll get data from the published version via API
-        
-        // 🔹 Update template status and set currentPublishedVersionId
+        // Update template status and set currentPublishedVersionId
         template.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
         template.setCurrentPublishedVersionId(pendingVersion.getVersionId());
         ResourceTemplate saved = resourceTemplateRepository.save(template);
