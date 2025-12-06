@@ -15,6 +15,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
@@ -108,9 +110,11 @@ public class StorageService implements IStorageService {
             return null;
         }
         try {
-            String[] parts = fileUrl.split(".amazonaws.com/");
+            // Escape the dots in the regex to match literally
+            String[] parts = fileUrl.split("\\.amazonaws\\.com/");
             if (parts.length > 1) {
-                return parts[1];
+                // URL decode the key to handle spaces and special characters
+                return URLDecoder.decode(parts[1], StandardCharsets.UTF_8);
             }
         } catch (Exception e) {
             throw new AppException(ErrorCode.FILE_URL_INVALID);
