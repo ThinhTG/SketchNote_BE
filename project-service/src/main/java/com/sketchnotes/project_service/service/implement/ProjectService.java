@@ -150,6 +150,7 @@ public class ProjectService implements IProjectService {
         project.setName(dto.getName());
         project.setDescription(dto.getDescription());
         project.setImageUrl(dto.getImageUrl());
+        project.setPaperSize(dto.getPaperSize());
         Project updated = projectRepository.save(project);
         return ProjectMapper.toDTO(updated);
     }
