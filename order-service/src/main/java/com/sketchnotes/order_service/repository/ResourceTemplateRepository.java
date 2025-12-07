@@ -25,6 +25,18 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
     Page<ResourceTemplate> findByStatus(ResourceTemplate.TemplateStatus status, Pageable pageable);
 
     /**
+     * Lấy tất cả template active (không bị archive) theo status với pagination
+     * Dùng cho Customer queries
+     */
+    Page<ResourceTemplate> findByStatusAndIsArchivedFalse(ResourceTemplate.TemplateStatus status, Pageable pageable);
+
+    /**
+     * Lấy tất cả template active (không bị archive) theo status
+     * Dùng cho Customer queries
+     */
+    List<ResourceTemplate> findByStatusAndIsArchivedFalse(ResourceTemplate.TemplateStatus status);
+
+    /**
      * Lấy template theo designer ID và status
      */
     List<ResourceTemplate> findByDesignerIdAndStatus(Long designerId, ResourceTemplate.TemplateStatus status);
@@ -35,9 +47,43 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
     Page<ResourceTemplate> findByDesignerIdAndStatus(Long designerId, ResourceTemplate.TemplateStatus status, Pageable pageable);
 
     /**
+     * Lấy template active (không bị archive) theo designer ID và status với pagination
+     * Dùng cho Customer queries
+     */
+    Page<ResourceTemplate> findByDesignerIdAndStatusAndIsArchivedFalse(Long designerId, ResourceTemplate.TemplateStatus status, Pageable pageable);
+
+    /**
      * Lấy tất cả template của designer với pagination
      */
     Page<ResourceTemplate> findByDesignerId(Long designerId, Pageable pageable);
+
+    /**
+     * Lấy template của designer theo isArchived với pagination
+     */
+    Page<ResourceTemplate> findByDesignerIdAndIsArchived(Long designerId, Boolean isArchived, Pageable pageable);
+
+    /**
+     * Tìm kiếm template của designer theo keyword (tên hoặc mô tả) với pagination
+     */
+    @Query("SELECT rt FROM ResourceTemplate rt WHERE rt.designerId = :designerId AND " +
+           "(LOWER(rt.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(rt.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<ResourceTemplate> searchByDesignerIdAndKeyword(
+            @Param("designerId") Long designerId,
+            @Param("keyword") String keyword,
+            Pageable pageable);
+
+    /**
+     * Tìm kiếm template của designer theo keyword và isArchived với pagination
+     */
+    @Query("SELECT rt FROM ResourceTemplate rt WHERE rt.designerId = :designerId AND rt.isArchived = :isArchived AND " +
+           "(LOWER(rt.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(rt.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<ResourceTemplate> searchByDesignerIdAndKeywordAndIsArchived(
+            @Param("designerId") Long designerId,
+            @Param("keyword") String keyword,
+            @Param("isArchived") Boolean isArchived,
+            Pageable pageable);
 
     /**
      * Lấy template theo loại và status
@@ -48,6 +94,12 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
      * Lấy template theo loại và status với pagination
      */
     Page<ResourceTemplate> findByTypeAndStatus(ResourceTemplate.TemplateType type, ResourceTemplate.TemplateStatus status, Pageable pageable);
+
+    /**
+     * Lấy template active (không bị archive) theo loại và status với pagination
+     * Dùng cho Customer queries
+     */
+    Page<ResourceTemplate> findByTypeAndStatusAndIsArchivedFalse(ResourceTemplate.TemplateType type, ResourceTemplate.TemplateStatus status, Pageable pageable);
 
     /**
      * Lấy template theo khoảng giá và status
@@ -83,9 +135,24 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
     Page<ResourceTemplate> searchByKeyword(@Param("keyword") String keyword, @Param("status") ResourceTemplate.TemplateStatus status, Pageable pageable);
 
     /**
+     * Tìm kiếm template active (không bị archive) theo từ khóa với pagination
+     * Dùng cho Customer queries
+     */
+    @Query("SELECT rt FROM ResourceTemplate rt WHERE rt.status = :status AND rt.isArchived = false AND " +
+           "(LOWER(rt.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(rt.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<ResourceTemplate> searchByKeywordAndNotArchived(@Param("keyword") String keyword, @Param("status") ResourceTemplate.TemplateStatus status, Pageable pageable);
+
+    /**
      * Lấy template theo ID và status
      */
     Optional<ResourceTemplate> findByTemplateIdAndStatus(Long templateId, ResourceTemplate.TemplateStatus status);
+
+    /**
+     * Lấy template active (không bị archive) theo ID và status
+     * Dùng cho Customer queries
+     */
+    Optional<ResourceTemplate> findByTemplateIdAndStatusAndIsArchivedFalse(Long templateId, ResourceTemplate.TemplateStatus status);
 
     /**
      * Lấy danh sách template theo nhiều IDs và status
