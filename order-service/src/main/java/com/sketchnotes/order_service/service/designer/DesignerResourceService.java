@@ -9,9 +9,11 @@ import java.util.List;
 
 public interface DesignerResourceService {
     /**
-     * Lấy danh sách sản phẩm của designer (có phân trang)
+     * Lấy danh sách sản phẩm của designer (có phân trang, tìm kiếm, filter)
+     * @param search Tìm kiếm theo tên hoặc mô tả (optional)
+     * @param isArchived Filter theo trạng thái archive: true (chỉ archived), false (chỉ active), null (tất cả)
      */
-    PagedResponseDTO<DesignerProductDTO> getMyProducts(Long designerId, int page, int size, String sortBy, String sortDir);
+    PagedResponseDTO<DesignerProductDTO> getMyProducts(Long designerId, int page, int size, String sortBy, String sortDir, String search, Boolean isArchived);
 
     /**
      * Lấy chi tiết sản phẩm (bao gồm tất cả versions)
@@ -50,6 +52,12 @@ public interface DesignerResourceService {
      * Được sử dụng khi designer muốn resubmit sau khi fix feedback
      */
     ResourceTemplateVersionDTO republishVersion(Long versionId, Long designerId);
+
+    /**
+     * Publish một version đã được approve làm version chính thức
+     * Designer chọn version nào sẽ hiển thị cho customer
+     */
+    DesignerProductDTO publishVersion(Long versionId, Long designerId);
 
     /**
      * Lấy danh sách versions của một sản phẩm

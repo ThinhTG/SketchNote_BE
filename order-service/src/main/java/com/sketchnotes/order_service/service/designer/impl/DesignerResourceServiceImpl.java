@@ -41,13 +41,34 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponseDTO<DesignerProductDTO> getMyProducts(Long designerId, int page, int size, String sortBy, String sortDir) {
+    public PagedResponseDTO<DesignerProductDTO> getMyProducts(Long designerId, int page, int size, String sortBy, String sortDir, String search, Boolean isArchived) {
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<ResourceTemplate> templates = resourceTemplateRepository.findByDesignerId(designerId, pageable);
+        Page<ResourceTemplate> templates;
+        
+        // Determine which query to use based on filters
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        boolean hasArchivedFilter = isArchived != null;
+        
+        if (hasSearch && hasArchivedFilter) {
+            // Both search and isArchived filter
+            templates = resourceTemplateRepository.searchByDesignerIdAndKeywordAndIsArchived(
+                designerId, search.trim(), isArchived, pageable);
+        } else if (hasSearch) {
+            // Only search filter
+            templates = resourceTemplateRepository.searchByDesignerIdAndKeyword(
+                designerId, search.trim(), pageable);
+        } else if (hasArchivedFilter) {
+            // Only isArchived filter
+            templates = resourceTemplateRepository.findByDesignerIdAndIsArchived(
+                designerId, isArchived, pageable);
+        } else {
+            // No filters, get all
+            templates = resourceTemplateRepository.findByDesignerId(designerId, pageable);
+        }
         
         List<DesignerProductDTO> productDTOs = templates.getContent().stream()
                 .map(template -> convertToProductDTO(template, designerId))
@@ -271,12 +292,66 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
                     "Only PENDING_REVIEW versions can be republished");
         }
 
-        version.setStatus(ResourceTemplate.TemplateStatus.PENDING_REVIEW); // Resubmit for review
+        // ✅ FIX: Thêm timestamp để track resubmit
+        version.setUpdatedAt(LocalDateTime.now());
         ResourceTemplateVersion updated = versionRepository.save(version);
 
-        log.info("Republished version {} by designer {}", versionId, designerId);
+        log.info("Republished version {} by designer {} at {}", versionId, designerId, LocalDateTime.now());
 
         return orderMapper.toVersionDto(updated);
+    }
+
+    @Override
+    public DesignerProductDTO publishVersion(Long versionId, Long designerId) {
+        // 1. Tìm version cần publish
+        ResourceTemplateVersion version = versionRepository.findById(versionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Version not found"));
+
+        // 2. Kiểm tra quyền sở hữu
+        if (!version.getCreatedBy().equals(designerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, 
+                "You don't have permission to publish this version");
+        }
+
+        // 3. Chỉ publish được version đã PUBLISHED (đã được admin approve)
+        if (!version.getStatus().equals(ResourceTemplate.TemplateStatus.PUBLISHED)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "Only PUBLISHED versions (approved by admin) can be set as active");
+        }
+
+        // 4. Tìm template chính
+        ResourceTemplate template = resourceTemplateRepository.findById(version.getTemplateId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+
+        // 5. Verify ownership template
+        if (!template.getDesignerId().equals(designerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, 
+                "You don't have permission to manage this product");
+        }
+
+        // 6. Kiểm tra product không bị archive
+        if (template.getIsArchived()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "Cannot publish version for archived product. Please unarchive the product first");
+        }
+
+        // 7. Set version này làm version hiện tại
+        template.setCurrentPublishedVersionId(versionId);
+        template.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
+        
+        // 8. Sync metadata từ version lên template (optional - tùy business logic)
+        template.setName(version.getName());
+        template.setDescription(version.getDescription());
+        template.setType(version.getType());
+        template.setPrice(version.getPrice());
+        template.setExpiredTime(version.getExpiredTime());
+        template.setReleaseDate(version.getReleaseDate());
+        
+        ResourceTemplate updated = resourceTemplateRepository.save(template);
+
+        log.info("Published version {} for template {} by designer {}", versionId, template.getTemplateId(), designerId);
+
+        return convertToProductDTO(updated, designerId);
     }
 
     @Override
