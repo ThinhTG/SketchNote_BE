@@ -13,7 +13,7 @@ websocket:
 link:
   verify-email: https://love-haven.vercel.app/verify-result
 cors:
-  allowed-origins: "http://34.126.134.243:8888"
+  allowed-origins: "http://34.177.90.19:8888"
 spring:
   application:
     name: account-service
@@ -23,7 +23,7 @@ spring:
     stream:
       kafka:
         binder:
-          brokers: "34.126.134.243:9092"
+          brokers: "34.177.90.19:9092"
       bindings:
         # consume OrderCreatedEvent (function bean name: orderCreatedConsumer -> binding: orderCreatedConsumer-in-0)
         orderCreatedConsumer-in-0:
@@ -42,7 +42,7 @@ spring:
       idle-timeout: 30000
       connection-timeout: 20000
       max-lifetime: 600000
-    url: jdbc:postgresql://34.126.134.243:6432/usersdb
+    url: jdbc:postgresql://34.177.90.19:6432/usersdb
     username: admin
     password: admin
   jpa:
@@ -54,14 +54,14 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://34.126.134.243:8090/realms/sketchnote
+          issuer-uri: http://34.177.90.19:8090/realms/sketchnote
   cache:
     type: redis
 
 
   data:
     redis:
-      host: 34.126.134.243
+      host: 34.177.90.19
       port: 6379
       password: TaiDepTrai_VoDich_2025!@#
 
@@ -83,14 +83,14 @@ spring:
 #    listener:
 #      ack-mode: record
 idp:
-  url: http://34.126.134.243:8090
+  url: http://34.177.90.19:8090
   client-id: sketchnote
   client-secret: QYHYNsUNOS40S0Z28N7IytIf9bLYhtK3
 
 eureka:
   client:
     service-url:
-      defaultZone: http://34.126.134.243:8761/eureka/
+      defaultZone: http://34.177.90.19:8761/eureka/
   instance:
     prefer-ip-address: true
     ip-address: 34.126.98.83

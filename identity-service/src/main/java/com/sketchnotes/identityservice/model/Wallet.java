@@ -1,16 +1,16 @@
 package com.sketchnotes.identityservice.model;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import net.minidev.json.annotate.JsonIgnore;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
 @Entity
 @Data
 @Builder
@@ -20,10 +20,10 @@ public class Wallet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private  long walletId;
+    private long walletId;
 
     private BigDecimal balance;  // số dư
-    private  String currency;   // loại tiền tệ
+    private String currency;   // loại tiền tệ
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

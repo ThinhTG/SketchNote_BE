@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service implementation cho quản lý AI Credits
@@ -52,7 +54,7 @@ public class CreditService implements ICreditService {
         
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        
+
         // Tính tổng tiền cần thanh toán
         BigDecimal totalAmount = BigDecimal.valueOf(request.getAmount()).multiply(BigDecimal.valueOf(CREDIT_PRICE));
         
