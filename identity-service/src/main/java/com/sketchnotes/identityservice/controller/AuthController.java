@@ -38,6 +38,12 @@ public class AuthController {
         return ResponseEntity.ok(new ApiResponse<LoginResponse>(200, "Login successful", response));
     }
 
+    @PostMapping("/login-google-mobile")
+    public ResponseEntity<ApiResponse<LoginResponse>> loginGoogleMobile(@Valid @RequestBody LoginGoogleMobileRequest request) {
+        LoginResponse response = authService.loginWithGoogleMobile(request);
+        return ResponseEntity.ok(new ApiResponse<LoginResponse>(200, "Login successful", response));
+    }
+
     @PostMapping("/send-verify-email")
     public ResponseEntity<ApiResponse<String>> sendVerifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
         authService.sendVerifyEmail(request);

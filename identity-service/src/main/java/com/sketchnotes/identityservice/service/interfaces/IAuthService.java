@@ -10,6 +10,7 @@ public interface IAuthService {
     void register(RegisterRequest request);
     LoginResponse refreshToken(TokenRequest request);
     LoginResponse loginWithGoogle(LoginGoogleRequest request);
+    LoginResponse loginWithGoogleMobile(LoginGoogleMobileRequest request);
     void sendVerifyEmail(VerifyEmailRequest request);
     void sendResetPasswordEmail(ForgotPasswordRequest request);
     void resetPassword(String userId, ResetPasswordRequest request);
