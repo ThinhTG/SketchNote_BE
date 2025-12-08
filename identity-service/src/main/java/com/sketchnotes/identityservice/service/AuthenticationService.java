@@ -215,6 +215,165 @@ public class AuthenticationService implements  IAuthService {
     }
 
     @Override
+    public LoginResponse loginWithGoogleMobile(LoginGoogleMobileRequest request) {
+        try {
+            log.info("Starting Google Mobile login process");
+            
+            // 1. Decode Google ID token
+            DecodedJWT jwt = JWT.decode(request.getIdToken());
+            
+            // 2. Validate issuer is Google
+            String issuer = jwt.getIssuer();
+            if (issuer == null || 
+                (!issuer.equals("https://accounts.google.com") && 
+                 !issuer.equals("accounts.google.com"))) {
+                log.error("Invalid issuer in Google ID token: {}", issuer);
+                throw new AppException(ErrorCode.INVALID_TOKEN);
+            }
+            
+            // 3. Extract user info from token
+            String email = jwt.getClaim("email").asString();
+            String firstName = jwt.getClaim("given_name").asString();
+            String lastName = jwt.getClaim("family_name").asString();
+            String pictureUrl = jwt.getClaim("picture").asString();
+            
+            if (email == null || email.trim().isEmpty()) {
+                log.error("Missing email in Google ID token");
+                throw new AppException(ErrorCode.INVALID_TOKEN);
+            }
+            
+            log.debug("Extracted user data from Google token - Email: {}", email);
+            
+            // 4. Find user in local DB
+            User user = userRepository.findByEmail(email).orElse(null);
+            
+            // 5. Generate a secure random password for Google users
+            String randomPassword = java.util.UUID.randomUUID().toString();
+            
+            if (user == null) {
+                log.info("Creating new user from Google Mobile OAuth: {}", email);
+                
+                // Create user in Keycloak
+                TokenExchangeResponse adminToken = identityClient.exchangeClientToken(
+                    TokenExchangeParam.builder()
+                        .grant_type("client_credentials")
+                        .client_id(clientId)
+                        .client_secret(clientSecret)
+                        .scope("openid")
+                        .build()
+                );
+                
+                var creationResponse = identityClient.createUser(
+                    "Bearer " + adminToken.getAccessToken(),
+                    UserCreationParam.builder()
+                        .username(email)
+                        .firstName(firstName != null ? firstName : "")
+                        .lastName(lastName != null ? lastName : "")
+                        .email(email)
+                        .enabled(true)
+                        .emailVerified(true) // Google already verified email
+                        .credentials(List.of(Credential.builder()
+                            .type("password")
+                            .temporary(false)
+                            .value(randomPassword)
+                            .build()))
+                        .build()
+                );
+                
+                String keycloakId = extractUserId(creationResponse);
+                log.info("Created user in Keycloak with ID: {}", keycloakId);
+                
+                // Create user in local DB
+                User newUser = User.builder()
+                    .keycloakId(keycloakId)
+                    .email(email)
+                    .firstName(firstName != null ? firstName : "")
+                    .lastName(lastName != null ? lastName : "")
+                    .role(Role.CUSTOMER)
+                    .isActive(true)
+                    .createAt(LocalDateTime.now())
+                    .avatarUrl(pictureUrl)
+                    .build();
+                
+                user = userRepository.save(newUser);
+                
+                // Create wallet
+                try {
+                    walletService.createWallet(user.getId());
+                    log.info("Wallet created for new Google user: {}", user.getId());
+                } catch (Exception ex) {
+                    log.error("Failed to create wallet for user: {}", user.getId(), ex);
+                }
+                
+            } else {
+                // User exists, update password in Keycloak for this session
+                log.info("Existing user logging in via Google Mobile: {}", email);
+                
+                if (user.getKeycloakId() != null) {
+                    try {
+                        TokenExchangeResponse adminToken = identityClient.exchangeClientToken(
+                            TokenExchangeParam.builder()
+                                .grant_type("client_credentials")
+                                .client_id(clientId)
+                                .client_secret(clientSecret)
+                                .scope("openid")
+                                .build()
+                        );
+                        
+                        identityClient.resetPassword(
+                            "Bearer " + adminToken.getAccessToken(),
+                            user.getKeycloakId(),
+                            UpdatePasswordParam.builder()
+                                .type("password")
+                                .value(randomPassword)
+                                .temporary(false)
+                                .build()
+                        );
+                    } catch (Exception ex) {
+                        log.warn("Failed to update password in Keycloak: {}", ex.getMessage());
+                    }
+                }
+            }
+            
+            // 6. Validate user status
+            if (!user.isActive()) {
+                log.warn("Inactive user attempted Google Mobile login: {}", user.getEmail());
+                throw new AppException(ErrorCode.USER_INACTIVE);
+            }
+            
+            // 7. Login to Keycloak with the password to get tokens
+            LoginExchangeResponse tokenResponse = identityClient.login(
+                LoginParam.builder()
+                    .grant_type("password")
+                    .client_id(clientId)
+                    .client_secret(clientSecret)
+                    .username(email)
+                    .password(randomPassword)
+                    .scope("openid")
+                    .build()
+            );
+            
+            log.info("Google Mobile login successful for user: {}", user.getEmail());
+            
+            return LoginResponse.builder()
+                .accessToken(tokenResponse.getAccessToken())
+                .refreshToken(tokenResponse.getRefreshToken())
+                .build();
+                
+        } catch (FeignException ex) {
+            log.error("Keycloak error during Google Mobile login: Status={}, Message={}", 
+                ex.status(), ex.getMessage());
+            throw errorNormalizer.handleKeyCloakException(ex);
+        } catch (AppException ex) {
+            log.error("Application error during Google Mobile login: {}", ex.getMessage());
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error during Google Mobile login", ex);
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+    }
+
+    @Override
     public void register(RegisterRequest request) {
         try {
             TokenExchangeResponse token = identityClient.exchangeClientToken(TokenExchangeParam.builder()

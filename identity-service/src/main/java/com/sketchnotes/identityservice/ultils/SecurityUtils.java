@@ -16,11 +16,12 @@ public class SecurityUtils {
     public static String getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication instanceof JwtAuthenticationToken jwtAuth) {
+        if (authentication instanceof JwtAuthenticationToken) {
+            JwtAuthenticationToken jwtAuth = (JwtAuthenticationToken) authentication;
             Jwt jwt = jwtAuth.getToken();
             return jwt.getSubject();
         }
-        throw  new AppException(ErrorCode.UNAUTHENTICATED);
+        throw new AppException(ErrorCode.UNAUTHENTICATED);
     }
     
     /**
