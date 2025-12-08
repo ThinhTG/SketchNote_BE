@@ -60,6 +60,10 @@ public class User{
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserSubscription> subscriptions;
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<BankAccount> bankAccounts;
 
     // Helper method to get active subscription
     public UserSubscription getActiveSubscription() {

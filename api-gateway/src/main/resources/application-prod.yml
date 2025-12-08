@@ -23,7 +23,7 @@ spring:
             - id: account-service
               uri: lb://account-service
               predicates:
-                - Path=/api/users/**, /api/auth/**, /api/roles/**,/api/blogs/**,/api/payment/**,/api/contents/**, /api/wallet/**, /api/subscription-plans/**, /api/payments/**, /api/feedback/**, /api/notifications/**, /api/messages/**, /api/credits/**, /api/credit-packages/**, /api/admin/**, /api/withdraw/**, /api/admin/withdraw/**
+                - Path=/api/users/**, /api/auth/**, /api/roles/**,/api/blogs/**,/api/payment/**,/api/contents/**, /api/wallet/**, /api/subscription-plans/**, /api/payments/**, /api/feedback/**, /api/notifications/**, /api/messages/**, /api/credits/**, /api/credit-packages/**, /api/admin/**, /api/withdraw/**, /api/admin/withdraw/**,/api/bank-accounts/**
 
             - id: project-service
               uri: lb://project-service

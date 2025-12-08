@@ -7,7 +7,7 @@ import com.sketchnotes.identityservice.dtos.response.PurchasePackageResponse;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.repository.IUserRepository;
-import com.sketchnotes.identityservice.service.ICreditPackageService;
+import com.sketchnotes.identityservice.service.interfaces.INotificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ import java.util.List;
 @Slf4j
 public class CreditPackageController {
     
-    private final ICreditPackageService creditPackageService;
+    private final INotificationService.ICreditPackageService creditPackageService;
     private final IUserRepository userRepository;
     
     /**

@@ -68,7 +68,12 @@ public enum ErrorCode{
     PENDING_WITHDRAWAL_EXISTS(409, "You already have a pending withdrawal request", HttpStatus.CONFLICT),
     INVALID_WITHDRAWAL_AMOUNT(400, "Invalid withdrawal amount", HttpStatus.BAD_REQUEST),
     WITHDRAWAL_ALREADY_PROCESSED(409, "Request is already processed", HttpStatus.CONFLICT),
-    WITHDRAWAL_FAILED(500, "Failed to create withdrawal request", HttpStatus.INTERNAL_SERVER_ERROR);
+    WITHDRAWAL_FAILED(500, "Failed to create withdrawal request", HttpStatus.INTERNAL_SERVER_ERROR),
+    
+    // Bank Account errors
+    BANK_ACCOUNT_NOT_FOUND(404, "Bank account not found", HttpStatus.NOT_FOUND),
+    ACCOUNT_NUMBER_ALREADY_EXISTS(409, "Account number already exists for this user", HttpStatus.CONFLICT),
+    NO_DEFAULT_BANK_ACCOUNT(404, "No default bank account found", HttpStatus.NOT_FOUND);
 
     private final int code;
     private final HttpStatusCode statusCode;

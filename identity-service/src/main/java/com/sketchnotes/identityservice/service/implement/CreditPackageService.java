@@ -13,7 +13,7 @@ import com.sketchnotes.identityservice.model.User;
 import com.sketchnotes.identityservice.repository.CreditPackageRepository;
 import com.sketchnotes.identityservice.repository.CreditTransactionRepository;
 import com.sketchnotes.identityservice.repository.IUserRepository;
-import com.sketchnotes.identityservice.service.ICreditPackageService;
+import com.sketchnotes.identityservice.service.interfaces.INotificationService;
 import com.sketchnotes.identityservice.service.interfaces.IWalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CreditPackageService implements ICreditPackageService {
+public class CreditPackageService implements INotificationService.ICreditPackageService {
     
     private final CreditPackageRepository creditPackageRepository;
     private final IUserRepository userRepository;
