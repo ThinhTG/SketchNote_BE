@@ -2,6 +2,7 @@ package com.sketchnotes.order_service.service.designer.impl;
 
 import com.sketchnotes.order_service.client.ProjectClient;
 import com.sketchnotes.order_service.dtos.PagedResponseDTO;
+import com.sketchnotes.order_service.dtos.ResourceImageDTO;
 import com.sketchnotes.order_service.dtos.designer.CreateResourceVersionDTO;
 import com.sketchnotes.order_service.dtos.designer.DesignerProductDTO;
 import com.sketchnotes.order_service.dtos.designer.ResourceTemplateVersionDTO;
@@ -450,6 +451,24 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
                 })
                 .collect(Collectors.toList());
 
+        // Prefer images from the published version; fall back to template or latest version images
+        List<ResourceImageDTO> productImages = orderMapper.mapImages(template.getImages());
+        if ((productImages == null || productImages.isEmpty()) && publishedVersion.isPresent()) {
+            productImages = orderMapper.mapVersionImages(publishedVersion.get().getImages());
+        }
+        if ((productImages == null || productImages.isEmpty()) && !versions.isEmpty()) {
+            productImages = orderMapper.mapVersionImages(versions.get(0).getImages());
+        }
+
+        String bannerImageUrl = null;
+        if (productImages != null && !productImages.isEmpty()) {
+            bannerImageUrl = productImages.stream()
+                    .filter(img -> Boolean.TRUE.equals(img.getIsThumbnail()))
+                    .map(ResourceImageDTO::getImageUrl)
+                    .findFirst()
+                    .orElse(productImages.get(0).getImageUrl());
+        }
+
         return DesignerProductDTO.builder()
                 .resourceTemplateId(template.getTemplateId())
                 .designerId(template.getDesignerId())
@@ -460,8 +479,11 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
                 .status(template.getStatus() != null ? template.getStatus().name() : null) // State Machine status
                 .createdAt(template.getCreatedAt())
                 .updatedAt(template.getUpdatedAt())
+                .images(productImages)
+                .bannerImageUrl(bannerImageUrl)
                 .totalPurchases(totalPurchases)
                 .totalRevenue(totalRevenue)
+            .avgResourceRating(0.0)
                 .currentPublishedVersionId(publishedVersion.map(ResourceTemplateVersion::getVersionId).orElse(null))
                 .currentVersionNumber(publishedVersion.map(ResourceTemplateVersion::getVersionNumber).orElse(null))
                 .versions(versionDTOs)
