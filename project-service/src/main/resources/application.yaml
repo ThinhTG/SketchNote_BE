@@ -22,7 +22,7 @@ spring:
       idle-timeout: 30000
       connection-timeout: 20000
       max-lifetime: 600000
-    url: jdbc:postgresql://34.126.134.243:6432/projectdb
+    url: jdbc:postgresql://34.177.90.19:6432/projectdb
     username: admin
     password: admin
 
@@ -36,14 +36,14 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://34.126.134.243:8090/realms/sketchnote
+          issuer-uri: http://34.177.90.19:8090/realms/sketchnote
 
   cache:
     type: redis
 
   data:
     redis:
-      host: 34.126.134.243
+      host: 34.177.90.19
       port: 6379
       password: TaiDepTrai_VoDich_2025!@#
       # password: your_password (nếu có bật password)
@@ -64,7 +64,7 @@ spring:
     properties:
       enable.idempotence: true
       max.in.flight.requests.per.connection: 5
-      bootstrap-servers: 34.126.134.243:9092
+      bootstrap-servers: 34.177.90.19:9092
     consumer:
       group-id: project-service-group
       auto-offset-reset: earliest

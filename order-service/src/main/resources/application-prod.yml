@@ -7,7 +7,7 @@ gateway:
   order-path: ""  # Không có prefix, routes trực tiếp /api/orders/**
 
 cors:
-  allowed-origins: "http://34.126.134.243:8888"
+  allowed-origins: "http://34.177.90.19:8888"
 spring:
   application:
     name: order-service
@@ -31,7 +31,7 @@ spring:
           group: order-service-group
       kafka:
         binder:
-          brokers: "34.126.134.243:9092"
+          brokers: "34.177.90.19:9092"
         bindings:
           orderCreated-out-0:
             producer:
@@ -52,7 +52,7 @@ spring:
       idle-timeout: 30000
       connection-timeout: 20000
       max-lifetime: 600000
-    url: jdbc:postgresql://34.126.134.243:6432/ordersdb
+    url: jdbc:postgresql://34.177.90.19:6432/ordersdb
     username: admin
     password: admin
 
@@ -61,7 +61,7 @@ spring:
     properties:
       enable.idempotence: true
       max.in.flight.requests.per.connection: 5
-    bootstrap-servers: 34.126.134.243:9092   # địa chỉ Kafka KRaft broker
+    bootstrap-servers: 34.177.90.19:9092   # địa chỉ Kafka KRaft broker
     producer:
       # If your payloads are already byte[] (as seen in logs), use ByteArraySerializer
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -86,7 +86,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://34.126.134.243:8761/eureka/
+      defaultZone: http://34.177.90.19:8761/eureka/
   instance:
     prefer-ip-address: true
     ip-address: 34.126.98.83
@@ -95,7 +95,7 @@ eureka:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://34.126.134.243:8090/realms/sketchnote
+          issuer-uri: http://34.177.90.19:8090/realms/sketchnote
 
 
 
