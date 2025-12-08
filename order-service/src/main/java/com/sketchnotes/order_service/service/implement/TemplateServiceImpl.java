@@ -6,6 +6,7 @@ import com.sketchnotes.order_service.dtos.PagedResponseDTO;
 import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
 import com.sketchnotes.order_service.dtos.TemplateCreateUpdateDTO;
 import com.sketchnotes.order_service.dtos.TemplateSellDTO;
+import com.sketchnotes.order_service.dtos.designer.ResourceTemplateVersionDTO;
 import com.sketchnotes.order_service.dtos.project.ProjectResponse;
 import com.sketchnotes.order_service.entity.ResourceTemplate;
 import com.sketchnotes.order_service.entity.ResourcesTemplateImage;
@@ -457,6 +458,74 @@ public class TemplateServiceImpl implements TemplateService {
     }
 
     @Override
+    public PagedResponseDTO<ResourceTemplateVersionDTO> getPendingVersions(int page, int size, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<ResourceTemplateVersion> pending = versionRepository.findByStatusOrderByCreatedAtDesc(
+                ResourceTemplate.TemplateStatus.PENDING_REVIEW, pageable);
+
+        List<ResourceTemplateVersionDTO> content = pending.getContent().stream()
+                .map(orderMapper::toVersionDto)
+                .toList();
+
+        return PagedResponseDTO.<ResourceTemplateVersionDTO>builder()
+                .content(content)
+                .page(pending.getNumber())
+                .size(pending.getSize())
+                .totalElements(pending.getTotalElements())
+                .totalPages(pending.getTotalPages())
+                .first(pending.isFirst())
+                .last(pending.isLast())
+                .hasNext(pending.hasNext())
+                .hasPrevious(pending.hasPrevious())
+                .build();
+    }
+
+    @Override
+    public ResourceTemplateVersionDTO reviewVersion(Long versionId, Long staffId, boolean approve, String reviewComment) {
+        ResourceTemplateVersion version = versionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceTemplateNotFoundException("Version not found with id: " + versionId));
+
+        if (!ResourceTemplate.TemplateStatus.PENDING_REVIEW.equals(version.getStatus())) {
+            throw new IllegalStateException("Version is not in PENDING_REVIEW status");
+        }
+
+        ResourceTemplate template = resourceTemplateRepository.findById(version.getTemplateId())
+                .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + version.getTemplateId()));
+
+        version.setReviewedAt(java.time.LocalDateTime.now());
+        version.setReviewedBy(staffId);
+
+        if (approve) {
+            version.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
+
+            // Sync metadata from version to template and mark as published/current
+            template.setName(version.getName());
+            template.setDescription(version.getDescription());
+            template.setType(version.getType());
+            template.setPrice(version.getPrice());
+            template.setExpiredTime(version.getExpiredTime());
+            template.setReleaseDate(version.getReleaseDate());
+
+            template.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
+            template.setCurrentPublishedVersionId(version.getVersionId());
+        } else {
+            version.setStatus(ResourceTemplate.TemplateStatus.REJECTED);
+            version.setReviewComment(reviewComment);
+
+            // Only set template to REJECTED if it has no published version yet
+            if (template.getCurrentPublishedVersionId() == null
+                    && ResourceTemplate.TemplateStatus.PENDING_REVIEW.equals(template.getStatus())) {
+                template.setStatus(ResourceTemplate.TemplateStatus.REJECTED);
+            }
+        }
+
+        versionRepository.save(version);
+        resourceTemplateRepository.save(template);
+        return orderMapper.toVersionDto(version);
+    }
+
+    @Override
     public ResourceTemplateDTO createTemplateFromProject(Long projectId, Long userId, TemplateSellDTO templateDTO) {
         // 🔹 1. Lấy project từ ProjectClient
         ApiResponse<ProjectResponse> projectApiResponse = projectClient.getProject(projectId);
@@ -585,20 +654,24 @@ public class TemplateServiceImpl implements TemplateService {
                     com.sketchnotes.order_service.dtos.FeedbackStatsResponse stats = feedbackResponse.getResult();
                     dto.setFeedbackCount(stats.getTotalFeedbacks() != null ? stats.getTotalFeedbacks() : 0L);
                     dto.setAverageRating(stats.getAverageRating());
+                    dto.setAvgResourceRating(stats.getAverageRating());
                 } else {
                     dto.setFeedbackCount(0L);
                     dto.setAverageRating(null);
+                    dto.setAvgResourceRating(null);
                 }
             } catch (Exception e) {
                 // If feedback service is unavailable, set default values
                 dto.setFeedbackCount(0L);
                 dto.setAverageRating(null);
+                dto.setAvgResourceRating(null);
             }
         } catch (Exception e) {
             // If any error occurs, set default values
             dto.setPurchaseCount(0L);
             dto.setFeedbackCount(0L);
             dto.setAverageRating(null);
+            dto.setAvgResourceRating(null);
         }
     }
     

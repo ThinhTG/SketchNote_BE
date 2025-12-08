@@ -2,6 +2,7 @@ package com.sketchnotes.order_service.controller;
 
 import com.sketchnotes.order_service.client.IdentityClient;
 import com.sketchnotes.order_service.dtos.*;
+import com.sketchnotes.order_service.dtos.designer.ResourceTemplateVersionDTO;
 import com.sketchnotes.order_service.service.TemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -203,7 +204,7 @@ public class OrderTemplateController {
      */
     @PostMapping("/{id}/confirm")
     public ResponseEntity<ApiResponse<ResourceTemplateDTO>> confirmTemplate(@PathVariable Long id) {
-        // TODO: Add staff role check here
+        ensureStaff();
         ResourceTemplateDTO confirmed = templateService.confirmTemplate(id);
         return ResponseEntity.ok(ApiResponse.success(confirmed, "Template confirmed and published"));
     }
@@ -214,7 +215,7 @@ public class OrderTemplateController {
      */
     @PostMapping("/{id}/reject")
     public ResponseEntity<ApiResponse<ResourceTemplateDTO>> rejectTemplate(@PathVariable Long id) {
-        // TODO: Add staff role check here
+        ensureStaff();
         ResourceTemplateDTO rejected = templateService.rejectTemplate(id);
         return ResponseEntity.ok(ApiResponse.success(rejected, "Template rejected"));
     }
@@ -229,7 +230,7 @@ public class OrderTemplateController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
-        // TODO: Add staff role check here
+        ensureStaff();
         var result = templateService.getTemplatesByReviewStatus(status, page, size, sortBy, sortDir);
         
         // Set isOwner flag
@@ -237,6 +238,48 @@ public class OrderTemplateController {
         setOwnerFlag(result, currentUserId);
         
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates by review status"));
+    }
+
+    /**
+     * Staff: danh sách version đang PENDING_REVIEW
+     */
+    @GetMapping("/review/versions")
+    public ResponseEntity<ApiResponse<PagedResponseDTO<ResourceTemplateVersionDTO>>> getPendingVersions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        ensureStaff();
+        var result = templateService.getPendingVersions(page, size, sortBy, sortDir);
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched pending versions"));
+    }
+
+    /**
+     * Staff: duyệt hoặc từ chối một version
+     */
+    @PostMapping("/versions/{versionId}/review")
+    public ResponseEntity<ApiResponse<ResourceTemplateVersionDTO>> reviewVersion(
+            @PathVariable Long versionId,
+            @RequestBody VersionReviewRequest request) {
+        ensureStaff();
+        ApiResponse<UserResponse> userResp = identityClient.getCurrentUser();
+        Long staffId = userResp.getResult() != null ? userResp.getResult().getId() : null;
+
+        if (request.getApprove() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "approve is required (true/false)");
+        }
+        if (!request.getApprove() && (request.getReviewComment() == null || request.getReviewComment().trim().isEmpty())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "reviewComment is required when rejecting");
+        }
+
+        ResourceTemplateVersionDTO reviewed = templateService.reviewVersion(
+                versionId,
+                staffId,
+                request.getApprove(),
+                request.getReviewComment());
+
+        return ResponseEntity.ok(ApiResponse.success(reviewed,
+                request.getApprove() ? "Version approved" : "Version rejected"));
     }
 
     @PostMapping("/sell/{projectId}")
@@ -294,5 +337,17 @@ public class OrderTemplateController {
             // User not authenticated or error getting user info
         }
         return null;
+    }
+
+    private void ensureStaff() {
+        try {
+            ApiResponse<UserResponse> apiResponse = identityClient.getCurrentUser();
+            UserResponse user = apiResponse.getResult();
+            if (user == null || user.getRole() == null || !"STAFF".equalsIgnoreCase(user.getRole())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only staff can access this endpoint");
+            }
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Failed to authenticate user");
+        }
     }
 }
