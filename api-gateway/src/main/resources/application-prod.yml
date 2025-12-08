@@ -50,7 +50,7 @@ springdoc:
 eureka:
   client:
     service-url:
-      defaultZone: http://34.126.134.243:8761/eureka/
+      defaultZone: http://34.177.90.19:8761/eureka/
   instance:
     prefer-ip-address: true
-    ip-address: 34.126.134.243
+    ip-address: 34.177.90.19

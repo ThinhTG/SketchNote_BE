@@ -8,11 +8,6 @@ services:
       - "8089:8089"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
-      - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
-      - REDIS_HOST=139.59.119.65
-      - REDIS_PORT=6379
-      - KEYCLOAK_URL=http://139.59.119.65:8090
     restart: unless-stopped
 
   # Learning Service
@@ -23,7 +18,6 @@ services:
       - "8085:8085"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
     restart: unless-stopped
   
   # Project Service
@@ -38,7 +32,6 @@ services:
       - "8087:8087"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - EUREKA_HOST=http://139.59.119.65:8761/eureka/
       - KAFKA_BOOTSTRAP_SERVERS=139.59.119.65:9092
       - REDIS_HOST=139.59.119.65
       - REDIS_PORT=6379
