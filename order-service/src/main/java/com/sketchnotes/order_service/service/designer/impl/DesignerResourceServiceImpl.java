@@ -41,7 +41,7 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponseDTO<DesignerProductDTO> getMyProducts(Long designerId, int page, int size, String sortBy, String sortDir, String search, Boolean isArchived) {
+    public PagedResponseDTO<DesignerProductDTO> getMyProducts(Long designerId, int page, int size, String sortBy, String sortDir, String search, ResourceTemplate.TemplateStatus statusFilter) {
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
@@ -51,20 +51,20 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
         
         // Determine which query to use based on filters
         boolean hasSearch = search != null && !search.trim().isEmpty();
-        boolean hasArchivedFilter = isArchived != null;
+        boolean hasStatusFilter = statusFilter != null;
         
-        if (hasSearch && hasArchivedFilter) {
-            // Both search and isArchived filter
-            templates = resourceTemplateRepository.searchByDesignerIdAndKeywordAndIsArchived(
-                designerId, search.trim(), isArchived, pageable);
+        if (hasSearch && hasStatusFilter) {
+            // Both search and status filter (e.g., ARCHIVED)
+            templates = resourceTemplateRepository.searchByDesignerIdAndKeywordAndStatus(
+                designerId, search.trim(), statusFilter, pageable);
         } else if (hasSearch) {
             // Only search filter
             templates = resourceTemplateRepository.searchByDesignerIdAndKeyword(
                 designerId, search.trim(), pageable);
-        } else if (hasArchivedFilter) {
-            // Only isArchived filter
-            templates = resourceTemplateRepository.findByDesignerIdAndIsArchived(
-                designerId, isArchived, pageable);
+        } else if (hasStatusFilter) {
+            // Only status filter (e.g., ARCHIVED, PUBLISHED, etc.)
+            templates = resourceTemplateRepository.findByDesignerIdAndStatus(
+                designerId, statusFilter, pageable);
         } else {
             // No filters, get all
             templates = resourceTemplateRepository.findByDesignerId(designerId, pageable);
@@ -253,10 +253,16 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to archive this product");
         }
 
-        template.setIsArchived(true);
+        // State Machine: Chỉ có thể archive từ PUBLISHED state
+        if (!template.getStatus().equals(ResourceTemplate.TemplateStatus.PUBLISHED)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "Only PUBLISHED products can be archived. Current status: " + template.getStatus());
+        }
+
+        template.setStatus(ResourceTemplate.TemplateStatus.ARCHIVED);
         ResourceTemplate updated = resourceTemplateRepository.save(template);
 
-        log.info("Archived product {} by designer {}", resourceTemplateId, designerId);
+        log.info("Archived product {} by designer {} - Status changed from PUBLISHED to ARCHIVED", resourceTemplateId, designerId);
 
         return convertToProductDTO(updated, designerId);
     }
@@ -270,10 +276,16 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to unarchive this product");
         }
 
-        template.setIsArchived(false);
+        // State Machine: Chỉ có thể unarchive từ ARCHIVED state
+        if (!template.getStatus().equals(ResourceTemplate.TemplateStatus.ARCHIVED)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "Only ARCHIVED products can be unarchived. Current status: " + template.getStatus());
+        }
+
+        template.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
         ResourceTemplate updated = resourceTemplateRepository.save(template);
 
-        log.info("Unarchived product {} by designer {}", resourceTemplateId, designerId);
+        log.info("Unarchived product {} by designer {} - Status changed from ARCHIVED to PUBLISHED", resourceTemplateId, designerId);
 
         return convertToProductDTO(updated, designerId);
     }
@@ -329,8 +341,8 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
                 "You don't have permission to manage this product");
         }
 
-        // 6. Kiểm tra product không bị archive
-        if (template.getIsArchived()) {
+        // 6. Kiểm tra product không bị archive (state machine check)
+        if (template.getStatus().equals(ResourceTemplate.TemplateStatus.ARCHIVED)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
                 "Cannot publish version for archived product. Please unarchive the product first");
         }
@@ -445,10 +457,9 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
                 .description(template.getDescription())
                 .type(template.getType() != null ? template.getType().name() : null)
                 .price(template.getPrice())
-                .status(template.getStatus() != null ? template.getStatus().name() : null)
+                .status(template.getStatus() != null ? template.getStatus().name() : null) // State Machine status
                 .createdAt(template.getCreatedAt())
                 .updatedAt(template.getUpdatedAt())
-                .isArchived(template.getIsArchived())
                 .totalPurchases(totalPurchases)
                 .totalRevenue(totalRevenue)
                 .currentPublishedVersionId(publishedVersion.map(ResourceTemplateVersion::getVersionId).orElse(null))

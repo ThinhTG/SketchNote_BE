@@ -20,21 +20,10 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
     List<ResourceTemplate> findByStatus(ResourceTemplate.TemplateStatus status);
 
     /**
-     * Lấy tất cả template theo status với pagination
+     * Lấy tất cả template active (PUBLISHED status) cho Customer queries
+     * State Machine: Chỉ lấy status = PUBLISHED (không bao gồm ARCHIVED, REJECTED, DELETED)
      */
     Page<ResourceTemplate> findByStatus(ResourceTemplate.TemplateStatus status, Pageable pageable);
-
-    /**
-     * Lấy tất cả template active (không bị archive) theo status với pagination
-     * Dùng cho Customer queries
-     */
-    Page<ResourceTemplate> findByStatusAndIsArchivedFalse(ResourceTemplate.TemplateStatus status, Pageable pageable);
-
-    /**
-     * Lấy tất cả template active (không bị archive) theo status
-     * Dùng cho Customer queries
-     */
-    List<ResourceTemplate> findByStatusAndIsArchivedFalse(ResourceTemplate.TemplateStatus status);
 
     /**
      * Lấy template theo designer ID và status
@@ -47,20 +36,15 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
     Page<ResourceTemplate> findByDesignerIdAndStatus(Long designerId, ResourceTemplate.TemplateStatus status, Pageable pageable);
 
     /**
-     * Lấy template active (không bị archive) theo designer ID và status với pagination
-     * Dùng cho Customer queries
-     */
-    Page<ResourceTemplate> findByDesignerIdAndStatusAndIsArchivedFalse(Long designerId, ResourceTemplate.TemplateStatus status, Pageable pageable);
-
-    /**
      * Lấy tất cả template của designer với pagination
      */
     Page<ResourceTemplate> findByDesignerId(Long designerId, Pageable pageable);
 
     /**
-     * Lấy template của designer theo isArchived với pagination
+     * Lấy template của designer theo status với pagination
+     * Thay thế isArchived bằng status filter (ARCHIVED, PUBLISHED, etc.)
      */
-    Page<ResourceTemplate> findByDesignerIdAndIsArchived(Long designerId, Boolean isArchived, Pageable pageable);
+    Page<ResourceTemplate> findByDesignerIdAndStatusIn(Long designerId, List<ResourceTemplate.TemplateStatus> statuses, Pageable pageable);
 
     /**
      * Tìm kiếm template của designer theo keyword (tên hoặc mô tả) với pagination
@@ -74,15 +58,16 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
             Pageable pageable);
 
     /**
-     * Tìm kiếm template của designer theo keyword và isArchived với pagination
+     * Tìm kiếm template của designer theo keyword và status với pagination
+     * Thay thế isArchived bằng status filter
      */
-    @Query("SELECT rt FROM ResourceTemplate rt WHERE rt.designerId = :designerId AND rt.isArchived = :isArchived AND " +
+    @Query("SELECT rt FROM ResourceTemplate rt WHERE rt.designerId = :designerId AND rt.status = :status AND " +
            "(LOWER(rt.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(rt.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<ResourceTemplate> searchByDesignerIdAndKeywordAndIsArchived(
+    Page<ResourceTemplate> searchByDesignerIdAndKeywordAndStatus(
             @Param("designerId") Long designerId,
             @Param("keyword") String keyword,
-            @Param("isArchived") Boolean isArchived,
+            @Param("status") ResourceTemplate.TemplateStatus status,
             Pageable pageable);
 
     /**
@@ -92,14 +77,9 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
 
     /**
      * Lấy template theo loại và status với pagination
+     * State Machine: Customer chỉ thấy status = PUBLISHED
      */
     Page<ResourceTemplate> findByTypeAndStatus(ResourceTemplate.TemplateType type, ResourceTemplate.TemplateStatus status, Pageable pageable);
-
-    /**
-     * Lấy template active (không bị archive) theo loại và status với pagination
-     * Dùng cho Customer queries
-     */
-    Page<ResourceTemplate> findByTypeAndStatusAndIsArchivedFalse(ResourceTemplate.TemplateType type, ResourceTemplate.TemplateStatus status, Pageable pageable);
 
     /**
      * Lấy template theo khoảng giá và status
@@ -128,6 +108,7 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
 
     /**
      * Tìm kiếm template theo từ khóa với pagination và status
+     * State Machine: Customer queries chỉ dùng status = PUBLISHED
      */
     @Query("SELECT rt FROM ResourceTemplate rt WHERE rt.status = :status AND " +
            "(LOWER(rt.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
@@ -135,24 +116,10 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
     Page<ResourceTemplate> searchByKeyword(@Param("keyword") String keyword, @Param("status") ResourceTemplate.TemplateStatus status, Pageable pageable);
 
     /**
-     * Tìm kiếm template active (không bị archive) theo từ khóa với pagination
-     * Dùng cho Customer queries
-     */
-    @Query("SELECT rt FROM ResourceTemplate rt WHERE rt.status = :status AND rt.isArchived = false AND " +
-           "(LOWER(rt.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(rt.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<ResourceTemplate> searchByKeywordAndNotArchived(@Param("keyword") String keyword, @Param("status") ResourceTemplate.TemplateStatus status, Pageable pageable);
-
-    /**
      * Lấy template theo ID và status
+     * State Machine: Customer queries chỉ dùng status = PUBLISHED
      */
     Optional<ResourceTemplate> findByTemplateIdAndStatus(Long templateId, ResourceTemplate.TemplateStatus status);
-
-    /**
-     * Lấy template active (không bị archive) theo ID và status
-     * Dùng cho Customer queries
-     */
-    Optional<ResourceTemplate> findByTemplateIdAndStatusAndIsArchivedFalse(Long templateId, ResourceTemplate.TemplateStatus status);
 
     /**
      * Lấy danh sách template theo nhiều IDs và status

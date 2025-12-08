@@ -4,6 +4,7 @@ import com.sketchnotes.order_service.dtos.PagedResponseDTO;
 import com.sketchnotes.order_service.dtos.designer.CreateResourceVersionDTO;
 import com.sketchnotes.order_service.dtos.designer.DesignerProductDTO;
 import com.sketchnotes.order_service.dtos.designer.ResourceTemplateVersionDTO;
+import com.sketchnotes.order_service.entity.ResourceTemplate;
 
 import java.util.List;
 
@@ -11,9 +12,9 @@ public interface DesignerResourceService {
     /**
      * Lấy danh sách sản phẩm của designer (có phân trang, tìm kiếm, filter)
      * @param search Tìm kiếm theo tên hoặc mô tả (optional)
-     * @param isArchived Filter theo trạng thái archive: true (chỉ archived), false (chỉ active), null (tất cả)
+     * @param statusFilter Filter theo status: ARCHIVED, PUBLISHED, PENDING_REVIEW, etc. (optional)
      */
-    PagedResponseDTO<DesignerProductDTO> getMyProducts(Long designerId, int page, int size, String sortBy, String sortDir, String search, Boolean isArchived);
+    PagedResponseDTO<DesignerProductDTO> getMyProducts(Long designerId, int page, int size, String sortBy, String sortDir, String search, ResourceTemplate.TemplateStatus statusFilter);
 
     /**
      * Lấy chi tiết sản phẩm (bao gồm tất cả versions)
