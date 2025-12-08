@@ -48,9 +48,9 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getAllActiveTemplates() {
-        // ✅ FIX: Chỉ lấy templates không bị archive
+        // State Machine: Chỉ lấy templates có status = PUBLISHED (active trên marketplace)
         return orderMapper.toTemplateDtoList(
-            resourceTemplateRepository.findByStatusAndIsArchivedFalse(ResourceTemplate.TemplateStatus.PUBLISHED));
+            resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED));
     }
 
     @Override
@@ -58,8 +58,8 @@ public class TemplateServiceImpl implements TemplateService {
     public PagedResponseDTO<ResourceTemplateDTO> getAllActiveTemplates(int page, int size, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        // ✅ FIX: Chỉ lấy templates không bị archive
-        Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByStatusAndIsArchivedFalse(
+        // State Machine: Chỉ lấy templates có status = PUBLISHED
+        Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByStatus(
             ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
         PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
         
@@ -72,8 +72,8 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     @Transactional(readOnly = true)
     public ResourceTemplateDTO getTemplateById(Long id) {
-        // ✅ FIX: Chỉ lấy template không bị archive
-        ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndStatusAndIsArchivedFalse(
+        // State Machine: Chỉ lấy template có status = PUBLISHED
+        ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndStatus(
             id, ResourceTemplate.TemplateStatus.PUBLISHED)
             .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
         ResourceTemplateDTO dto = orderMapper.toDto(template);
@@ -87,12 +87,9 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getTemplatesByDesigner(Long designerId) {
-        // ✅ FIX: Chỉ lấy templates không bị archive (cho customer xem)
+        // State Machine: Chỉ lấy templates có status = PUBLISHED (cho customer xem)
         return orderMapper.toTemplateDtoList(
             resourceTemplateRepository.findByDesignerIdAndStatus(designerId, ResourceTemplate.TemplateStatus.PUBLISHED)
-                .stream()
-                .filter(t -> !t.getIsArchived())
-                .toList()
         );
     }
 
@@ -100,13 +97,13 @@ public class TemplateServiceImpl implements TemplateService {
     @Transactional(readOnly = true)
     public PagedResponseDTO<ResourceTemplateDTO> getTemplatesByDesigner(
             Long designerId, int page, int size, String sortBy, String sortDir) {
-        // ✅ FIX: Khi customer xem designer's products, chỉ show PUBLISHED và không archive
+        // State Machine: Khi customer xem designer's products, chỉ show status = PUBLISHED
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
         
-        Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByDesignerIdAndStatusAndIsArchivedFalse(
+        Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByDesignerIdAndStatus(
             designerId, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
         
         PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
@@ -127,7 +124,7 @@ public class TemplateServiceImpl implements TemplateService {
         Page<ResourceTemplate> templatePage;
         
         // NOTE: Method này được dùng bởi Designer để xem sản phẩm của mình
-        // Nên KHÔNG filter isArchived để designer có thể thấy cả sản phẩm đã archive
+        // State Machine: Designer có thể xem tất cả status (PUBLISHED, ARCHIVED, PENDING_REVIEW, etc.)
         if (status != null) {
             try {
                 ResourceTemplate.TemplateStatus templateStatus = ResourceTemplate.TemplateStatus.valueOf(status.toUpperCase());
@@ -164,8 +161,8 @@ public class TemplateServiceImpl implements TemplateService {
             ResourceTemplate.TemplateType templateType = ResourceTemplate.TemplateType.valueOf(type.toUpperCase());
             Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
             Pageable pageable = PageRequest.of(page, size, sort);
-            // ✅ FIX: Chỉ lấy templates không bị archive
-            Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByTypeAndStatusAndIsArchivedFalse(
+            // State Machine: Chỉ lấy templates có status = PUBLISHED
+            Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByTypeAndStatus(
                 templateType, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
             PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
             populateStatistics(result.getContent());
@@ -186,8 +183,8 @@ public class TemplateServiceImpl implements TemplateService {
     public PagedResponseDTO<ResourceTemplateDTO> searchTemplates(String keyword, int page, int size, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        // ✅ FIX: Chỉ lấy templates không bị archive
-        Page<ResourceTemplate> templatePage = resourceTemplateRepository.searchByKeywordAndNotArchived(
+        // State Machine: Chỉ tìm templates có status = PUBLISHED
+        Page<ResourceTemplate> templatePage = resourceTemplateRepository.searchByKeyword(
             keyword, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
         PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
         populateStatistics(result.getContent());

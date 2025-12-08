@@ -57,18 +57,12 @@ public class ResourceTemplate {
     @Column(name = "current_published_version_id")
     private Long currentPublishedVersionId; // ID of the currently published version
 
-    @Column(name = "is_archived")
-    private Boolean isArchived = false; // true when designer archives the product
-
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (releaseDate == null) {
             releaseDate = LocalDate.now();
-        }
-        if (isArchived == null) {
-            isArchived = false;
         }
     }
 
@@ -82,9 +76,11 @@ public class ResourceTemplate {
     }
 
     public enum TemplateStatus {
-        PENDING_REVIEW,
-        PUBLISHED,
-        REJECTED
+        PENDING_REVIEW,  // Initial state - waiting for Staff approval
+        PUBLISHED,       // Staff approved - visible on marketplace
+        REJECTED,        // Staff rejected - end state
+        ARCHIVED,        // Designer archived - hidden from marketplace
+        DELETED          // Soft deleted - can be restored
     }
 
     @Enumerated(EnumType.STRING)

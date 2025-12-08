@@ -7,6 +7,7 @@ import com.sketchnotes.order_service.dtos.UserResponse;
 import com.sketchnotes.order_service.dtos.designer.CreateResourceVersionDTO;
 import com.sketchnotes.order_service.dtos.designer.DesignerProductDTO;
 import com.sketchnotes.order_service.dtos.designer.ResourceTemplateVersionDTO;
+import com.sketchnotes.order_service.entity.ResourceTemplate;
 import com.sketchnotes.order_service.service.designer.DesignerResourceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,7 +35,7 @@ public class DesignerResourceController {
     @Operation(
         summary = "Lấy danh sách sản phẩm của designer",
         description = "Lấy tất cả sản phẩm (Resource Templates) của designer với phân trang, tìm kiếm và filter. " +
-                      "Có thể filter theo trạng thái archive hoặc tìm kiếm theo tên/mô tả."
+                      "Có thể filter theo status (PUBLISHED, ARCHIVED, PENDING_REVIEW, REJECTED, DELETED) hoặc tìm kiếm theo tên/mô tả."
     )
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponseDTO<DesignerProductDTO>>> getMyProducts(
@@ -53,12 +54,12 @@ public class DesignerResourceController {
             @Parameter(description = "Từ khóa tìm kiếm theo tên hoặc mô tả sản phẩm", example = "icon")
             @RequestParam(required = false) String search,
             
-            @Parameter(description = "Filter theo trạng thái archive: true (chỉ archived), false (chỉ active), null (tất cả)", example = "false")
-            @RequestParam(required = false) Boolean isArchived) {
+            @Parameter(description = "Filter theo status: PUBLISHED, ARCHIVED, PENDING_REVIEW, REJECTED, DELETED. Để trống để lấy tất cả.", example = "ARCHIVED")
+            @RequestParam(required = false) ResourceTemplate.TemplateStatus status) {
         
         Long designerId = getCurrentDesignerId();
         PagedResponseDTO<DesignerProductDTO> result = designerResourceService.getMyProducts(
-                designerId, page, size, sortBy, sortDir, search, isArchived);
+                designerId, page, size, sortBy, sortDir, search, status);
         
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched designer products"));
     }
