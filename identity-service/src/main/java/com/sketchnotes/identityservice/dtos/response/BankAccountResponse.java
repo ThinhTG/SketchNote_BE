@@ -16,9 +16,9 @@ import java.time.LocalDateTime;
 public class BankAccountResponse {
     
     private Long id;
-    private Long userId;
     private String bankName;
     private String accountNumber;
+    private String logoUrl;
     private String accountHolderName;
     private String branch;
     private Boolean isDefault;

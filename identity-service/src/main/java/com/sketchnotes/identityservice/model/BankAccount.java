@@ -36,8 +36,8 @@ public class BankAccount {
     
     @Column(nullable = false)
     private String accountHolderName;
-    
-    private String branch; // Chi nhánh (optional)
+    private String logoUrl;
+    private String branch;
     
     @Column(nullable = false)
     @Builder.Default

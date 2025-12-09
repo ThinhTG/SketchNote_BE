@@ -29,8 +29,8 @@ public class BankAccountController {
         return ResponseEntity.ok(new ApiResponse<>(200, "Bank account created successfully", response));
     }
     
-    @GetMapping
-    @Operation(summary = "Get all bank accounts", description = "Get all active bank accounts for the current user")
+    @GetMapping("/me")
+    @Operation(summary = "Get all bank accounts current user", description = "Get all active bank accounts for the current user")
     public ResponseEntity<ApiResponse<List<BankAccountResponse>>> getMyBankAccounts() {
         List<BankAccountResponse> response = bankAccountService.getMyBankAccounts();
         return ResponseEntity.ok(new ApiResponse<>(200, "Bank accounts retrieved successfully", response));
@@ -64,5 +64,17 @@ public class BankAccountController {
     public ResponseEntity<ApiResponse<String>> deleteBankAccount(@PathVariable Long id) {
         bankAccountService.deleteBankAccount(id);
         return ResponseEntity.ok(new ApiResponse<>(200, "Bank account deleted successfully", null));
+    }
+    @GetMapping("/default")
+    @Operation(summary = "Get default bank account", description = "Get default bank account for current user")
+    public ResponseEntity<ApiResponse<BankAccountResponse>> getDefaultBankAccount() {
+        BankAccountResponse response = bankAccountService.getDefaultBankAccount();
+        return ResponseEntity.ok(new ApiResponse<>(200, "Default bank account retrieved successfully", response));
+    }
+    @PostMapping("/{id}/set-default")
+    @Operation(summary = "Set default bank account", description = "Set a bank account as default (unset others)")
+    public ResponseEntity<ApiResponse<BankAccountResponse>> setDefaultBankAccount(@PathVariable Long id) {
+        BankAccountResponse response = bankAccountService.setDefaultBankAccount(id);
+        return ResponseEntity.ok(new ApiResponse<>(200, "Bank account set as default successfully", response));
     }
 }
