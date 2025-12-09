@@ -36,7 +36,7 @@ public class BankAccountService implements IBankAccountService {
         User user = userRepository.findByKeycloakId(keycloakId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        if (bankAccountRepository.existsByUserIdAndAccountNumberAndIsActiveFalse(user.getId(), request.getAccountNumber())) {
+        if (bankAccountRepository.existsByUserIdAndAccountNumberAndIsActiveTrue(user.getId(), request.getAccountNumber())) {
             throw new AppException(ErrorCode.ACCOUNT_NUMBER_ALREADY_EXISTS);
         }
 
@@ -99,7 +99,7 @@ public class BankAccountService implements IBankAccountService {
         User user = userRepository.findByKeycloakId(keycloakId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         
-        BankAccount bankAccount = bankAccountRepository.findByIdAndUserId(id, user.getId())
+        BankAccount bankAccount = bankAccountRepository.findByIdAndUserIdAndIsActiveTrue(id, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.BANK_ACCOUNT_NOT_FOUND));
         
         if (!bankAccount.getIsActive()) {
@@ -116,7 +116,7 @@ public class BankAccountService implements IBankAccountService {
         User user = userRepository.findByKeycloakId(keycloakId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         
-        BankAccount bankAccount = bankAccountRepository.findByIdAndUserId(id, user.getId())
+        BankAccount bankAccount = bankAccountRepository.findByIdAndUserIdAndIsActiveTrue(id, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.BANK_ACCOUNT_NOT_FOUND));
         
         if (!bankAccount.getIsActive()) {
@@ -125,7 +125,7 @@ public class BankAccountService implements IBankAccountService {
         
         // Check if account number is being changed and if it already exists
         if (!bankAccount.getAccountNumber().equals(request.getAccountNumber())) {
-            if (bankAccountRepository.existsByUserIdAndAccountNumberAndIsActiveFalse(user.getId(), request.getAccountNumber())) {
+            if (bankAccountRepository.existsByUserIdAndAccountNumberAndIsActiveTrue(user.getId(), request.getAccountNumber())) {
                 throw new AppException(ErrorCode.ACCOUNT_NUMBER_ALREADY_EXISTS);
             }
         }
@@ -158,7 +158,7 @@ public class BankAccountService implements IBankAccountService {
         User user = userRepository.findByKeycloakId(keycloakId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         
-        BankAccount bankAccount = bankAccountRepository.findByIdAndUserId(id, user.getId())
+        BankAccount bankAccount = bankAccountRepository.findByIdAndUserIdAndIsActiveTrue(id, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.BANK_ACCOUNT_NOT_FOUND));
         
         if (!bankAccount.getIsActive()) {
@@ -180,7 +180,7 @@ public class BankAccountService implements IBankAccountService {
         User user = userRepository.findByKeycloakId(keycloakId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         
-        BankAccount bankAccount = bankAccountRepository.findByIdAndUserId(id, user.getId())
+        BankAccount bankAccount = bankAccountRepository.findByIdAndUserIdAndIsActiveTrue(id, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.BANK_ACCOUNT_NOT_FOUND));
         
         if (!bankAccount.getIsActive()) {

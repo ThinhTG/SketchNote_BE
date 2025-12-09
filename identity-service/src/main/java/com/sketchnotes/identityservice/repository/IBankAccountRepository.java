@@ -20,13 +20,13 @@ public interface IBankAccountRepository extends JpaRepository<BankAccount, Long>
     List<BankAccount> findByUserId(Long userId);
     
     // Find bank account by ID and user ID
-    Optional<BankAccount> findByIdAndUserId(Long id, Long userId);
+    Optional<BankAccount> findByIdAndUserIdAndIsActiveTrue(Long id, Long userId);
     
     // Find default bank account for a user
     Optional<BankAccount> findByUserIdAndIsDefaultTrue(Long userId);
     
     // Check if account number exists for a user
-    boolean existsByUserIdAndAccountNumberAndIsActiveFalse(Long userId, String accountNumber);
+    boolean existsByUserIdAndAccountNumberAndIsActiveTrue(Long userId, String accountNumber);
     
     // Count active bank accounts for a user
     long countByUserIdAndIsActiveTrue(Long userId);
