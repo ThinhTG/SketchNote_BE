@@ -35,17 +35,14 @@ public class BankAccountService implements IBankAccountService {
         String keycloakId = SecurityUtils.getCurrentUserId();
         User user = userRepository.findByKeycloakId(keycloakId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        
-        // Check if account number already exists for this user
+
         if (bankAccountRepository.existsByUserIdAndAccountNumber(user.getId(), request.getAccountNumber())) {
             throw new AppException(ErrorCode.ACCOUNT_NUMBER_ALREADY_EXISTS);
         }
-        
-        // If this is the first account or isDefault is true, set as default
+
         long existingAccountsCount = bankAccountRepository.countByUserIdAndIsActiveTrue(user.getId());
         boolean shouldBeDefault = existingAccountsCount == 0 || Boolean.TRUE.equals(request.getIsDefault());
-        
-        // If setting as default, unset all other defaults
+
         if (shouldBeDefault) {
             bankAccountRepository.unsetAllDefaultForUser(user.getId());
         }
@@ -53,6 +50,7 @@ public class BankAccountService implements IBankAccountService {
         // Create bank account
         BankAccount bankAccount = BankAccount.builder()
                 .user(user)
+                .logoUrl(request.getLogoUrl())
                 .bankName(request.getBankName())
                 .accountNumber(request.getAccountNumber())
                 .accountHolderName(request.getAccountHolderName())
@@ -133,6 +131,7 @@ public class BankAccountService implements IBankAccountService {
         }
         
         // Update fields
+        bankAccount.setLogoUrl(request.getLogoUrl());
         bankAccount.setBankName(request.getBankName());
         bankAccount.setAccountNumber(request.getAccountNumber());
         bankAccount.setAccountHolderName(request.getAccountHolderName());

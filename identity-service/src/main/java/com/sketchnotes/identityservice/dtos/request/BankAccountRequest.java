@@ -25,6 +25,10 @@ public class BankAccountRequest {
     @Size(max = 100, message = "Account holder name must not exceed 100 characters")
     private String accountHolderName;
     
+    @NotBlank(message = "Logo URL is required")
+    @Size(max = 255, message = "Logo URL must not exceed 255 characters")
+    private String logoUrl;
+
     @Size(max = 100, message = "Branch must not exceed 100 characters")
     private String branch;
     

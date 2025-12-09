@@ -14,7 +14,7 @@ public class BankAccountMapper {
         
         return BankAccountResponse.builder()
                 .id(bankAccount.getId())
-                .userId(bankAccount.getUser() != null ? bankAccount.getUser().getId() : null)
+                .logoUrl(bankAccount.getLogoUrl())
                 .bankName(bankAccount.getBankName())
                 .accountNumber(bankAccount.getAccountNumber())
                 .accountHolderName(bankAccount.getAccountHolderName())
