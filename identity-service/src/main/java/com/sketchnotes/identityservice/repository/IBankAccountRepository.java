@@ -26,7 +26,7 @@ public interface IBankAccountRepository extends JpaRepository<BankAccount, Long>
     Optional<BankAccount> findByUserIdAndIsDefaultTrue(Long userId);
     
     // Check if account number exists for a user
-    boolean existsByUserIdAndAccountNumber(Long userId, String accountNumber);
+    boolean existsByUserIdAndAccountNumberAndIsActiveFalse(Long userId, String accountNumber);
     
     // Count active bank accounts for a user
     long countByUserIdAndIsActiveTrue(Long userId);
