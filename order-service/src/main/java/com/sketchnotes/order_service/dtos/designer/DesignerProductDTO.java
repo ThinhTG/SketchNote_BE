@@ -34,7 +34,7 @@ public class DesignerProductDTO {
     private Double avgResourceRating; // Alias for average rating
     
     // Version info
-    private Long currentPublishedVersionId;
+    private Long currentPublishedVersionId;                                                                                                                                                                                                                  
     private String currentVersionNumber;
     private List<ResourceTemplateVersionDTO> versions;
     
