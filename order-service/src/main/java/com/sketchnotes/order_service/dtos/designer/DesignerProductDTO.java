@@ -1,6 +1,7 @@
 package com.sketchnotes.order_service.dtos.designer;
 
 import com.sketchnotes.order_service.dtos.DesignerInfoDTO;
+import com.sketchnotes.order_service.dtos.ResourceImageDTO;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -21,11 +22,16 @@ public class DesignerProductDTO {
     private String status;  // State Machine: PENDING_REVIEW, PUBLISHED, REJECTED, ARCHIVED, DELETED
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Media
+    private List<ResourceImageDTO> images;
+    private String bannerImageUrl;
     
     // Statistics
     private Long totalPurchases;     // Tổng số lượt mua từ tất cả versions
     private BigDecimal totalRevenue;  // Tổng doanh thu từ tất cả versions
     private Long averageRating;       // Xếp hạng trung bình
+    private Double avgResourceRating; // Alias for average rating
     
     // Version info
     private Long currentPublishedVersionId;

@@ -5,6 +5,7 @@ import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
 import com.sketchnotes.order_service.dtos.TemplateCreateUpdateDTO;
 import com.sketchnotes.order_service.dtos.TemplateSellDTO;
 import com.sketchnotes.order_service.entity.ResourceTemplate;
+import com.sketchnotes.order_service.dtos.designer.ResourceTemplateVersionDTO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -100,6 +101,16 @@ public interface TemplateService {
      * Lấy template theo trạng thái review (PENDING_REVIEW, PUBLISHED, REJECTED)
      */
     PagedResponseDTO<ResourceTemplateDTO> getTemplatesByReviewStatus(String status, int page, int size, String sortBy, String sortDir);
+
+    /**
+     * Lấy danh sách version đang PENDING_REVIEW (dành cho Staff duyệt)
+     */
+    PagedResponseDTO<ResourceTemplateVersionDTO> getPendingVersions(int page, int size, String sortBy, String sortDir);
+
+    /**
+     * Staff review một version: approve (-> PUBLISHED) hoặc reject (-> REJECTED, kèm lý do)
+     */
+    ResourceTemplateVersionDTO reviewVersion(Long versionId, Long staffId, boolean approve, String reviewComment);
     
     /**
      * Lấy template sắp hết hạn
