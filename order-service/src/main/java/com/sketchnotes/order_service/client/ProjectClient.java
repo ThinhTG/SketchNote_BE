@@ -19,6 +19,6 @@ public interface ProjectClient {
     @GetMapping("/api/projects/{id}")
     ApiResponse<ProjectResponse> getProject(@PathVariable Long id);
     
-    @PostMapping("/api/storage/copy")
+    @PostMapping("/api/projects/storage/copy")
     ApiResponse<Map<String, String>> copyFile(@RequestBody FileRequest fileRequest);
 }
