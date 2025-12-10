@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -19,7 +18,7 @@ import java.util.List;
 public class OrderTemplateController {
 
     private final TemplateService templateService;
-    private final IdentityClient  identityClient;
+    private final IdentityClient identityClient;
 
     /**
      * Lấy tất cả template đang active và đã được PUBLISHED với pagination
@@ -30,27 +29,8 @@ public class OrderTemplateController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
-        var result = templateService.getAllActiveTemplates(page, size, sortBy, sortDir);
-
-        // Get current user ID
         Long currentUserId = getCurrentUserId();
-
-        //  Gán thông tin designer vào từng ResourceTemplateDTO và set isOwner
-        if (result != null && result.getContent() != null && !result.getContent().isEmpty()) {
-            result.getContent().forEach(template -> {
-                var apiResponse = identityClient.getUser(template.getDesignerId());
-                UserResponse user = apiResponse.getResult();
-                DesignerInfoDTO designerInfo = new DesignerInfoDTO();
-                designerInfo.setEmail(user.getEmail());
-                designerInfo.setFirstName(user.getFirstName());
-                designerInfo.setLastName(user.getLastName());
-                designerInfo.setAvatarUrl(user.getAvatarUrl());
-                template.setDesignerInfo(designerInfo);
-            });
-            
-            // Set isOwner flag for all templates
-            setOwnerFlag(result, currentUserId);
-        }
+        var result = templateService.getAllActiveTemplates(page, size, sortBy, sortDir, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates"));
     }
 
@@ -59,28 +39,8 @@ public class OrderTemplateController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ResourceTemplateDTO>> getTemplateById(@PathVariable Long id) {
-        var result = templateService.getTemplateById(id);
-        
-        // Get current user ID
         Long currentUserId = getCurrentUserId();
-        
-        // Set isOwner flag
-        if (currentUserId != null) {
-            result.setIsOwner(currentUserId.equals(result.getDesignerId()));
-        }
-        
-        // Set designer info
-        if (result.getDesignerId() != null) {
-            var apiResponse = identityClient.getUser(result.getDesignerId());
-            UserResponse user = apiResponse.getResult();
-            DesignerInfoDTO designerInfo = new DesignerInfoDTO();
-            designerInfo.setEmail(user.getEmail());
-            designerInfo.setFirstName(user.getFirstName());
-            designerInfo.setLastName(user.getLastName());
-            designerInfo.setAvatarUrl(user.getAvatarUrl());
-            result.setDesignerInfo(designerInfo);
-        }
-        
+        var result = templateService.getTemplateById(id, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched template"));
     }
 
@@ -93,12 +53,8 @@ public class OrderTemplateController {
             @PathVariable Long designerId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        var result = templateService.getTemplatesByDesigner(designerId, page, size, "createdAt", "desc");
-        
-        // Set isOwner flag
         Long currentUserId = getCurrentUserId();
-        setOwnerFlag(result, currentUserId);
-        
+        var result = templateService.getTemplatesByDesigner(designerId, page, size, "createdAt", "desc", currentUserId);
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates by designer"));
     }
 
@@ -113,29 +69,10 @@ public class OrderTemplateController {
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-
-        // Lấy thông tin user hiện tại từ Identity Service
-        var apiResponse = identityClient.getCurrentUser();
-        UserResponse user = apiResponse.getResult();
-
-        // Gọi service để lấy danh sách template theo designerId và status
+        UserResponse user = getCurrentUser();
         var result = templateService.getTemplatesByDesignerAndStatus(user.getId(), status, page, size, "createdAt", "desc");
-
-        //  Gán thông tin designer vào từng ResourceTemplateDTO
-        if (result != null && result.getContent() != null && !result.getContent().isEmpty()) {
-            result.getContent().forEach(template -> {
-                DesignerInfoDTO designerInfo = new DesignerInfoDTO();
-                designerInfo.setEmail(user.getEmail());
-                designerInfo.setFirstName(user.getFirstName());
-                designerInfo.setLastName(user.getLastName());
-                designerInfo.setAvatarUrl(user.getAvatarUrl());
-                template.setDesignerInfo(designerInfo);
-            });
-        }
-        // Trả về kết quả
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched My templates"));
     }
-
 
     /**
      * Lấy template theo loại với pagination
@@ -145,8 +82,8 @@ public class OrderTemplateController {
             @PathVariable String type,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        var result = templateService.getTemplatesByType(type, page, size, "createdAt", "desc");
-        setOwnerFlag(result, getCurrentUserId());
+        Long currentUserId = getCurrentUserId();
+        var result = templateService.getTemplatesByType(type, page, size, "createdAt", "desc", currentUserId);
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates by type"));
     }
 
@@ -158,8 +95,8 @@ public class OrderTemplateController {
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        var result = templateService.searchTemplates(keyword, page, size, "createdAt", "desc");
-        setOwnerFlag(result, getCurrentUserId());
+        Long currentUserId = getCurrentUserId();
+        var result = templateService.searchTemplates(keyword, page, size, "createdAt", "desc", currentUserId);
         return ResponseEntity.ok(ApiResponse.success(result, "Search results"));
     }
 
@@ -169,8 +106,8 @@ public class OrderTemplateController {
     @GetMapping("/popular")
     public ResponseEntity<ApiResponse<List<ResourceTemplateDTO>>> getPopularTemplates(
             @RequestParam(defaultValue = "10") int limit) {
-        var result = templateService.getPopularTemplates(limit);
-        setOwnerFlag(result, getCurrentUserId());
+        Long currentUserId = getCurrentUserId();
+        var result = templateService.getPopularTemplates(limit, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(result, "Popular templates"));
     }
 
@@ -180,17 +117,15 @@ public class OrderTemplateController {
     @GetMapping("/latest")
     public ResponseEntity<ApiResponse<List<ResourceTemplateDTO>>> getLatestTemplates(
             @RequestParam(defaultValue = "10") int limit) {
-        var result = templateService.getLatestTemplates(limit);
-        setOwnerFlag(result, getCurrentUserId());
+        Long currentUserId = getCurrentUserId();
+        var result = templateService.getLatestTemplates(limit, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(result, "Latest templates"));
     }
 
-
     @PostMapping
     public ResponseEntity<ApiResponse<ResourceTemplateDTO>> createTemplate(@RequestBody TemplateCreateUpdateDTO dto) {
-        ApiResponse<UserResponse> apiResponse = identityClient.getCurrentUser();
-        UserResponse user = apiResponse.getResult();
-        if (user == null || user.getRole() == null || !"DESIGNER".equalsIgnoreCase(user.getRole())) {
+        UserResponse user = getCurrentUser();
+        if (user.getRole() == null || !"DESIGNER".equalsIgnoreCase(user.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only designers can create templates");
         }
         dto.setDesignerId(user.getId());
@@ -200,7 +135,7 @@ public class OrderTemplateController {
 
     /**
      * Xác nhận template và chuyển trạng thái từ PENDING_REVIEW sang PUBLISHED
-     * Chỉ staff mới có quyền thực hiện chức năng này ( chua co )
+     * Chỉ staff mới có quyền thực hiện chức năng này
      */
     @PostMapping("/{id}/confirm")
     public ResponseEntity<ApiResponse<ResourceTemplateDTO>> confirmTemplate(@PathVariable Long id) {
@@ -211,7 +146,7 @@ public class OrderTemplateController {
 
     /**
      * Từ chối template và chuyển trạng thái sang REJECTED
-     * Chỉ staff mới có quyền thực hiện chức năng này ( chua co )
+     * Chỉ staff mới có quyền thực hiện chức năng này
      */
     @PostMapping("/{id}/reject")
     public ResponseEntity<ApiResponse<ResourceTemplateDTO>> rejectTemplate(@PathVariable Long id) {
@@ -232,11 +167,6 @@ public class OrderTemplateController {
             @RequestParam(defaultValue = "desc") String sortDir) {
         ensureStaff();
         var result = templateService.getTemplatesByReviewStatus(status, page, size, sortBy, sortDir);
-        
-        // Set isOwner flag
-        Long currentUserId = getCurrentUserId();
-        setOwnerFlag(result, currentUserId);
-        
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched templates by review status"));
     }
 
@@ -262,8 +192,7 @@ public class OrderTemplateController {
             @PathVariable Long versionId,
             @RequestBody VersionReviewRequest request) {
         ensureStaff();
-        ApiResponse<UserResponse> userResp = identityClient.getCurrentUser();
-        Long staffId = userResp.getResult() != null ? userResp.getResult().getId() : null;
+        UserResponse user = getCurrentUser();
 
         if (request.getApprove() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "approve is required (true/false)");
@@ -274,7 +203,7 @@ public class OrderTemplateController {
 
         ResourceTemplateVersionDTO reviewed = templateService.reviewVersion(
                 versionId,
-                staffId,
+                user.getId(),
                 request.getApprove(),
                 request.getReviewComment());
 
@@ -286,44 +215,20 @@ public class OrderTemplateController {
     public ResponseEntity<ApiResponse<ResourceTemplateDTO>> sellProjectAsTemplate(
             @PathVariable Long projectId,
             @RequestBody TemplateSellDTO dto) {
+        UserResponse user = getCurrentUser();
 
-        // ✅ Lấy thông tin user hiện tại
-        ApiResponse<UserResponse> apiResponse = identityClient.getCurrentUser();
-        UserResponse user = apiResponse.getResult();
-
-        if (user == null || user.getRole() == null || !"DESIGNER".equalsIgnoreCase(user.getRole())) {
+        if (user.getRole() == null || !"DESIGNER".equalsIgnoreCase(user.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only designers can sell projects as templates");
         }
 
-        // ✅ Gọi service để tạo template mới từ project
         ResourceTemplateDTO created = templateService.createTemplateFromProject(projectId, user.getId(), dto);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(created, "Template created from project and pending review"));
     }
-    
-    /**
-     * Helper method to set isOwner flag for templates based on current user
-     */
-    private void setOwnerFlag(List<ResourceTemplateDTO> templates, Long currentUserId) {
-        if (templates != null && !templates.isEmpty() && currentUserId != null) {
-            templates.forEach(template -> 
-                template.setIsOwner(currentUserId.equals(template.getDesignerId()))
-            );
-        }
-    }
-    
-    /**
-     * Helper method to set isOwner flag for paged templates based on current user
-     */
-    private void setOwnerFlag(PagedResponseDTO<ResourceTemplateDTO> pagedTemplates, Long currentUserId) {
-        if (pagedTemplates != null && pagedTemplates.getContent() != null && currentUserId != null) {
-            pagedTemplates.getContent().forEach(template -> 
-                template.setIsOwner(currentUserId.equals(template.getDesignerId()))
-            );
-        }
-    }
-    
+
+    // ==================== Private Helper Methods ====================
+
     /**
      * Get current user ID safely (returns null if not authenticated)
      */
@@ -339,15 +244,28 @@ public class OrderTemplateController {
         return null;
     }
 
-    private void ensureStaff() {
+    /**
+     * Get current user (throws exception if not authenticated)
+     */
+    private UserResponse getCurrentUser() {
         try {
             ApiResponse<UserResponse> apiResponse = identityClient.getCurrentUser();
-            UserResponse user = apiResponse.getResult();
-            if (user == null || user.getRole() == null || !"STAFF".equalsIgnoreCase(user.getRole())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only staff can access this endpoint");
+            if (apiResponse != null && apiResponse.getResult() != null) {
+                return apiResponse.getResult();
             }
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Failed to authenticate user");
+        }
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+    }
+
+    /**
+     * Ensure current user is a staff member
+     */
+    private void ensureStaff() {
+        UserResponse user = getCurrentUser();
+        if (user.getRole() == null || !"STAFF".equalsIgnoreCase(user.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only staff can access this endpoint");
         }
     }
 }

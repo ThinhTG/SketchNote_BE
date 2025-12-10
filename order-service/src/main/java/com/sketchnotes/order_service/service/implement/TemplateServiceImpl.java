@@ -1,11 +1,7 @@
 package com.sketchnotes.order_service.service.implement;
 
 import com.sketchnotes.order_service.client.ProjectClient;
-import com.sketchnotes.order_service.dtos.ApiResponse;
-import com.sketchnotes.order_service.dtos.PagedResponseDTO;
-import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
-import com.sketchnotes.order_service.dtos.TemplateCreateUpdateDTO;
-import com.sketchnotes.order_service.dtos.TemplateSellDTO;
+import com.sketchnotes.order_service.dtos.*;
 import com.sketchnotes.order_service.dtos.designer.ResourceTemplateVersionDTO;
 import com.sketchnotes.order_service.dtos.project.ProjectResponse;
 import com.sketchnotes.order_service.entity.ResourceTemplate;
@@ -18,8 +14,11 @@ import com.sketchnotes.order_service.exception.ResourceTemplateNotFoundException
 import com.sketchnotes.order_service.mapper.OrderMapper;
 import com.sketchnotes.order_service.repository.ResourceTemplateRepository;
 import com.sketchnotes.order_service.repository.ResourceTemplateVersionRepository;
+import com.sketchnotes.order_service.repository.UserResourceRepository;
 import com.sketchnotes.order_service.service.TemplateService;
+import com.sketchnotes.order_service.client.IdentityClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,8 +31,11 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -41,10 +43,11 @@ public class TemplateServiceImpl implements TemplateService {
     
     private final ResourceTemplateRepository resourceTemplateRepository;
     private final ResourceTemplateVersionRepository versionRepository;
+    private final UserResourceRepository userResourceRepository;
     private final OrderMapper orderMapper;
     private final ProjectClient projectClient;
     private final com.sketchnotes.order_service.repository.OrderRepository orderRepository;
-    private final com.sketchnotes.order_service.client.IdentityClient identityClient;
+    private final IdentityClient identityClient;
 
     @Override
     @Transactional(readOnly = true)
@@ -56,7 +59,7 @@ public class TemplateServiceImpl implements TemplateService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponseDTO<ResourceTemplateDTO> getAllActiveTemplates(int page, int size, String sortBy, String sortDir) {
+    public PagedResponseDTO<ResourceTemplateDTO> getAllActiveTemplates(int page, int size, String sortBy, String sortDir, Long currentUserId) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
         // State Machine: Chỉ lấy templates có status = PUBLISHED
@@ -64,23 +67,27 @@ public class TemplateServiceImpl implements TemplateService {
             ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
         PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
         
-        // Populate statistics for all templates
+        // Populate statistics, designer info and owner flag
         populateStatistics(result.getContent());
+        populateDesignerInfo(result.getContent());
+        populateOwnerFlag(result.getContent(), currentUserId);
         
         return result;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ResourceTemplateDTO getTemplateById(Long id) {
+    public ResourceTemplateDTO getTemplateById(Long id, Long currentUserId) {
         // State Machine: Chỉ lấy template có status = PUBLISHED
         ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndStatus(
             id, ResourceTemplate.TemplateStatus.PUBLISHED)
             .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
         ResourceTemplateDTO dto = orderMapper.toDto(template);
         
-        // Populate statistics
+        // Populate statistics, designer info and owner flag
         populateStatistics(dto);
+        populateDesignerInfo(dto);
+        populateOwnerFlag(dto, currentUserId);
         
         return dto;
     }
@@ -97,7 +104,7 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     @Transactional(readOnly = true)
     public PagedResponseDTO<ResourceTemplateDTO> getTemplatesByDesigner(
-            Long designerId, int page, int size, String sortBy, String sortDir) {
+            Long designerId, int page, int size, String sortBy, String sortDir, Long currentUserId) {
         // State Machine: Khi customer xem designer's products, chỉ show status = PUBLISHED
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
@@ -109,6 +116,8 @@ public class TemplateServiceImpl implements TemplateService {
         
         PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
         populateStatistics(result.getContent());
+        populateDesignerInfo(result.getContent());
+        populateOwnerFlag(result.getContent(), currentUserId);
         return result;
     }
 
@@ -157,7 +166,7 @@ public class TemplateServiceImpl implements TemplateService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponseDTO<ResourceTemplateDTO> getTemplatesByType(String type, int page, int size, String sortBy, String sortDir) {
+    public PagedResponseDTO<ResourceTemplateDTO> getTemplatesByType(String type, int page, int size, String sortBy, String sortDir, Long currentUserId) {
         try {
             ResourceTemplate.TemplateType templateType = ResourceTemplate.TemplateType.valueOf(type.toUpperCase());
             Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
@@ -167,6 +176,8 @@ public class TemplateServiceImpl implements TemplateService {
                 templateType, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
             PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
             populateStatistics(result.getContent());
+            populateDesignerInfo(result.getContent());
+            populateOwnerFlag(result.getContent(), currentUserId);
             return result;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid template type: " + type);
@@ -181,7 +192,7 @@ public class TemplateServiceImpl implements TemplateService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponseDTO<ResourceTemplateDTO> searchTemplates(String keyword, int page, int size, String sortBy, String sortDir) {
+    public PagedResponseDTO<ResourceTemplateDTO> searchTemplates(String keyword, int page, int size, String sortBy, String sortDir, Long currentUserId) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
         // State Machine: Chỉ tìm templates có status = PUBLISHED
@@ -189,6 +200,8 @@ public class TemplateServiceImpl implements TemplateService {
             keyword, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
         PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
         populateStatistics(result.getContent());
+        populateDesignerInfo(result.getContent());
+        populateOwnerFlag(result.getContent(), currentUserId);
         return result;
     }
 
@@ -365,7 +378,7 @@ public class TemplateServiceImpl implements TemplateService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ResourceTemplateDTO> getLatestTemplates(int limit) {
+    public List<ResourceTemplateDTO> getLatestTemplates(int limit, Long currentUserId) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
         List<ResourceTemplate> templates = resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED).stream()
                 .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()))
@@ -373,12 +386,14 @@ public class TemplateServiceImpl implements TemplateService {
                 .toList();
         List<ResourceTemplateDTO> result = orderMapper.toTemplateDtoList(templates);
         populateStatistics(result);
+        populateDesignerInfo(result);
+        populateOwnerFlag(result, currentUserId);
         return result;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ResourceTemplateDTO> getPopularTemplates(int limit) {
+    public List<ResourceTemplateDTO> getPopularTemplates(int limit, Long currentUserId) {
         // For now, return templates sorted by price (as a simple popularity metric)
         // In a real implementation, this would be based on order count or views
         List<ResourceTemplate> templates = resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED).stream()
@@ -387,6 +402,8 @@ public class TemplateServiceImpl implements TemplateService {
                 .toList();
         List<ResourceTemplateDTO> result = orderMapper.toTemplateDtoList(templates);
         populateStatistics(result);
+        populateDesignerInfo(result);
+        populateOwnerFlag(result, currentUserId);
         return result;
     }
 
@@ -651,7 +668,7 @@ public class TemplateServiceImpl implements TemplateService {
             try {
                 var feedbackResponse = identityClient.getFeedbackStats(dto.getResourceTemplateId());
                 if (feedbackResponse != null && feedbackResponse.getResult() != null) {
-                    com.sketchnotes.order_service.dtos.FeedbackStatsResponse stats = feedbackResponse.getResult();
+                    FeedbackStatsResponse stats = feedbackResponse.getResult();
                     dto.setFeedbackCount(stats.getTotalFeedbacks() != null ? stats.getTotalFeedbacks() : 0L);
                     dto.setAverageRating(stats.getAverageRating());
                     dto.setAvgResourceRating(stats.getAverageRating());
@@ -684,5 +701,76 @@ public class TemplateServiceImpl implements TemplateService {
         }
         
         dtos.forEach(this::populateStatistics);
+    }
+    
+    /**
+     * Populate designer info for a single template DTO
+     */
+    private void populateDesignerInfo(ResourceTemplateDTO dto) {
+        if (dto == null || dto.getDesignerId() == null) {
+            return;
+        }
+        
+        try {
+            var apiResponse = identityClient.getUser(dto.getDesignerId());
+            if (apiResponse != null && apiResponse.getResult() != null) {
+                UserResponse user = apiResponse.getResult();
+                DesignerInfoDTO designerInfo = new DesignerInfoDTO();
+                designerInfo.setEmail(user.getEmail());
+                designerInfo.setFirstName(user.getFirstName());
+                designerInfo.setLastName(user.getLastName());
+                designerInfo.setAvatarUrl(user.getAvatarUrl());
+                dto.setDesignerInfo(designerInfo);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to get designer info for designerId {}: {}", dto.getDesignerId(), e.getMessage());
+        }
+    }
+    
+    /**
+     * Populate designer info for a list of template DTOs
+     */
+    private void populateDesignerInfo(List<ResourceTemplateDTO> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            return;
+        }
+        
+        dtos.forEach(this::populateDesignerInfo);
+    }
+    
+    /**
+     * Populate isOwner flag for a single template DTO
+     * isOwner = true if user is the designer OR user has purchased the template
+     */
+    private void populateOwnerFlag(ResourceTemplateDTO dto, Long currentUserId) {
+        if (dto == null || currentUserId == null) {
+            return;
+        }
+        
+        boolean isDesigner = currentUserId.equals(dto.getDesignerId());
+        boolean hasPurchased = userResourceRepository.existsByUserIdAndResourceTemplateIdAndActiveTrue(
+                currentUserId, dto.getResourceTemplateId());
+        dto.setIsOwner(isDesigner || hasPurchased);
+    }
+    
+    /**
+     * Populate isOwner flag for a list of template DTOs
+     * isOwner = true if user is the designer OR user has purchased the template
+     */
+    private void populateOwnerFlag(List<ResourceTemplateDTO> dtos, Long currentUserId) {
+        if (dtos == null || dtos.isEmpty() || currentUserId == null) {
+            return;
+        }
+        
+        // Get all template IDs that user has purchased (batch query for performance)
+        List<Long> purchasedTemplateIds = userResourceRepository.findActiveTemplateIdsByUserId(currentUserId);
+        Set<Long> purchasedSet = purchasedTemplateIds != null ? 
+                new HashSet<>(purchasedTemplateIds) : Set.of();
+        
+        dtos.forEach(dto -> {
+            boolean isDesigner = currentUserId.equals(dto.getDesignerId());
+            boolean hasPurchased = purchasedSet.contains(dto.getResourceTemplateId());
+            dto.setIsOwner(isDesigner || hasPurchased);
+        });
     }
 }
