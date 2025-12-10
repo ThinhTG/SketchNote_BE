@@ -409,10 +409,10 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to delete this version");
         }
 
-        // Chỉ xóa được version PENDING_REVIEW
-        if (!version.getStatus().equals(ResourceTemplate.TemplateStatus.PENDING_REVIEW)) {
+        // Khong dc xoa resource co status PUBLISHED
+        if (version.getStatus().equals(ResourceTemplate.TemplateStatus.PUBLISHED)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "You can only delete versions in PENDING_REVIEW status");
+                    "You can not delete versions in PUBLISHED status");
         }
 
         versionRepository.deleteById(versionId);
