@@ -37,7 +37,6 @@ public class AuthenticationService implements  IAuthService {
     private final IUserRepository userRepository;
     private final ErrorNormalizer errorNormalizer;
     private final IWalletService walletService;
-    private  final KafkaProducerService kafkaProducerService;
     @Value("${idp.client-id}")
     @NonFinal
    private String clientId;
@@ -67,10 +66,10 @@ public class AuthenticationService implements  IAuthService {
                             .build()
             );
             DecodedJWT jwt = JWT.decode(tokenResponse.getAccessToken());
-            boolean emailVerified = jwt.getClaim("email_verified").asBoolean();
-            if (!emailVerified) {
-                throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
-            }
+//            boolean emailVerified = jwt.getClaim("email_verified").asBoolean();
+//            if (!emailVerified) {
+//                throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+//            }
             // Tìm user trong DB (nếu có)
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
