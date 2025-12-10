@@ -1,10 +1,13 @@
 package com.sketchnotes.identityservice.client;
 
 import com.sketchnotes.identityservice.dtos.ApiResponse;
+import com.sketchnotes.identityservice.dtos.request.UpdateCourseRatingRequest;
 import com.sketchnotes.identityservice.dtos.response.CourseEnrollmentResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name = "learning-service")
 public interface LearningServiceClient {
@@ -23,6 +26,15 @@ public interface LearningServiceClient {
     ApiResponse<CourseEnrollmentResponse> getEnrollment(
             @PathVariable("userId") Long userId,
             @PathVariable("courseId") Long courseId
+    );
+
+    /**
+     * Update course rating when new feedback is submitted
+     */
+    @PutMapping("/api/learning/courses/{courseId}/rating")
+    ApiResponse<Void> updateCourseRating(
+            @PathVariable("courseId") Long courseId,
+            @RequestBody UpdateCourseRatingRequest request
     );
 }
 

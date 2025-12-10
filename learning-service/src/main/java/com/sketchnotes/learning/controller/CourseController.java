@@ -3,6 +3,7 @@ package com.sketchnotes.learning.controller;
 import com.sketchnotes.learning.client.IdentityClient;
 import com.sketchnotes.learning.dto.ApiResponse;
 import com.sketchnotes.learning.dto.CourseDTO;
+import com.sketchnotes.learning.dto.UpdateCourseRatingRequest;
 import com.sketchnotes.learning.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -67,6 +68,27 @@ public class CourseController {
         var user = identityClient.getCurrentUser().getResult();
         List<CourseDTO> notEnrolledCourses = courseService.getNotEnrolledCourses(user.getId());
         return ResponseEntity.ok(ApiResponse.success(notEnrolledCourses, "Not enrolled courses retrieved successfully"));
+    }
+
+    /**
+     * Cập nhật rating cho khóa học
+     * Endpoint này được gọi từ identity-service khi có feedback mới
+     */
+    @PutMapping("/{id}/rating")
+    public ResponseEntity<ApiResponse<Void>> updateCourseRating(
+            @PathVariable Long id,
+            @RequestBody UpdateCourseRatingRequest request) {
+        courseService.updateCourseRating(id, request.getAvgRating(), request.getRatingCount());
+        return ResponseEntity.ok(ApiResponse.success(null, "Course rating updated successfully"));
+    }
+
+    /**
+     * Internal endpoint: Lấy thông tin rating của khóa học
+     */
+    @GetMapping("/{id}/rating")
+    public ResponseEntity<ApiResponse<CourseDTO>> getCourseRating(@PathVariable Long id) {
+        CourseDTO rating = courseService.getCourseRating(id);
+        return ResponseEntity.ok(ApiResponse.success(rating, "Course rating retrieved successfully"));
     }
 
     @ExceptionHandler(RuntimeException.class)

@@ -4,6 +4,7 @@ import com.sketchnotes.identityservice.client.LearningServiceClient;
 import com.sketchnotes.identityservice.client.OrderServiceClient;
 import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.dtos.request.FeedbackRequest;
+import com.sketchnotes.identityservice.dtos.request.UpdateCourseRatingRequest;
 import com.sketchnotes.identityservice.dtos.response.*;
 import com.sketchnotes.identityservice.exception.*;
 import com.sketchnotes.identityservice.model.Feedback;
@@ -86,6 +87,10 @@ public class FeedbackServiceImpl implements FeedbackService {
         }
         
         feedback = feedbackRepository.save(feedback);
+        
+        // Cập nhật avgRating và ratingCount cho Course trong learning-service
+        updateCourseRatingAsync(request.getCourseId());
+        
         return mapToFeedbackResponse(feedback);
     }
     
@@ -273,5 +278,29 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .createdAt(feedback.getCreatedAt())
                 .updatedAt(feedback.getUpdatedAt())
                 .build();
+    }
+
+    /**
+     * Cập nhật avgRating và ratingCount cho Course trong learning-service
+     * Gọi async để không ảnh hưởng đến transaction chính
+     */
+    private void updateCourseRatingAsync(Long courseId) {
+        try {
+            // Tính toán avgRating và ratingCount từ database
+            Double avgRating = feedbackRepository.getAverageRatingByCourseId(courseId);
+            Long ratingCount = feedbackRepository.countByCourseId(courseId);
+            
+            // Gọi learning-service để cập nhật
+            UpdateCourseRatingRequest request = UpdateCourseRatingRequest.builder()
+                    .avgRating(avgRating != null ? Math.round(avgRating * 100.0) / 100.0 : 0.0)
+                    .ratingCount(ratingCount != null ? ratingCount.intValue() : 0)
+                    .build();
+            
+            learningServiceClient.updateCourseRating(courseId, request);
+            log.info("Updated course {} rating: avgRating={}, ratingCount={}", courseId, request.getAvgRating(), request.getRatingCount());
+        } catch (Exception e) {
+            // Log lỗi nhưng không throw exception để không ảnh hưởng đến việc tạo feedback
+            log.error("Failed to update course rating for courseId {}: {}", courseId, e.getMessage());
+        }
     }
 }
