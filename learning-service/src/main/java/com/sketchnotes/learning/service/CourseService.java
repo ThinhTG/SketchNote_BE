@@ -92,5 +92,36 @@ public class CourseService {
         List<Course> notEnrolledCourses = courseRepository.findNotEnrolledCoursesByUserId(userId);
         return courseMapper.toDTOList(notEnrolledCourses);
     }
+
+    /**
+     * Cập nhật rating cho khóa học (được gọi từ identity-service khi có feedback mới)
+     * @param courseId ID của khóa học
+     * @param avgRating Điểm trung bình mới
+     * @param ratingCount Tổng số rating
+     */
+    public void updateCourseRating(Long courseId, Double avgRating, Integer ratingCount) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
+        
+        course.setAvgRating(avgRating);
+        course.setRatingCount(ratingCount);
+        course.setUpdatedAt(LocalDateTime.now());
+        
+        courseRepository.save(course);
+    }
+
+    /**
+     * Lấy thông tin rating của một khóa học
+     */
+    public CourseDTO getCourseRating(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
+        
+        CourseDTO dto = new CourseDTO();
+        dto.setCourseId(course.getCourseId());
+        dto.setAvgRating(course.getAvgRating());
+        dto.setRatingCount(course.getRatingCount());
+        return dto;
+    }
 }
 

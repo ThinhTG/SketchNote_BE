@@ -37,6 +37,12 @@ public class Course {
 
     private int totalDuration; // tổng thời gian hoàn thành khóa học
 
+    @Column(name = "avg_rating")
+    private Double avgRating; // điểm đánh giá trung bình của khóa học (1-5 sao)
+
+    @Column(name = "rating_count")
+    private Integer ratingCount = 0; // số lượng đánh giá
+
     private LocalDateTime createdAt = LocalDateTime.now();  // thời điểm khóa học được tạo
 
     private LocalDateTime updatedAt = LocalDateTime.now();  // thời điểm khóa học được cập nhật

@@ -16,5 +16,7 @@ public class CourseDTO {
     private int studentCount;
     private String description;
     private SketchNoteCategory category;
+    private Double avgRating;
+    private Integer ratingCount;
     private List<LessonDTO> lessons;
 }
