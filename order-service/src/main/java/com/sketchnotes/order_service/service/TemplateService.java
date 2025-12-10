@@ -5,6 +5,7 @@ import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
 import com.sketchnotes.order_service.dtos.TemplateCreateUpdateDTO;
 import com.sketchnotes.order_service.dtos.TemplateSellDTO;
 import com.sketchnotes.order_service.entity.ResourceTemplate;
+import com.sketchnotes.order_service.dtos.designer.ResourceTemplateVersionDTO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -18,13 +19,15 @@ public interface TemplateService {
     
     /**
      * Lấy tất cả template đang active với pagination
+     * @param currentUserId ID của user hiện tại (nullable) để set isOwner flag
      */
-    PagedResponseDTO<ResourceTemplateDTO> getAllActiveTemplates(int page, int size, String sortBy, String sortDir);
+    PagedResponseDTO<ResourceTemplateDTO> getAllActiveTemplates(int page, int size, String sortBy, String sortDir, Long currentUserId);
     
     /**
      * Lấy template theo ID
+     * @param currentUserId ID của user hiện tại (nullable) để set isOwner flag
      */
-    ResourceTemplateDTO getTemplateById(Long id);
+    ResourceTemplateDTO getTemplateById(Long id, Long currentUserId);
     
     /**
      * Lấy template theo designer ID
@@ -33,8 +36,9 @@ public interface TemplateService {
     
     /**
      * Lấy template theo designer ID với pagination
+     * @param currentUserId ID của user hiện tại (nullable) để set isOwner flag
      */
-    PagedResponseDTO<ResourceTemplateDTO> getTemplatesByDesigner(Long designerId, int page, int size, String sortBy, String sortDir);
+    PagedResponseDTO<ResourceTemplateDTO> getTemplatesByDesigner(Long designerId, int page, int size, String sortBy, String sortDir, Long currentUserId);
 
     /**
      * Lấy template theo designer ID và status với pagination
@@ -48,8 +52,9 @@ public interface TemplateService {
     
     /**
      * Lấy template theo loại với pagination
+     * @param currentUserId ID của user hiện tại (nullable) để set isOwner flag
      */
-    PagedResponseDTO<ResourceTemplateDTO> getTemplatesByType(String type, int page, int size, String sortBy, String sortDir);
+    PagedResponseDTO<ResourceTemplateDTO> getTemplatesByType(String type, int page, int size, String sortBy, String sortDir, Long currentUserId);
     
     /**
      * Tìm kiếm template theo từ khóa
@@ -58,8 +63,9 @@ public interface TemplateService {
     
     /**
      * Tìm kiếm template theo từ khóa với pagination
+     * @param currentUserId ID của user hiện tại (nullable) để set isOwner flag
      */
-    PagedResponseDTO<ResourceTemplateDTO> searchTemplates(String keyword, int page, int size, String sortBy, String sortDir);
+    PagedResponseDTO<ResourceTemplateDTO> searchTemplates(String keyword, int page, int size, String sortBy, String sortDir, Long currentUserId);
     
     /**
      * Lấy template theo khoảng giá
@@ -100,6 +106,16 @@ public interface TemplateService {
      * Lấy template theo trạng thái review (PENDING_REVIEW, PUBLISHED, REJECTED)
      */
     PagedResponseDTO<ResourceTemplateDTO> getTemplatesByReviewStatus(String status, int page, int size, String sortBy, String sortDir);
+
+    /**
+     * Lấy danh sách version đang PENDING_REVIEW (dành cho Staff duyệt)
+     */
+    PagedResponseDTO<ResourceTemplateVersionDTO> getPendingVersions(int page, int size, String sortBy, String sortDir);
+
+    /**
+     * Staff review một version: approve (-> PUBLISHED) hoặc reject (-> REJECTED, kèm lý do)
+     */
+    ResourceTemplateVersionDTO reviewVersion(Long versionId, Long staffId, boolean approve, String reviewComment);
     
     /**
      * Lấy template sắp hết hạn
@@ -108,13 +124,15 @@ public interface TemplateService {
     
     /**
      * Lấy template mới nhất
+     * @param currentUserId ID của user hiện tại (nullable) để set isOwner flag
      */
-    List<ResourceTemplateDTO> getLatestTemplates(int limit);
+    List<ResourceTemplateDTO> getLatestTemplates(int limit, Long currentUserId);
     
     /**
      * Lấy template phổ biến nhất (có thể dựa trên số lượng order)
+     * @param currentUserId ID của user hiện tại (nullable) để set isOwner flag
      */
-    List<ResourceTemplateDTO> getPopularTemplates(int limit);
+    List<ResourceTemplateDTO> getPopularTemplates(int limit, Long currentUserId);
 
     /**
      * Xác nhận template và chuyển trạng thái từ PENDING_REVIEW sang PUBLISHED

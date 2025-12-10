@@ -35,4 +35,7 @@ public class ResourceTemplateDTO {
     private Long purchaseCount;      // Số lượt mua
     private Long feedbackCount;      // Số feedback
     private Double averageRating;    // Số sao trung bình (1-5)
+
+    // Aggregated resource rating (alias for averageRating for backward compatibility)
+    private Double avgResourceRating;
 }
