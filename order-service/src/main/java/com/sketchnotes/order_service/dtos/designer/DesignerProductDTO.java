@@ -28,7 +28,7 @@ public class DesignerProductDTO {
     private Long averageRating;       // Xếp hạng trung bình
     
     // Version info
-    private Long currentPublishedVersionId;
+    private Long currentPublishedVersionId;                                                                                                                                                                                                                  
     private String currentVersionNumber;
     private List<ResourceTemplateVersionDTO> versions;
     

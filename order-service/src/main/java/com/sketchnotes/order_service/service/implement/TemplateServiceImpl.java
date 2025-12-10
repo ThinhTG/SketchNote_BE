@@ -525,24 +525,24 @@ public class TemplateServiceImpl implements TemplateService {
         }
 
         // 🔹 5. Lưu vào DB
-        ResourceTemplate saved = resourceTemplateRepository.save(template);
+
 
         // 🔹 6. AUTO-CREATE VERSION 1.0 with PENDING_REVIEW status
         ResourceTemplateVersion version = new ResourceTemplateVersion();
-        version.setTemplateId(saved.getTemplateId());
+        version.setTemplateId(template.getTemplateId());
         version.setVersionNumber("1.0");
-        version.setName(saved.getName());
-        version.setDescription(saved.getDescription());
-        version.setPrice(saved.getPrice());
-        version.setType(saved.getType());
-        version.setExpiredTime(saved.getExpiredTime());
-        version.setReleaseDate(saved.getReleaseDate());
+        version.setName(template.getName());
+        version.setDescription(template.getDescription());
+        version.setPrice(template.getPrice());
+        version.setType(template.getType());
+        version.setExpiredTime(template.getExpiredTime());
+        version.setReleaseDate(template.getReleaseDate());
         version.setStatus(ResourceTemplate.TemplateStatus.PENDING_REVIEW);
         version.setCreatedBy(userId);
         
         // Copy images to version
-        if (saved.getImages() != null && !saved.getImages().isEmpty()) {
-            List<ResourceTemplateVersionImage> versionImages = saved.getImages().stream()
+        if (template.getImages() != null && !template.getImages().isEmpty()) {
+            List<ResourceTemplateVersionImage> versionImages = template.getImages().stream()
                     .map(img -> {
                         ResourceTemplateVersionImage vImg = new ResourceTemplateVersionImage();
                         vImg.setImageUrl(img.getImageUrl());
@@ -554,8 +554,8 @@ public class TemplateServiceImpl implements TemplateService {
         }
         
         // Copy items to version
-        if (saved.getItems() != null && !saved.getItems().isEmpty()) {
-            List<ResourceTemplateVersionItem> versionItems = saved.getItems().stream()
+        if (template.getItems() != null && !template.getItems().isEmpty()) {
+            List<ResourceTemplateVersionItem> versionItems = template.getItems().stream()
                     .map(item -> {
                         ResourceTemplateVersionItem vItem = new ResourceTemplateVersionItem();
                         vItem.setItemIndex(item.getItemIndex());
@@ -566,9 +566,10 @@ public class TemplateServiceImpl implements TemplateService {
                     }).toList();
             version.setItems(versionItems);
         }
-        
-        versionRepository.save(version);
 
+       ResourceTemplateVersion version1 =  versionRepository.save(version);
+        template.setCurrentPublishedVersionId(version1.getVersionId());
+        ResourceTemplate saved = resourceTemplateRepository.save(template);
         // 🔹 7. Map sang DTO để trả về
         return orderMapper.toDto(saved);
     }
