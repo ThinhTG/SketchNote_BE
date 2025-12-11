@@ -13,6 +13,12 @@ public interface CourseEnrollmentRepository extends JpaRepository<CourseEnrollme
     List<CourseEnrollment> findByUserId(Long userId);
     Optional<CourseEnrollment> findByCourse_CourseIdAndUserId(Long courseId, Long userId);
     Optional<CourseEnrollment> findByUserIdAndCourse_CourseId(Long userId, Long courseId);
+    
+    /**
+     * Kiểm tra xem khóa học có enrollment nào không
+     * Dùng để ngăn edit/delete khóa học đã được mua
+     */
+    boolean existsByCourse_CourseId(Long courseId);
 
     @Query("SELECT ce.course.courseId, COUNT(ce) as enrollmentCount, ce.course.title FROM CourseEnrollment ce GROUP BY ce.course.courseId, ce.course.title ORDER BY enrollmentCount DESC")
     List<Object[]> findTopSellingCourses();

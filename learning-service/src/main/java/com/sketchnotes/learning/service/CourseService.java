@@ -3,7 +3,9 @@ package com.sketchnotes.learning.service;
 import com.sketchnotes.learning.dto.CourseDTO;
 import com.sketchnotes.learning.entity.Course;
 import com.sketchnotes.learning.entity.Lesson;
+import com.sketchnotes.learning.exception.ErrorCode;
 import com.sketchnotes.learning.mapper.CourseMapper;
+import com.sketchnotes.learning.repository.CourseEnrollmentRepository;
 import com.sketchnotes.learning.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import java.util.List;
 public class CourseService {
     private final CourseRepository courseRepository;
     private final CourseMapper courseMapper;
+    private final CourseEnrollmentRepository enrollmentRepository;
 
     public List<CourseDTO> getAllCourses() {
         List<Course> courses = courseRepository.findAllWithLessons();
@@ -56,6 +59,11 @@ public class CourseService {
     public CourseDTO updateCourse(Long id, CourseDTO dto) {
         Course existingCourse = courseRepository.findByIdWithLessons(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+        
+        // Kiểm tra xem khóa học đã có người enroll chưa
+        if (enrollmentRepository.existsByCourse_CourseId(id)) {
+            throw new RuntimeException(ErrorCode.COURSE_HAS_ENROLLMENTS.getMessage());
+        }
 
         if (dto.getTitle() != null) existingCourse.setTitle(dto.getTitle());
         if (dto.getSubtitle() != null) existingCourse.setSubtitle(dto.getSubtitle());
@@ -78,6 +86,12 @@ public class CourseService {
         if (!courseRepository.existsById(id)) {
             throw new RuntimeException("Course not found with id: " + id);
         }
+        
+        // Kiểm tra xem khóa học đã có người enroll chưa
+        if (enrollmentRepository.existsByCourse_CourseId(id)) {
+            throw new RuntimeException(ErrorCode.COURSE_HAS_ENROLLMENTS.getMessage());
+        }
+        
         courseRepository.deleteById(id);
     }
 

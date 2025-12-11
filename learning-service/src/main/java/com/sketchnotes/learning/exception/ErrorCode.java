@@ -35,7 +35,11 @@ public enum ErrorCode {
     INVALID_TOKEN(3006, "Invalid token", HttpStatus.BAD_REQUEST),
     EXPIRED_TOKEN(3007, "Expired token", HttpStatus.UNAUTHORIZED),
     NOT_FOUND(404, "Not found", HttpStatus.BAD_REQUEST),
-    USER_NOT_FOUND(404, "User not found", HttpStatus.BAD_REQUEST);
+    USER_NOT_FOUND(404, "User not found", HttpStatus.BAD_REQUEST),
+    
+    // Course errors
+    COURSE_NOT_FOUND(404, "Course not found", HttpStatus.NOT_FOUND),
+    COURSE_HAS_ENROLLMENTS(400, "Cannot modify or delete course that has been purchased by users", HttpStatus.BAD_REQUEST);
     private final int code;
     private final HttpStatusCode statusCode;
     private final String message;
