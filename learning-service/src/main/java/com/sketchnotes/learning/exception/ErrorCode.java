@@ -39,7 +39,11 @@ public enum ErrorCode {
     
     // Course errors
     COURSE_NOT_FOUND(404, "Course not found", HttpStatus.NOT_FOUND),
-    COURSE_HAS_ENROLLMENTS(400, "Cannot modify or delete course that has been purchased by users", HttpStatus.BAD_REQUEST);
+    COURSE_HAS_ENROLLMENTS(400, "Cannot modify or delete course that has been purchased by users", HttpStatus.BAD_REQUEST),
+    
+    // Lesson errors
+    LESSON_NOT_FOUND(404, "Lesson not found", HttpStatus.NOT_FOUND);
+    
     private final int code;
     private final HttpStatusCode statusCode;
     private final String message;

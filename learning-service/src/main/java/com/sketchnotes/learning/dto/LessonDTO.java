@@ -9,8 +9,8 @@ public class LessonDTO {
     private Long lessonId;
     private String title;
     private String content;
-    private int orderIndex;
-    private int duration;
+    private Integer orderIndex;
+    private Integer duration;
     private String description;
     private String videoUrl;
     
@@ -20,3 +20,4 @@ public class LessonDTO {
     private Integer timeSpent;
     private LocalDateTime completedAt;
 }
+
