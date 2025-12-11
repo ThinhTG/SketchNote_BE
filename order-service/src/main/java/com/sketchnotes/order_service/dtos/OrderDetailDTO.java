@@ -1,5 +1,6 @@
 package com.sketchnotes.order_service.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -16,7 +17,11 @@ public class OrderDetailDTO {
     private BigDecimal unitPrice;
     private BigDecimal discount;
     private BigDecimal subtotalAmount;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
     
     // Template information for response

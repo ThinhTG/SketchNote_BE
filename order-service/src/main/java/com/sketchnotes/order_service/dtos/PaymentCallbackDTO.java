@@ -1,5 +1,6 @@
 package com.sketchnotes.order_service.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -16,6 +17,9 @@ public class PaymentCallbackDTO {
     private BigDecimal amount;
     private String status; // PAID, FAILED, CANCELLED
     private String description;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime paymentTime;
+    
     private String transactionId;
 }
