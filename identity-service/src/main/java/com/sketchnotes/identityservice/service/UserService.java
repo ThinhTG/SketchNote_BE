@@ -1,6 +1,7 @@
 package com.sketchnotes.identityservice.service;
 
 import com.sketchnotes.identityservice.client.ProjectServiceClient;
+import com.sketchnotes.identityservice.enums.Role;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.model.User;
@@ -149,7 +150,22 @@ public class UserService implements IUserService {
                 .avatarUrl(user.getAvatarUrl())
                 .build();
     }
-    
+
+    @Override
+    public List<UserResponse> getUsersByRole(Role role) {
+        List<User> users = userRepository.findByRole(role)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return users.stream().map(user -> UserResponse.builder()
+                .id(user.getId())
+                .keycloakId(user.getKeycloakId())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .role(user.getRole().toString())
+                .avatarUrl(user.getAvatarUrl())
+                .build()).toList();
+    }
+
     @Override
     public UserProfileWithSubscriptionResponse getUserProfileWithSubscription(Long userId) {
         User user = userRepository.findById(userId).filter(User::isActive)

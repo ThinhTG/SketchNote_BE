@@ -1,0 +1,691 @@
+-- Xóa dữ liệu cũ (nếu cần, bỏ comment để chạy)
+-- DELETE FROM paper_template;
+-- DELETE FROM category_paper;
+-- ALTER SEQUENCE category_paper_category_paper_id_seq RESTART WITH 1;
+-- ALTER SEQUENCE paper_template_paper_template_id_seq RESTART WITH 1;
+
+-------------------------------------------------------
+-- 1. SEED DATA CHO LOẠI: COVER (Bìa)
+-------------------------------------------------------
+
+-- Category: Simple
+INSERT INTO category_paper (name, paper_type, created_at, updated_at) 
+VALUES ('Simple', 'COVER', NOW(), NOW());
+
+INSERT INTO paper_template (name, paper_size, image_url, category_paper_id, created_at, updated_at)
+SELECT 'Label', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764233916/btusu1zbeoud1etoxq5c.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Label', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764233917/oxz0ypap4xjek1ta54lp.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Title tag', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764233953/fhxyuei6yffg7baelvx7.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Title tag', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764233955/zngyeb73bx2epg3fa6yp.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Rouge', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764234000/c7kl3wsr16xuwodiwqfz.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Rouge', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764234001/kl58mljuyjvmen0dt280.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Autumn waves', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764234033/jbaj5jyyphk4hx1elq7m.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Autumn waves', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764234031/qstpvqobvzvkikeqcgue.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Eggplant flower', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764234149/jvycbksw1ynmv5komnsg.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Eggplant flower', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764234146/krqllmdq6kbxn5jkfwnq.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Half seen', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764234210/du3k0tyggpoibqgufoni.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Half seen', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764234212/qzi19g89k4sf7atjpcze.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Amber', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764234208/u4fg0k0ytsteekjglx90.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Amber', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764234205/u7ucfeqcuqyxoyqbkbtu.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Simple' AND paper_type = 'COVER';
+
+-- Category: Graph
+INSERT INTO category_paper (name, paper_type, created_at, updated_at) 
+VALUES ('Graph', 'COVER', NOW(), NOW());
+
+INSERT INTO paper_template (name, paper_size, image_url, category_paper_id, created_at, updated_at)
+SELECT 'Nightfall', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764231819/qkeei7kccmyf5qsly0f5.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Nightfall', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764231819/jww6yjg8t3qdaunsbfbb.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Sunrise', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764231912/tnikfwiiuxcgqzzlakgs.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Sunrise', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764231911/fki8b2jg56a9mhdbgmft.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Sunset', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764231957/frh0cdbya4d8chui0xmz.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Sunset', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764231958/jd9p4mevjwsr7igtfvrp.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Iceberg', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764231993/liyctwkmuyuqmvnffpxa.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Iceberg', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764231995/x0v6rzvneriqbpnrcljg.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Afterglow', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764232090/hedh0neu2xzrik1p0fuw.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Afterglow', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764232091/nzrky0womrfacnpszxsm.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Hills', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764232129/iq89kssbnexukfq7wryl.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Hills', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764232130/ynkwufo6fj1kaypbbe4c.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Mountain peak', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764232176/omqoibkiz0xnqnx3i3c9.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Mountain peak', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764232178/mcaattyd2x946brauwcu.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Plain', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764232215/meu8n6tdbuhxg7kkkznf.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Plain', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764232213/etj78mgr2jkezk1xno6t.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Desert', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764232266/vcwqpolfjog6dnf0kvv7.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Desert', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764232268/h3sgcfibwpggxcimhqrt.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Sunset', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764232299/kfgfpzoshqqv23c5rm1d.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER'
+UNION ALL
+SELECT 'Sunset', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764232301/gkdj1hrlyluidrrlgwih.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Graph' AND paper_type = 'COVER';
+
+-- Category: Fruit
+INSERT INTO category_paper (name, paper_type, created_at, updated_at) 
+VALUES ('Fruit', 'COVER', NOW(), NOW());
+
+INSERT INTO paper_template (name, paper_size, image_url, category_paper_id, created_at, updated_at)
+SELECT 'Lychee', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982338/rpidw4lr8jhribajfhbz.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Lychee', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982338/lxjin83oc1j4ybuhyumk.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Pineapple', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982339/nkn8ymvheqvfo3th0u0p.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Pineapple', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982339/snz4ype1qqt6gpoe3zb2.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Orange', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982338/vzopf1domdwbkldpsdn5.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Orange', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761983056/y5zdbialfifmznufcplx.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Strawberry', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982338/itic068ggqj1tnfl36ne.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Strawberry', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982338/neexgy8ewglqna4qd6sd.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Valencia orange', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982338/trtigisvxb5fgdh4gpc0.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Valencia orange', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982338/tddrogjmjmeqj0xov1q1.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Explosive lime', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982339/pdivxn4z1mtmix6zxlul.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Explosive lime', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982339/r6yrrenqvfnsplvytirm.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Watermelon', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761983398/sng1fsx9lzm8atnwlzd9.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Watermelon', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982340/fqkg0cp6qemlicbvg2fo.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Banana', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982339/jnbaj6nwo2ho9mbgyuuv.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Banana', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982339/q6gsrdtbowpkwvjgaxtj.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Cherry', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761984663/kpsv6ampqddvmeq6zorj.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Cherry', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761984664/ol9i6rmkhkloj2di7jz4.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Cream A', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761984663/tzdjw2mscgkmjqobspfw.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Cream A', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761984663/gtdwiue4xx5lekruhiac.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Cream B', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761984663/wfxjjcj0eaqyub6leetj.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Cream B', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761984663/fykfkrjvfnm91nwozfzg.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Cream C', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761984662/qysr6m2irqb3svmswcdb.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit'
+UNION ALL
+SELECT 'Cream C', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761984663/b0ksxbp4dznysdowig3z.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Fruit';
+
+-- Category: Illustration
+INSERT INTO category_paper (name, paper_type, created_at, updated_at) 
+VALUES ('Illustration', 'COVER', NOW(), NOW());
+
+INSERT INTO paper_template (name, paper_size, image_url, category_paper_id, created_at, updated_at)
+SELECT 'Floral jacket', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761981187/hgr0cqabrjfioexq2l2k.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Floral jacket', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761981187/kxqhlz190qzzyrgtdohk.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Pipi', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761981336/zamgtde7xmcinjjgedvh.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Pipi', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761981336/dtxdbd3jzumvaxgh1wid.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Ginger cat', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761981513/dgqc5gegldx248rbmum1.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Ginger cat', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761981513/g0hdfj1wwxea5r1ocdtz.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Variegated', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761981948/cycczfidxa2vqvhtzush.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Variegated', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761981948/cjmsadethztd3ctokxap.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Colorful', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761981947/m90x48eswnj2fe6t41sj.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Colorful', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761981947/czsqduut0dgnadvrtrmw.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Black cloud', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982337/dvrkeml9p9xlkvprgl1n.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Black cloud', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982208/ijgxkotnqtpvudm8pjgv.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Finger-held', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982593/ytgbn7a4aaja3yxs7y2c.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Finger-held', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982593/mefjt7tim4nwtmz0nqb5.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Book glued', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982340/yd6q83gjojpggcegio2c.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Book glued', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982340/zx7yoegpwk4qdehwpnu5.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Read fly', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982340/k99ne7mqjwjhaniiohvb.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Read fly', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982340/cr3r7tmi5dp80z97jelh.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Book wings', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982340/yd6q83gjojpggcegio2c.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration'
+UNION ALL
+SELECT 'Book wings', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1761982340/zx7yoegpwk4qdehwpnu5.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Illustration';
+
+-- Category: Black & White
+INSERT INTO category_paper (name, paper_type, created_at, updated_at) 
+VALUES ('Black & White', 'COVER', NOW(), NOW());
+
+INSERT INTO paper_template (name, paper_size, image_url, category_paper_id, created_at, updated_at)
+SELECT 'Sail the ocean', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224484/d5wld2lwskmbho8frrph.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Sail the ocean', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224485/skiiraktirovhtaopgwo.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Soar high', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224680/ded1h2abadnjjpmwkn6s.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Soar high', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224680/j3omjhxyerbm0smzlyyc.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Brave Storms', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224737/wlgg4zpugku6mmh7cztg.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Brave Storms', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224737/qoaotobmroiyotozncyh.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Spring in the air', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224827/ca7hh5we370ogiqicgfy.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Spring in the air', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224827/v4xbrswqgoozyo9mzlcx.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Swift rabbit', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224884/a1vhlboqjufyevfmdodp.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Swift rabbit', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224885/sssvxhovsahhbprck0gy.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Bunny family', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224919/cuitpftvmedbivszueiu.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Bunny family', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224919/e51fhqqddtkycb4qgtyh.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Hoppy play', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224967/mv0pqhofal728v8njpdi.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Hoppy play', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764224967/ge0ggydwujl1yzc091kh.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Moonlit hare', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225029/j00y5ogqyxunquxod9dj.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Moonlit hare', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225029/pc3tpxacpv2ldusk0bzq.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Cub fishing', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225254/gtejb326e8hgdqzoawfk.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Cub fishing', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225255/ouuchwo9llk026uywizn.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Cub cruiser', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225135/wjptwygdzpp88tdptebh.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Cub cruiser', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225135/pefktzzrwnjvygznmkqi.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Moon sail', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225291/vyeac4vdyrssetkdhza9.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Moon sail', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225292/pqgj51ixx9oi7lzdgwda.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Touch stars', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225368/cobvkvkk54ncrhsmode4.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Touch stars', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225366/v25cd8o3l14bihebtgpq.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Hearts align', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225422/uummjcmge6hhdpthajro.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Hearts align', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225421/vwuq7isacj04ybagrztd.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Breach wave', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225563/zx3ld5m8odhllbadgihm.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Breach wave', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225563/nto7vwpkbcrzv2k0jgx7.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Celestial gaze', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225537/k2qnohwzuz3kf5puefoa.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White'
+UNION ALL
+SELECT 'Celestial gaze', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764225537/jk4ngthcwtsdf7ilkopy.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Black & White';
+
+-------------------------------------------------------
+-- 2. SEED DATA CHO LOẠI: PAPER (Giấy ghi chú)
+-------------------------------------------------------
+
+-- Category: Base
+INSERT INTO category_paper (name, paper_type, created_at, updated_at) 
+VALUES ('Base', 'PAPER', NOW(), NOW());
+
+INSERT INTO paper_template (name, paper_size, image_url, category_paper_id, created_at, updated_at)
+SELECT 'Blank', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764235834/jzm0nh85eivj3d4vzhns.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Base'
+UNION ALL
+SELECT 'Blank', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764235833/w3aawtzywnmcgxau3e64.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Base'
+UNION ALL
+SELECT 'Thin line', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764235725/h8hqssaak1fomaghx0e7.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Base'
+UNION ALL
+SELECT 'Thin line', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764235726/cusoh9ryzmme3juwycih.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Base'
+UNION ALL
+SELECT 'Bold line', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764235797/lndxatfabalaoal2xpld.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Base'
+UNION ALL
+SELECT 'Bold line', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764235793/zzjajibhl7soroeon6g9.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Base'
+UNION ALL
+SELECT 'Mini check', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764235781/v478g6vakx1mj5azryjk.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Base'
+UNION ALL
+SELECT 'Mini check', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764235782/e6j1mez53fjacbmlxvlx.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Base'
+UNION ALL
+SELECT 'Mid check', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764236135/snfjyeziduko7mprvh4a.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Base'
+UNION ALL
+SELECT 'Mid check', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764235785/ox5awh7zfaisxuwks6yb.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Base'
+UNION ALL
+SELECT 'Dot grid', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764236217/be23nac1p9oetblpjf2s.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Base'
+UNION ALL
+SELECT 'Dot grid', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764236219/ofirjcua2cck9sj8w3fh.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Base';
+
+-- Category: Study
+INSERT INTO category_paper (name, paper_type, created_at, updated_at) 
+VALUES ('Study', 'PAPER', NOW(), NOW());
+
+INSERT INTO paper_template (name, paper_size, image_url, category_paper_id, created_at, updated_at)
+SELECT 'Cornell A', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764241655/rsjrx59dm8jkz0bobrmy.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Cornell A', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764241655/am76uies5n0npaczkvz6.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Cornell B', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764241654/twzvtgjcmdgpuwuktpxj.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Cornell B', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764241655/qq47ojsf49rx7hivtn0u.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Cornell C', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764241654/ov9s4o5hmoqpxfuqtywi.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Cornell C', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764241654/y840jbbxtnh6gc1xi6ge.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Ebbinghaus', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764241884/b9elqykax1eihw6ufujo.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Ebbinghaus', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764241884/uyfpazufgpclgsymw0cz.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Todai', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764242157/dlnh0hh9hfq1nfyxdiwo.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Todai', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764242053/dpcebxe5a7fsgoqigtju.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Error log A', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764243482/iczmgrcsj1zgjrr0rwyk.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Error log A', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764243482/jhb2ihvvdmegmj267dwo.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Error log B', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764243759/l3a6cvfnluryuulof1oz.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Error log B', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764243482/f5cpfcbezw2zkavzdkqi.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Accenture', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764242102/wmewot4rti2pdxcxkxu0.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Accenture', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764242053/pndjgcwkhmvntffcbh2m.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Reading note', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764243844/mccchpt2vglwyenewrfa.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Reading note', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764243847/t4sbpblzouokmmyolofi.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Class schedule', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764243903/ffwwus3fdrqvxhl0myji.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Class schedule', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764243901/vx9y7ecrssl7ic7y9dbn.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Writing pad', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764243937/elxhruhrpysyygvx29f6.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study'
+UNION ALL
+SELECT 'Writing pad', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764243938/htty3j5pxzkojcgkedeq.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Study';
+
+-- Category: Plan
+INSERT INTO category_paper (name, paper_type, created_at, updated_at) 
+VALUES ('Plan', 'PAPER', NOW(), NOW());
+
+INSERT INTO paper_template (name, paper_size, image_url, category_paper_id, created_at, updated_at)
+SELECT 'Daily to-do', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764340262/t8jno7cbejqet1oc7ysp.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Daily to-do', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764340263/v5azi3n7dtspegvkl1jo.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Time plan', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764340586/zart7joczrvs1sxqjexy.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Time plan', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764340586/nv7c1vlgazza6plhlqsv.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Study plan', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764340700/fe7i6w3s1qytrwfznt2v.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Study plan', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764340700/zacpsvhylipahqbmigpm.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Task list', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764340778/iczhlptzjhasnm48vo6u.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Task list', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764340779/ttrojzdakfvlvy6z1nei.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'To-do list', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764340941/rxtxwky12v09vy0wcde3.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'To-do list', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764340941/iby9vmvpmij14fym5j2i.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Daily planner', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764341005/qevatd7tguh9bxttetvj.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Daily planner', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764341005/lb1kqyhezzal5zyqr4bk.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Weekly schedule', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764342199/jqwt83q3i3k5njyckdmb.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Weekly schedule', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764342199/m1w1dl2nsd7vtzxzykqu.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Monthly planner', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764342327/nzvoq2vioon6f6mr1mpj.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Monthly planner', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764342327/nf7mdax5jznxdo9fjvbq.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Annual schedule', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764342610/vjrzhlprxqpjge6oqbxf.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan'
+UNION ALL
+SELECT 'Annual schedule', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764342609/sdit4eorgyphkf6szgsx.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Plan';
+
+-- Category: Work
+INSERT INTO category_paper (name, paper_type, created_at, updated_at) 
+VALUES ('Work', 'PAPER', NOW(), NOW());
+
+INSERT INTO paper_template (name, paper_size, image_url, category_paper_id, created_at, updated_at)
+SELECT 'Summary A', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764344486/frtwsbsozaeh0owercgw.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Work'
+UNION ALL
+SELECT 'Summary A', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764344487/mzptpibemcikajmrpsyn.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Work'
+UNION ALL
+SELECT 'Summary B', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764344713/hi9z1cvrx7azabpizlu3.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Work'
+UNION ALL
+SELECT 'Summary B', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764344712/tlxkrpyjangqrzfpdqzo.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Work'
+UNION ALL
+SELECT 'Lesson plan', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764344830/gygm7a0ynil1nnqmb8rk.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Work'
+UNION ALL
+SELECT 'Lesson plan', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764344830/jwaw8idc96vujmjur8iz.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Work'
+UNION ALL
+SELECT 'SWOT', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764344904/e5lwca2nibr1x6lwmhn5.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Work'
+UNION ALL
+SELECT 'SWOT', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764344903/rpqtn9hn5cptoteihvxe.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Work'
+UNION ALL
+SELECT 'Four quadrants', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764344951/ehy4jorek8lzrf8ks2cz.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Work'
+UNION ALL
+SELECT 'Four quadrants', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764344950/hnoydwzovnky0xtagdgn.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Work'
+UNION ALL
+SELECT 'Law file', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764345306/sxoi3gdx1wufiaydhvzz.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Work'
+UNION ALL
+SELECT 'Law file', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764345306/tsqklvq4xt23xmtcyhy3.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Work';
+
+-- Category: Write
+INSERT INTO category_paper (name, paper_type, created_at, updated_at) 
+VALUES ('Write', 'PAPER', NOW(), NOW());
+
+INSERT INTO paper_template (name, paper_size, image_url, category_paper_id, created_at, updated_at)
+SELECT '4-line paper', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764348380/otryn108uxtrjdppuelu.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Write'
+UNION ALL
+SELECT '4-line paper', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764348380/urinrhli6ouiertevtgh.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Write'
+UNION ALL
+SELECT 'Graph paper', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764348548/qvun3qhntb11u0dman64.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Write'
+UNION ALL
+SELECT 'Graph paper', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764348547/aqjxptie1rhvupfaxenr.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Write'
+UNION ALL
+SELECT 'Tianzi grid paper', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764348631/yjwy3us0fy0zpr4yxjwy.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Write'
+UNION ALL
+SELECT 'Tianzi grid paper', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764348630/xxdbdwdjcoggoizw6anq.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Write'
+UNION ALL
+SELECT 'Mid paper', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764348684/ucaymg7feuslc6b5qcgp.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Write'
+UNION ALL
+SELECT 'Mid paper', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764348686/jijckqkroi9yaardvihi.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Write'
+UNION ALL
+SELECT 'Stationery', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764348758/orgwnm6gduyvc7wouas0.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Write'
+UNION ALL
+SELECT 'Stationery', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764348757/xpx0gujfaswd6af8egcr.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Write';
+
+-- Category: Specialty
+INSERT INTO category_paper (name, paper_type, created_at, updated_at) 
+VALUES ('Specialty', 'PAPER', NOW(), NOW());
+
+INSERT INTO paper_template (name, paper_size, image_url, category_paper_id, created_at, updated_at)
+SELECT 'Five-line staff', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764349959/okofmrt518jedxvncrdg.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Five-line staff', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764349957/tg3qhuifooo8ey9unnsn.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Fore-line staff', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764350109/dlvsv4swesgj3mpqst7l.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Fore-line staff', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764350110/q6gvfs7vcvtwd1limjsz.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Six-line staff', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764350163/jo2ae1eqqv2qcjqw2mxx.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Six-line staff', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764350161/jmj5edjhfxffnddzlc9e.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Football plays', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764350221/qgimaxnuuyrgtbw7fhy9.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Football plays', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764350218/q4kapu0t3zjz8yncevvb.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Basketball plays', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764350306/wxlq4cqnjnuly81foyos.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Basketball plays', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764350304/khepcopdl6myhabxrkv3.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Shuttle plays', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764350375/tycun2xogvecybqk7g0v.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Shuttle plays', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764350373/exmzezxywy2nzmtjho4v.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Tennis plays', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764350445/wohiwd7rvis67djd52it.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty'
+UNION ALL
+SELECT 'Tennis plays', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764350443/dw4fpw9qjpgttytbcnsa.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Specialty';
+
+-- Category: Life
+INSERT INTO category_paper (name, paper_type, created_at, updated_at) 
+VALUES ('Life', 'PAPER', NOW(), NOW());
+
+INSERT INTO paper_template (name, paper_size, image_url, category_paper_id, created_at, updated_at)
+SELECT 'Weekly habits', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764346248/un0pbvu3cq1cpvpwu1yd.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Life'
+UNION ALL
+SELECT 'Weekly habits', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764346248/tfd5p72cclghatbsvmtt.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Life'
+UNION ALL
+SELECT 'Monthly habitsA', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764346398/ksqsqa4ipzc103v6d4jp.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Life'
+UNION ALL
+SELECT 'Monthly habitsA', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764346398/kyvzptl9pedhio1vgb3b.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Life'
+UNION ALL
+SELECT 'Monthly habitsB', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764346468/sdiooy66huj5j23xqh1m.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Life'
+UNION ALL
+SELECT 'Monthly habitsB', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764346469/vtqdfqizdrmmkloabzwm.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Life'
+UNION ALL
+SELECT '100-day habits', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764346530/c971sofnygnsmhv4i3qk.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Life'
+UNION ALL
+SELECT '100-day habits', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764346529/ppl3m2lu1ycjfhhxzgup.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Life'
+UNION ALL
+SELECT 'Account book', 'PORTRAIT', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764346594/ikvrsulxynskzfip30vc.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Life'
+UNION ALL
+SELECT 'Account book', 'LANDSCAPE', 'https://res.cloudinary.com/dk3yac2ie/image/upload/v1764346596/qvhxccjqepaywmuv78aq.jpg', category_paper_id, NOW(), NOW()
+FROM category_paper WHERE name = 'Life';
