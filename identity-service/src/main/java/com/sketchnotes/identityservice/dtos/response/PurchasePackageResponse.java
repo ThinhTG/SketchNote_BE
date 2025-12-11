@@ -1,5 +1,6 @@
 package com.sketchnotes.identityservice.dtos.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +21,8 @@ public class PurchasePackageResponse {
     // Thông tin giao dịch
     private Long transactionId;
     private String transactionType;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime purchasedAt;
     
     // Thông tin gói đã mua

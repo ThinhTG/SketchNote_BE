@@ -1,5 +1,6 @@
 package com.sketchnotes.identityservice.dtos.response.admin;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.sketchnotes.identityservice.enums.PaymentStatus;
 import com.sketchnotes.identityservice.enums.TransactionType;
 import lombok.AllArgsConstructor;
@@ -31,5 +32,7 @@ public class AdminTransactionResponse {
     private String externalTransactionId;
     private String description;
     private Long orderCode;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 }

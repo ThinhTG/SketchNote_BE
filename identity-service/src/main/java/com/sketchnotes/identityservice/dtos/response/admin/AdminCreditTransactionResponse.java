@@ -1,5 +1,6 @@
 package com.sketchnotes.identityservice.dtos.response.admin;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.sketchnotes.identityservice.enums.CreditTransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,5 +26,7 @@ public class AdminCreditTransactionResponse {
     private Integer balanceAfter;
     private String description;
     private String referenceId;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 }

@@ -1,5 +1,6 @@
 package com.sketchnotes.identityservice.dtos.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.sketchnotes.identityservice.enums.WithdrawalStatus;
 import lombok.*;
 
@@ -24,6 +25,10 @@ public class WithdrawalResponse {
     private WithdrawalStatus status;
     private Long staffId;
     private String rejectionReason;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 }
