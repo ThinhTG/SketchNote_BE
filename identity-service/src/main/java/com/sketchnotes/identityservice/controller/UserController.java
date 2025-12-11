@@ -4,11 +4,14 @@ import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.dtos.request.UserRequest;
 import com.sketchnotes.identityservice.dtos.response.UserResponse;
 import com.sketchnotes.identityservice.dtos.response.UserProfileWithSubscriptionResponse;
+import com.sketchnotes.identityservice.enums.Role;
 import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import com.sketchnotes.identityservice.ultils.PagedResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -62,6 +65,11 @@ public class UserController {
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize) {
         PagedResponse<UserResponse> response = userService.getAllUsers(pageNo, pageSize);
+        return ResponseEntity.ok(ApiResponse.success( response,"Get data successful"));
+    }
+    @GetMapping("/role")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getUsersByRole(@RequestParam Role role) {
+        List<UserResponse> response = userService.getUsersByRole(role);
         return ResponseEntity.ok(ApiResponse.success( response,"Get data successful"));
     }
 
