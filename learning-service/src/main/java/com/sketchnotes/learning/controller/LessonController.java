@@ -28,9 +28,29 @@ public class LessonController {
         );
     }
 
-    @GetMapping("/{courseId}")
-    public ResponseEntity<ApiResponse<List<LessonDTO>>> getLessons(@PathVariable Long courseId) {
+    @GetMapping("/course/{courseId}")
+    public ResponseEntity<ApiResponse<List<LessonDTO>>> getLessonsByCourse(@PathVariable Long courseId) {
         List<LessonDTO> lessons = lessonService.getLessonsByCourse(courseId);
         return ResponseEntity.ok(ApiResponse.success(lessons, "Lessons fetched successfully"));
+    }
+
+    @GetMapping("/{lessonId}")
+    public ResponseEntity<ApiResponse<LessonDTO>> getLessonById(@PathVariable Long lessonId) {
+        LessonDTO lesson = lessonService.getLessonById(lessonId);
+        return ResponseEntity.ok(ApiResponse.success(lesson, "Lesson retrieved successfully"));
+    }
+
+    @PutMapping("/{lessonId}")
+    public ResponseEntity<ApiResponse<LessonDTO>> updateLesson(
+            @PathVariable Long lessonId,
+            @RequestBody LessonDTO dto) {
+        LessonDTO updated = lessonService.updateLesson(lessonId, dto);
+        return ResponseEntity.ok(ApiResponse.success(updated, "Lesson updated successfully"));
+    }
+
+    @DeleteMapping("/{lessonId}")
+    public ResponseEntity<ApiResponse<Void>> deleteLesson(@PathVariable Long lessonId) {
+        lessonService.deleteLesson(lessonId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Lesson deleted successfully"));
     }
 }
