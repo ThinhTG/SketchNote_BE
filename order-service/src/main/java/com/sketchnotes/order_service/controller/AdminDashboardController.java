@@ -5,10 +5,7 @@ import com.sketchnotes.order_service.dtos.OrderResponseDTO;
 import com.sketchnotes.order_service.dtos.admin.AdminDashboardResponseDTO;
 import com.sketchnotes.order_service.service.AdminDashboardService;
 import com.sketchnotes.order_service.service.OrderService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import com.sketchnotes.order_service.utils.PagedResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -106,19 +103,14 @@ public class AdminDashboardController {
      * paymentStatus options: PENDING, PAID, FAILED, CANCELLED
      */
     @GetMapping("/orders")
-    public ResponseEntity<ApiResponse<Page<OrderResponseDTO>>> getAllOrders(
+    public ResponseEntity<ApiResponse<PagedResponse<OrderResponseDTO>>> getAllOrders(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String orderStatus,
             @RequestParam(required = false) String paymentStatus,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
+            @RequestParam(defaultValue = "10") int size) {
         
-        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        
-        Page<OrderResponseDTO> orders = orderService.getAllOrders(search, orderStatus, paymentStatus, pageable);
+        PagedResponse<OrderResponseDTO> orders = orderService.getAllOrders(search, orderStatus, paymentStatus, page, size);
         
         return ResponseEntity.ok(ApiResponse.success(orders, "Orders retrieved successfully"));
     }
@@ -128,13 +120,12 @@ public class AdminDashboardController {
      * GET /api/orders/admin/dashboard/orders/user/{userId}?page=0&size=10
      */
     @GetMapping("/orders/user/{userId}")
-    public ResponseEntity<ApiResponse<Page<OrderResponseDTO>>> getOrdersByUserId(
+    public ResponseEntity<ApiResponse<PagedResponse<OrderResponseDTO>>> getOrdersByUserId(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<OrderResponseDTO> orders = orderService.getOrdersByUserId(userId, pageable);
+        PagedResponse<OrderResponseDTO> orders = orderService.getOrdersByUserId(userId, page, size);
         
         return ResponseEntity.ok(ApiResponse.success(orders, "User orders retrieved successfully"));
     }

@@ -21,4 +21,10 @@ public interface IUserRepository extends JpaRepository<User, Long> {
     // Admin search methods
     Page<User> findByEmailContainingIgnoreCaseOrFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(
             String email, String firstName, String lastName, Pageable pageable);
+    
+    // Admin search with role filter
+    Page<User> findByRole(Role role, Pageable pageable);
+    
+    Page<User> findByRoleAndEmailContainingIgnoreCaseOrRoleAndFirstNameContainingIgnoreCaseOrRoleAndLastNameContainingIgnoreCase(
+            Role role1, String email, Role role2, String firstName, Role role3, String lastName, Pageable pageable);
 }

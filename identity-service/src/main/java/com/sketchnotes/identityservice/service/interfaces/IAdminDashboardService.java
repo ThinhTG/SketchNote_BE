@@ -8,8 +8,7 @@ import com.sketchnotes.identityservice.dtos.response.admin.AdminWalletResponse;
 import com.sketchnotes.identityservice.enums.CreditTransactionType;
 import com.sketchnotes.identityservice.enums.SubscriptionStatus;
 import com.sketchnotes.identityservice.enums.TransactionType;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.sketchnotes.identityservice.ultils.PagedResponse;
 
 /**
  * Service interface cho Admin Dashboard trong identity-service
@@ -21,14 +20,14 @@ public interface IAdminDashboardService {
     /**
      * Lấy danh sách tất cả users với phân trang và tìm kiếm
      */
-    Page<UserResponse> getAllUsers(String search, String role, Pageable pageable);
+    PagedResponse<UserResponse> getAllUsers(String search, String role, int pageNo, int pageSize, String sortBy, String sortDir);
     
     // ==================== WALLET MANAGEMENT ====================
     
     /**
      * Lấy danh sách tất cả wallets với phân trang và tìm kiếm
      */
-    Page<AdminWalletResponse> getAllWallets(String search, Pageable pageable);
+    PagedResponse<AdminWalletResponse> getAllWallets(String search, int pageNo, int pageSize, String sortBy, String sortDir);
     
     /**
      * Lấy wallet theo userId
@@ -40,47 +39,56 @@ public interface IAdminDashboardService {
     /**
      * Lấy danh sách tất cả transactions (wallet) với phân trang và filter
      */
-    Page<AdminTransactionResponse> getAllTransactions(
+    PagedResponse<AdminTransactionResponse> getAllTransactions(
             String search, 
             TransactionType type,
-            Pageable pageable
+            int pageNo, 
+            int pageSize,
+            String sortBy,
+            String sortDir
     );
     
     /**
      * Lấy transactions của một user cụ thể
      */
-    Page<AdminTransactionResponse> getTransactionsByUserId(Long userId, Pageable pageable);
+    PagedResponse<AdminTransactionResponse> getTransactionsByUserId(Long userId, int pageNo, int pageSize, String sortBy, String sortDir);
     
     // ==================== CREDIT TRANSACTION MANAGEMENT ====================
     
     /**
      * Lấy danh sách tất cả credit transactions với phân trang và filter
      */
-    Page<AdminCreditTransactionResponse> getAllCreditTransactions(
+    PagedResponse<AdminCreditTransactionResponse> getAllCreditTransactions(
             String search, 
             CreditTransactionType type,
-            Pageable pageable
+            int pageNo, 
+            int pageSize,
+            String sortBy,
+            String sortDir
     );
     
     /**
      * Lấy credit transactions của một user cụ thể
      */
-    Page<AdminCreditTransactionResponse> getCreditTransactionsByUserId(Long userId, Pageable pageable);
+    PagedResponse<AdminCreditTransactionResponse> getCreditTransactionsByUserId(Long userId, int pageNo, int pageSize, String sortBy, String sortDir);
     
     // ==================== SUBSCRIPTION MANAGEMENT ====================
     
     /**
      * Lấy danh sách tất cả user subscriptions với phân trang và filter
      */
-    Page<AdminUserSubscriptionResponse> getAllUserSubscriptions(
+    PagedResponse<AdminUserSubscriptionResponse> getAllUserSubscriptions(
             String search, 
             SubscriptionStatus status,
             Long planId,
-            Pageable pageable
+            int pageNo, 
+            int pageSize,
+            String sortBy,
+            String sortDir
     );
     
     /**
      * Lấy subscriptions của một user cụ thể
      */
-    Page<AdminUserSubscriptionResponse> getSubscriptionsByUserId(Long userId, Pageable pageable);
+    PagedResponse<AdminUserSubscriptionResponse> getSubscriptionsByUserId(Long userId, int pageNo, int pageSize, String sortBy, String sortDir);
 }

@@ -1,8 +1,7 @@
 package com.sketchnotes.order_service.service;
 
 import com.sketchnotes.order_service.dtos.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.sketchnotes.order_service.utils.PagedResponse;
 
 import java.util.List;
 
@@ -25,10 +24,10 @@ public interface OrderService {
     /**
      * Lấy tất cả orders với phân trang và filter (Admin)
      */
-    Page<OrderResponseDTO> getAllOrders(String search, String orderStatus, String paymentStatus, Pageable pageable);
+    PagedResponse<OrderResponseDTO> getAllOrders(String search, String orderStatus, String paymentStatus, int pageNo, int pageSize);
     
     /**
      * Lấy orders của một user cụ thể với phân trang (Admin)
      */
-    Page<OrderResponseDTO> getOrdersByUserId(Long userId, Pageable pageable);
+    PagedResponse<OrderResponseDTO> getOrdersByUserId(Long userId, int pageNo, int pageSize);
 }
