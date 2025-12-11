@@ -74,7 +74,7 @@ public class BlogServiceImpl implements BlogService {
                 responses,
                 blogs.getNumber(),
                 blogs.getSize(),
-                (int) blogs.getTotalElements(),
+                blogs.getTotalElements(),
                 blogs.getTotalPages(),
                 blogs.isLast()
         );

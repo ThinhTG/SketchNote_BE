@@ -12,10 +12,12 @@ import com.sketchnotes.order_service.repository.OrderRepository;
 import com.sketchnotes.order_service.repository.ResourceTemplateRepository;
 import com.sketchnotes.order_service.repository.UserResourceRepository;
 import com.sketchnotes.order_service.service.OrderService;
+import com.sketchnotes.order_service.utils.PagedResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.cloud.stream.function.StreamBridge;
@@ -365,10 +367,11 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     @Transactional(readOnly = true)
-    public Page<OrderResponseDTO> getAllOrders(String search, String orderStatus, String paymentStatus, Pageable pageable) {
+    public PagedResponse<OrderResponseDTO> getAllOrders(String search, String orderStatus, String paymentStatus, int pageNo, int pageSize) {
         log.info("Admin: Getting all orders - search='{}', orderStatus='{}', paymentStatus='{}'", 
                 search, orderStatus, paymentStatus);
         
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Order> orders;
         
         // Handle different filter combinations
@@ -385,24 +388,39 @@ public class OrderServiceImpl implements OrderService {
             orders = orderRepository.findAll(pageable);
         }
         
-        return orders.map(order -> enrichOrderResponse(orderMapper.toDto(order)));
+        List<OrderResponseDTO> orderResponses = orders.getContent().stream()
+                .map(order -> enrichOrderResponse(orderMapper.toDto(order)))
+                .collect(Collectors.toList());
+        
+        return PagedResponse.<OrderResponseDTO>builder()
+                .content(orderResponses)
+                .pageNo(orders.getNumber())
+                .pageSize(orders.getSize())
+                .totalElements(orders.getTotalElements())
+                .totalPages(orders.getTotalPages())
+                .isLast(orders.isLast())
+                .build();
     }
     
     @Override
     @Transactional(readOnly = true)
-    public Page<OrderResponseDTO> getOrdersByUserId(Long userId, Pageable pageable) {
+    public PagedResponse<OrderResponseDTO> getOrdersByUserId(Long userId, int pageNo, int pageSize) {
         log.info("Admin: Getting orders for user {}", userId);
         
-        List<Order> userOrders = orderRepository.findByUserId(userId);
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
         
-        // Apply pagination manually
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), userOrders.size());
-        
-        List<OrderResponseDTO> pagedList = userOrders.subList(start, end).stream()
+        List<OrderResponseDTO> orderResponses = orders.getContent().stream()
                 .map(order -> enrichOrderResponse(orderMapper.toDto(order)))
                 .collect(Collectors.toList());
         
-        return new PageImpl<>(pagedList, pageable, userOrders.size());
+        return PagedResponse.<OrderResponseDTO>builder()
+                .content(orderResponses)
+                .pageNo(orders.getNumber())
+                .pageSize(orders.getSize())
+                .totalElements(orders.getTotalElements())
+                .totalPages(orders.getTotalPages())
+                .isLast(orders.isLast())
+                .build();
     }
 }

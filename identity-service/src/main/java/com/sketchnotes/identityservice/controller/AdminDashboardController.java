@@ -10,12 +10,9 @@ import com.sketchnotes.identityservice.enums.CreditTransactionType;
 import com.sketchnotes.identityservice.enums.SubscriptionStatus;
 import com.sketchnotes.identityservice.enums.TransactionType;
 import com.sketchnotes.identityservice.service.interfaces.IAdminDashboardService;
+import com.sketchnotes.identityservice.ultils.PagedResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,20 +35,18 @@ public class AdminDashboardController {
      * GET /api/admin/dashboard/users?search=&role=&page=0&size=10&sortBy=createdAt&sortDir=desc
      */
     @GetMapping("/users")
-    public ResponseEntity<ApiResponse<Page<UserResponse>>> getAllUsers(
+    public ResponseEntity<ApiResponse<PagedResponse<UserResponse>>> getAllUsers(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "createAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
         
-        log.info("Admin: Getting all users - search='{}', role='{}', page={}, size={}", search, role, page, size);
+        log.info("Admin: Getting all users - search='{}', role='{}', page={}, size={}, sortBy={}, sortDir={}", 
+                search, role, page, size, sortBy, sortDir);
         
-        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        
-        Page<UserResponse> users = adminDashboardService.getAllUsers(search, role, pageable);
+        PagedResponse<UserResponse> users = adminDashboardService.getAllUsers(search, role, page, size, sortBy, sortDir);
         
         return ResponseEntity.ok(ApiResponse.success(users, "Users retrieved successfully"));
     }
@@ -60,22 +55,20 @@ public class AdminDashboardController {
     
     /**
      * Lấy danh sách tất cả wallets với phân trang và tìm kiếm
-     * GET /api/admin/dashboard/wallets?search=&page=0&size=10
+     * GET /api/admin/dashboard/wallets?search=&page=0&size=10&sortBy=createdAt&sortDir=desc
      */
     @GetMapping("/wallets")
-    public ResponseEntity<ApiResponse<Page<AdminWalletResponse>>> getAllWallets(
+    public ResponseEntity<ApiResponse<PagedResponse<AdminWalletResponse>>> getAllWallets(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
         
-        log.info("Admin: Getting all wallets - search='{}', page={}, size={}", search, page, size);
+        log.info("Admin: Getting all wallets - search='{}', page={}, size={}, sortBy={}, sortDir={}", 
+                search, page, size, sortBy, sortDir);
         
-        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        
-        Page<AdminWalletResponse> wallets = adminDashboardService.getAllWallets(search, pageable);
+        PagedResponse<AdminWalletResponse> wallets = adminDashboardService.getAllWallets(search, page, size, sortBy, sortDir);
         
         return ResponseEntity.ok(ApiResponse.success(wallets, "Wallets retrieved successfully"));
     }
@@ -97,10 +90,10 @@ public class AdminDashboardController {
     
     /**
      * Lấy danh sách tất cả transactions (wallet) với phân trang và filter
-     * GET /api/admin/dashboard/transactions?search=&type=&page=0&size=10
+     * GET /api/admin/dashboard/transactions?search=&type=&page=0&size=10&sortBy=createdAt&sortDir=desc
      */
     @GetMapping("/transactions")
-    public ResponseEntity<ApiResponse<Page<AdminTransactionResponse>>> getAllTransactions(
+    public ResponseEntity<ApiResponse<PagedResponse<AdminTransactionResponse>>> getAllTransactions(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) TransactionType type,
             @RequestParam(defaultValue = "0") int page,
@@ -108,30 +101,29 @@ public class AdminDashboardController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
         
-        log.info("Admin: Getting all transactions - search='{}', type='{}', page={}, size={}", search, type, page, size);
+        log.info("Admin: Getting all transactions - search='{}', type='{}', page={}, size={}, sortBy={}, sortDir={}", 
+                search, type, page, size, sortBy, sortDir);
         
-        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        
-        Page<AdminTransactionResponse> transactions = adminDashboardService.getAllTransactions(search, type, pageable);
+        PagedResponse<AdminTransactionResponse> transactions = adminDashboardService.getAllTransactions(search, type, page, size, sortBy, sortDir);
         
         return ResponseEntity.ok(ApiResponse.success(transactions, "Transactions retrieved successfully"));
     }
     
     /**
      * Lấy transactions của một user cụ thể
-     * GET /api/admin/dashboard/transactions/user/{userId}?page=0&size=10
+     * GET /api/admin/dashboard/transactions/user/{userId}?page=0&size=10&sortBy=createdAt&sortDir=desc
      */
     @GetMapping("/transactions/user/{userId}")
-    public ResponseEntity<ApiResponse<Page<AdminTransactionResponse>>> getTransactionsByUserId(
+    public ResponseEntity<ApiResponse<PagedResponse<AdminTransactionResponse>>> getTransactionsByUserId(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         
-        log.info("Admin: Getting transactions for user {}", userId);
+        log.info("Admin: Getting transactions for user {} - sortBy={}, sortDir={}", userId, sortBy, sortDir);
         
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<AdminTransactionResponse> transactions = adminDashboardService.getTransactionsByUserId(userId, pageable);
+        PagedResponse<AdminTransactionResponse> transactions = adminDashboardService.getTransactionsByUserId(userId, page, size, sortBy, sortDir);
         
         return ResponseEntity.ok(ApiResponse.success(transactions, "User transactions retrieved successfully"));
     }
@@ -140,12 +132,12 @@ public class AdminDashboardController {
     
     /**
      * Lấy danh sách tất cả credit transactions với phân trang và filter
-     * GET /api/admin/dashboard/credit-transactions?search=&type=&page=0&size=10
+     * GET /api/admin/dashboard/credit-transactions?search=&type=&page=0&size=10&sortBy=createdAt&sortDir=desc
      * 
      * Type options: PURCHASE, PACKAGE_PURCHASE, USAGE, REFUND, BONUS, INITIAL_BONUS
      */
     @GetMapping("/credit-transactions")
-    public ResponseEntity<ApiResponse<Page<AdminCreditTransactionResponse>>> getAllCreditTransactions(
+    public ResponseEntity<ApiResponse<PagedResponse<AdminCreditTransactionResponse>>> getAllCreditTransactions(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) CreditTransactionType type,
             @RequestParam(defaultValue = "0") int page,
@@ -153,30 +145,29 @@ public class AdminDashboardController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
         
-        log.info("Admin: Getting all credit transactions - search='{}', type='{}', page={}, size={}", search, type, page, size);
+        log.info("Admin: Getting all credit transactions - search='{}', type='{}', page={}, size={}, sortBy={}, sortDir={}", 
+                search, type, page, size, sortBy, sortDir);
         
-        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        
-        Page<AdminCreditTransactionResponse> transactions = adminDashboardService.getAllCreditTransactions(search, type, pageable);
+        PagedResponse<AdminCreditTransactionResponse> transactions = adminDashboardService.getAllCreditTransactions(search, type, page, size, sortBy, sortDir);
         
         return ResponseEntity.ok(ApiResponse.success(transactions, "Credit transactions retrieved successfully"));
     }
     
     /**
      * Lấy credit transactions của một user cụ thể
-     * GET /api/admin/dashboard/credit-transactions/user/{userId}?page=0&size=10
+     * GET /api/admin/dashboard/credit-transactions/user/{userId}?page=0&size=10&sortBy=createdAt&sortDir=desc
      */
     @GetMapping("/credit-transactions/user/{userId}")
-    public ResponseEntity<ApiResponse<Page<AdminCreditTransactionResponse>>> getCreditTransactionsByUserId(
+    public ResponseEntity<ApiResponse<PagedResponse<AdminCreditTransactionResponse>>> getCreditTransactionsByUserId(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         
-        log.info("Admin: Getting credit transactions for user {}", userId);
+        log.info("Admin: Getting credit transactions for user {} - sortBy={}, sortDir={}", userId, sortBy, sortDir);
         
-        Pageable pageable = PageRequest.of(page, size);
-        Page<AdminCreditTransactionResponse> transactions = adminDashboardService.getCreditTransactionsByUserId(userId, pageable);
+        PagedResponse<AdminCreditTransactionResponse> transactions = adminDashboardService.getCreditTransactionsByUserId(userId, page, size, sortBy, sortDir);
         
         return ResponseEntity.ok(ApiResponse.success(transactions, "User credit transactions retrieved successfully"));
     }
@@ -185,45 +176,43 @@ public class AdminDashboardController {
     
     /**
      * Lấy danh sách tất cả user subscriptions với phân trang và filter
-     * GET /api/admin/dashboard/subscriptions?search=&status=&planId=&page=0&size=10
+     * GET /api/admin/dashboard/subscriptions?search=&status=&planId=&page=0&size=10&sortBy=startDate&sortDir=desc
      * 
      * Status options: ACTIVE, EXPIRED, CANCELLED
      */
     @GetMapping("/subscriptions")
-    public ResponseEntity<ApiResponse<Page<AdminUserSubscriptionResponse>>> getAllUserSubscriptions(
+    public ResponseEntity<ApiResponse<PagedResponse<AdminUserSubscriptionResponse>>> getAllUserSubscriptions(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) SubscriptionStatus status,
             @RequestParam(required = false) Long planId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "startDate") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
         
-        log.info("Admin: Getting all subscriptions - search='{}', status='{}', planId='{}', page={}, size={}", 
-                search, status, planId, page, size);
+        log.info("Admin: Getting all subscriptions - search='{}', status='{}', planId='{}', page={}, size={}, sortBy={}, sortDir={}", 
+                search, status, planId, page, size, sortBy, sortDir);
         
-        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        
-        Page<AdminUserSubscriptionResponse> subscriptions = adminDashboardService.getAllUserSubscriptions(search, status, planId, pageable);
+        PagedResponse<AdminUserSubscriptionResponse> subscriptions = adminDashboardService.getAllUserSubscriptions(search, status, planId, page, size, sortBy, sortDir);
         
         return ResponseEntity.ok(ApiResponse.success(subscriptions, "Subscriptions retrieved successfully"));
     }
     
     /**
      * Lấy subscriptions của một user cụ thể
-     * GET /api/admin/dashboard/subscriptions/user/{userId}?page=0&size=10
+     * GET /api/admin/dashboard/subscriptions/user/{userId}?page=0&size=10&sortBy=startDate&sortDir=desc
      */
     @GetMapping("/subscriptions/user/{userId}")
-    public ResponseEntity<ApiResponse<Page<AdminUserSubscriptionResponse>>> getSubscriptionsByUserId(
+    public ResponseEntity<ApiResponse<PagedResponse<AdminUserSubscriptionResponse>>> getSubscriptionsByUserId(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "startDate") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         
-        log.info("Admin: Getting subscriptions for user {}", userId);
+        log.info("Admin: Getting subscriptions for user {} - sortBy={}, sortDir={}", userId, sortBy, sortDir);
         
-        Pageable pageable = PageRequest.of(page, size);
-        Page<AdminUserSubscriptionResponse> subscriptions = adminDashboardService.getSubscriptionsByUserId(userId, pageable);
+        PagedResponse<AdminUserSubscriptionResponse> subscriptions = adminDashboardService.getSubscriptionsByUserId(userId, page, size, sortBy, sortDir);
         
         return ResponseEntity.ok(ApiResponse.success(subscriptions, "User subscriptions retrieved successfully"));
     }

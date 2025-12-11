@@ -68,7 +68,7 @@ public class UserService implements IUserService {
                 userResponses,
                 users.getNumber(),
                 users.getSize(),
-                (int) users.getTotalElements(),
+                users.getTotalElements(),
                 users.getTotalPages(),
                 users.isLast()
         );

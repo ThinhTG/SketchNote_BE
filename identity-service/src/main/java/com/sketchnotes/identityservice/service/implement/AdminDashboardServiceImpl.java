@@ -6,6 +6,7 @@ import com.sketchnotes.identityservice.dtos.response.admin.AdminTransactionRespo
 import com.sketchnotes.identityservice.dtos.response.admin.AdminUserSubscriptionResponse;
 import com.sketchnotes.identityservice.dtos.response.admin.AdminWalletResponse;
 import com.sketchnotes.identityservice.enums.CreditTransactionType;
+import com.sketchnotes.identityservice.enums.Role;
 import com.sketchnotes.identityservice.enums.SubscriptionStatus;
 import com.sketchnotes.identityservice.enums.TransactionType;
 import com.sketchnotes.identityservice.exception.AppException;
@@ -13,11 +14,13 @@ import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.model.*;
 import com.sketchnotes.identityservice.repository.*;
 import com.sketchnotes.identityservice.service.interfaces.IAdminDashboardService;
+import com.sketchnotes.identityservice.ultils.PagedResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,54 +45,84 @@ public class AdminDashboardServiceImpl implements IAdminDashboardService {
     // ==================== USER MANAGEMENT ====================
     
     @Override
-    public Page<UserResponse> getAllUsers(String search, String role, Pageable pageable) {
+    public PagedResponse<UserResponse> getAllUsers(String search, String role, int pageNo, int pageSize, String sortBy, String sortDir) {
         log.info("Admin: Getting all users with search='{}', role='{}'", search, role);
         
-        Page<User> users;
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         
-        if (search != null && !search.trim().isEmpty()) {
-            // Tìm kiếm theo email hoặc firstName hoặc lastName
+        Page<User> users;
+        Role roleEnum = null;
+        
+        // Parse role nếu có
+        if (role != null && !role.trim().isEmpty()) {
+            try {
+                roleEnum = Role.valueOf(role.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid role: {}", role);
+            }
+        }
+        
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        String searchTerm = hasSearch ? search.trim() : null;
+        
+        if (roleEnum != null && hasSearch) {
+            // Tìm kiếm theo cả role và search
+            users = userRepository.findByRoleAndEmailContainingIgnoreCaseOrRoleAndFirstNameContainingIgnoreCaseOrRoleAndLastNameContainingIgnoreCase(
+                    roleEnum, searchTerm, roleEnum, searchTerm, roleEnum, searchTerm, pageable);
+        } else if (roleEnum != null) {
+            // Chỉ filter theo role
+            users = userRepository.findByRole(roleEnum, pageable);
+        } else if (hasSearch) {
+            // Chỉ tìm kiếm theo 
             users = userRepository.findByEmailContainingIgnoreCaseOrFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(
-                    search.trim(), search.trim(), search.trim(), pageable);
+                    searchTerm, searchTerm, searchTerm, pageable);
         } else {
+            // Lấy tất cả
             users = userRepository.findAll(pageable);
         }
         
-        // Filter by role if specified
-        if (role != null && !role.trim().isEmpty()) {
-            List<User> filteredUsers = users.getContent().stream()
-                    .filter(user -> user.getRole() != null && 
-                            user.getRole().name().equalsIgnoreCase(role))
-                    .collect(Collectors.toList());
-            return new PageImpl<>(filteredUsers.stream().map(this::mapToUserResponse).collect(Collectors.toList()), 
-                    pageable, filteredUsers.size());
-        }
+        List<UserResponse> userResponses = users.getContent().stream()
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
         
-        return users.map(this::mapToUserResponse);
+        return PagedResponse.<UserResponse>builder()
+                .content(userResponses)
+                .pageNo(users.getNumber())
+                .pageSize(users.getSize())
+                .totalElements(users.getTotalElements())
+                .totalPages(users.getTotalPages())
+                .isLast(users.isLast())
+                .build();
     }    // ==================== WALLET MANAGEMENT ====================
     
     @Override
-    public Page<AdminWalletResponse> getAllWallets(String search, Pageable pageable) {
+    public PagedResponse<AdminWalletResponse> getAllWallets(String search, int pageNo, int pageSize, String sortBy, String sortDir) {
         log.info("Admin: Getting all wallets with search='{}'", search);
         
-        Page<Wallet> wallets = walletRepository.findAll(pageable);
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         
-        // If search is provided, filter by user email or name
+        Page<Wallet> wallets;
+        
         if (search != null && !search.trim().isEmpty()) {
-            String searchLower = search.trim().toLowerCase();
-            List<AdminWalletResponse> filteredWallets = wallets.getContent().stream()
-                    .filter(wallet -> {
-                        User user = wallet.getUser();
-                        return (user.getEmail() != null && user.getEmail().toLowerCase().contains(searchLower)) ||
-                               (user.getFirstName() != null && user.getFirstName().toLowerCase().contains(searchLower)) ||
-                               (user.getLastName() != null && user.getLastName().toLowerCase().contains(searchLower));
-                    })
-                    .map(this::mapToAdminWalletResponse)
-                    .collect(Collectors.toList());
-            return new PageImpl<>(filteredWallets, pageable, filteredWallets.size());
+            wallets = walletRepository.searchByUserEmailOrName(search.trim(), pageable);
+        } else {
+            wallets = walletRepository.findAll(pageable);
         }
         
-        return wallets.map(this::mapToAdminWalletResponse);
+        List<AdminWalletResponse> walletResponses = wallets.getContent().stream()
+                .map(this::mapToAdminWalletResponse)
+                .collect(Collectors.toList());
+        
+        return PagedResponse.<AdminWalletResponse>builder()
+                .content(walletResponses)
+                .pageNo(wallets.getNumber())
+                .pageSize(wallets.getSize())
+                .totalElements(wallets.getTotalElements())
+                .totalPages(wallets.getTotalPages())
+                .isLast(wallets.isLast())
+                .build();
     }
     
     @Override
@@ -105,144 +138,193 @@ public class AdminDashboardServiceImpl implements IAdminDashboardService {
     // ==================== TRANSACTION MANAGEMENT ====================
     
     @Override
-    public Page<AdminTransactionResponse> getAllTransactions(String search, TransactionType type, Pageable pageable) {
+    public PagedResponse<AdminTransactionResponse> getAllTransactions(String search, TransactionType type, int pageNo, int pageSize, String sortBy, String sortDir) {
         log.info("Admin: Getting all transactions with search='{}', type='{}'", search, type);
         
-        Page<Transaction> transactions = transactionRepository.findAll(pageable);
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         
-        List<AdminTransactionResponse> filteredTransactions = transactions.getContent().stream()
-                .filter(tx -> {
-                    // Filter by type if specified
-                    if (type != null && tx.getType() != type) {
-                        return false;
-                    }
-                    // Filter by search (user email, description, externalTransactionId)
-                    if (search != null && !search.trim().isEmpty()) {
-                        String searchLower = search.trim().toLowerCase();
-                        User user = tx.getWallet().getUser();
-                        return (user.getEmail() != null && user.getEmail().toLowerCase().contains(searchLower)) ||
-                               (tx.getDescription() != null && tx.getDescription().toLowerCase().contains(searchLower)) ||
-                               (tx.getExternalTransactionId() != null && tx.getExternalTransactionId().toLowerCase().contains(searchLower));
-                    }
-                    return true;
-                })
+        Page<Transaction> transactions;
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        String searchTerm = hasSearch ? search.trim() : null;
+        
+        if (type != null && hasSearch) {
+            transactions = transactionRepository.searchByKeywordAndType(searchTerm, type, pageable);
+        } else if (type != null) {
+            transactions = transactionRepository.findByType(type, pageable);
+        } else if (hasSearch) {
+            transactions = transactionRepository.searchByKeyword(searchTerm, pageable);
+        } else {
+            transactions = transactionRepository.findAll(pageable);
+        }
+        
+        List<AdminTransactionResponse> transactionResponses = transactions.getContent().stream()
                 .map(this::mapToAdminTransactionResponse)
                 .collect(Collectors.toList());
         
-        return new PageImpl<>(filteredTransactions, pageable, filteredTransactions.size());
+        return PagedResponse.<AdminTransactionResponse>builder()
+                .content(transactionResponses)
+                .pageNo(transactions.getNumber())
+                .pageSize(transactions.getSize())
+                .totalElements(transactions.getTotalElements())
+                .totalPages(transactions.getTotalPages())
+                .isLast(transactions.isLast())
+                .build();
     }
     
     @Override
-    public Page<AdminTransactionResponse> getTransactionsByUserId(Long userId, Pageable pageable) {
+    public PagedResponse<AdminTransactionResponse> getTransactionsByUserId(Long userId, int pageNo, int pageSize, String sortBy, String sortDir) {
         log.info("Admin: Getting transactions for user {}", userId);
         
         Wallet wallet = walletRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.WALLET_NOT_FOUND));
         
-        List<Transaction> transactions = transactionRepository.getTransactionByWalletWalletId(wallet.getWalletId());
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+        Page<Transaction> transactions = transactionRepository.findByWalletWalletIdOrderByCreatedAtDesc(wallet.getWalletId(), pageable);
         
-        // Apply pagination manually
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), transactions.size());
-        List<AdminTransactionResponse> pagedList = transactions.subList(start, end).stream()
+        List<AdminTransactionResponse> transactionResponses = transactions.getContent().stream()
                 .map(this::mapToAdminTransactionResponse)
                 .collect(Collectors.toList());
         
-        return new PageImpl<>(pagedList, pageable, transactions.size());
+        return PagedResponse.<AdminTransactionResponse>builder()
+                .content(transactionResponses)
+                .pageNo(transactions.getNumber())
+                .pageSize(transactions.getSize())
+                .totalElements(transactions.getTotalElements())
+                .totalPages(transactions.getTotalPages())
+                .isLast(transactions.isLast())
+                .build();
     }
     
     // ==================== CREDIT TRANSACTION MANAGEMENT ====================
     
     @Override
-    public Page<AdminCreditTransactionResponse> getAllCreditTransactions(String search, CreditTransactionType type, Pageable pageable) {
+    public PagedResponse<AdminCreditTransactionResponse> getAllCreditTransactions(String search, CreditTransactionType type, int pageNo, int pageSize, String sortBy, String sortDir) {
         log.info("Admin: Getting all credit transactions with search='{}', type='{}'", search, type);
         
-        Page<CreditTransaction> transactions = creditTransactionRepository.findAll(pageable);
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         
-        List<AdminCreditTransactionResponse> filteredTransactions = transactions.getContent().stream()
-                .filter(tx -> {
-                    // Filter by type if specified
-                    if (type != null && tx.getType() != type) {
-                        return false;
-                    }
-                    // Filter by search (user email, description, referenceId)
-                    if (search != null && !search.trim().isEmpty()) {
-                        String searchLower = search.trim().toLowerCase();
-                        User user = tx.getUser();
-                        return (user.getEmail() != null && user.getEmail().toLowerCase().contains(searchLower)) ||
-                               (tx.getDescription() != null && tx.getDescription().toLowerCase().contains(searchLower)) ||
-                               (tx.getReferenceId() != null && tx.getReferenceId().toLowerCase().contains(searchLower));
-                    }
-                    return true;
-                })
+        Page<CreditTransaction> transactions;
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        String searchTerm = hasSearch ? search.trim() : null;
+        
+        if (type != null && hasSearch) {
+            transactions = creditTransactionRepository.searchByKeywordAndType(searchTerm, type, pageable);
+        } else if (type != null) {
+            transactions = creditTransactionRepository.findByType(type, pageable);
+        } else if (hasSearch) {
+            transactions = creditTransactionRepository.searchByKeyword(searchTerm, pageable);
+        } else {
+            transactions = creditTransactionRepository.findAll(pageable);
+        }
+        
+        List<AdminCreditTransactionResponse> transactionResponses = transactions.getContent().stream()
                 .map(this::mapToAdminCreditTransactionResponse)
                 .collect(Collectors.toList());
         
-        return new PageImpl<>(filteredTransactions, pageable, filteredTransactions.size());
+        return PagedResponse.<AdminCreditTransactionResponse>builder()
+                .content(transactionResponses)
+                .pageNo(transactions.getNumber())
+                .pageSize(transactions.getSize())
+                .totalElements(transactions.getTotalElements())
+                .totalPages(transactions.getTotalPages())
+                .isLast(transactions.isLast())
+                .build();
     }
     
     @Override
-    public Page<AdminCreditTransactionResponse> getCreditTransactionsByUserId(Long userId, Pageable pageable) {
+    public PagedResponse<AdminCreditTransactionResponse> getCreditTransactionsByUserId(Long userId, int pageNo, int pageSize, String sortBy, String sortDir) {
         log.info("Admin: Getting credit transactions for user {}", userId);
         
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         Page<CreditTransaction> transactions = creditTransactionRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
         
-        return transactions.map(this::mapToAdminCreditTransactionResponse);
+        List<AdminCreditTransactionResponse> transactionResponses = transactions.getContent().stream()
+                .map(this::mapToAdminCreditTransactionResponse)
+                .collect(Collectors.toList());
+        
+        return PagedResponse.<AdminCreditTransactionResponse>builder()
+                .content(transactionResponses)
+                .pageNo(transactions.getNumber())
+                .pageSize(transactions.getSize())
+                .totalElements(transactions.getTotalElements())
+                .totalPages(transactions.getTotalPages())
+                .isLast(transactions.isLast())
+                .build();
     }
     
     // ==================== SUBSCRIPTION MANAGEMENT ====================
     
     @Override
-    public Page<AdminUserSubscriptionResponse> getAllUserSubscriptions(String search, SubscriptionStatus status, Long planId, Pageable pageable) {
+    public PagedResponse<AdminUserSubscriptionResponse> getAllUserSubscriptions(String search, SubscriptionStatus status, Long planId, int pageNo, int pageSize, String sortBy, String sortDir) {
         log.info("Admin: Getting all subscriptions with search='{}', status='{}', planId='{}'", search, status, planId);
         
-        Page<UserSubscription> subscriptions = userSubscriptionRepository.findAll(pageable);
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         
-        List<AdminUserSubscriptionResponse> filteredSubscriptions = subscriptions.getContent().stream()
-                .filter(sub -> {
-                    // Filter by status if specified
-                    if (status != null && sub.getStatus() != status) {
-                        return false;
-                    }
-                    // Filter by planId if specified
-                    if (planId != null && !sub.getSubscriptionPlan().getPlanId().equals(planId)) {
-                        return false;
-                    }
-                    // Filter by search (user email, user name, plan name)
-                    if (search != null && !search.trim().isEmpty()) {
-                        String searchLower = search.trim().toLowerCase();
-                        User user = sub.getUser();
-                        SubscriptionPlan plan = sub.getSubscriptionPlan();
-                        return (user.getEmail() != null && user.getEmail().toLowerCase().contains(searchLower)) ||
-                               (user.getFirstName() != null && user.getFirstName().toLowerCase().contains(searchLower)) ||
-                               (user.getLastName() != null && user.getLastName().toLowerCase().contains(searchLower)) ||
-                               (plan.getPlanName() != null && plan.getPlanName().toLowerCase().contains(searchLower));
-                    }
-                    return true;
-                })
+        Page<UserSubscription> subscriptions;
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        String searchTerm = hasSearch ? search.trim() : null;
+        
+        // Determine which query to use based on filters
+        if (hasSearch && status != null && planId != null) {
+            subscriptions = userSubscriptionRepository.searchByKeywordAndStatusAndPlanId(searchTerm, status, planId, pageable);
+        } else if (hasSearch && status != null) {
+            subscriptions = userSubscriptionRepository.searchByKeywordAndStatus(searchTerm, status, pageable);
+        } else if (hasSearch && planId != null) {
+            subscriptions = userSubscriptionRepository.searchByKeywordAndPlanId(searchTerm, planId, pageable);
+        } else if (status != null && planId != null) {
+            subscriptions = userSubscriptionRepository.findByStatusAndPlanId(status, planId, pageable);
+        } else if (hasSearch) {
+            subscriptions = userSubscriptionRepository.searchByKeyword(searchTerm, pageable);
+        } else if (status != null) {
+            subscriptions = userSubscriptionRepository.findByStatus(status, pageable);
+        } else if (planId != null) {
+            subscriptions = userSubscriptionRepository.findByPlanId(planId, pageable);
+        } else {
+            subscriptions = userSubscriptionRepository.findAll(pageable);
+        }
+        
+        List<AdminUserSubscriptionResponse> subscriptionResponses = subscriptions.getContent().stream()
                 .map(this::mapToAdminUserSubscriptionResponse)
                 .collect(Collectors.toList());
         
-        return new PageImpl<>(filteredSubscriptions, pageable, filteredSubscriptions.size());
+        return PagedResponse.<AdminUserSubscriptionResponse>builder()
+                .content(subscriptionResponses)
+                .pageNo(subscriptions.getNumber())
+                .pageSize(subscriptions.getSize())
+                .totalElements(subscriptions.getTotalElements())
+                .totalPages(subscriptions.getTotalPages())
+                .isLast(subscriptions.isLast())
+                .build();
     }
     
     @Override
-    public Page<AdminUserSubscriptionResponse> getSubscriptionsByUserId(Long userId, Pageable pageable) {
+    public PagedResponse<AdminUserSubscriptionResponse> getSubscriptionsByUserId(Long userId, int pageNo, int pageSize, String sortBy, String sortDir) {
         log.info("Admin: Getting subscriptions for user {}", userId);
         
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         
-        List<UserSubscription> subscriptions = userSubscriptionRepository.findByUser(user);
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+        Page<UserSubscription> subscriptions = userSubscriptionRepository.findByUser(user, pageable);
         
-        // Apply pagination manually
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), subscriptions.size());
-        List<AdminUserSubscriptionResponse> pagedList = subscriptions.subList(start, end).stream()
+        List<AdminUserSubscriptionResponse> subscriptionResponses = subscriptions.getContent().stream()
                 .map(this::mapToAdminUserSubscriptionResponse)
                 .collect(Collectors.toList());
         
-        return new PageImpl<>(pagedList, pageable, subscriptions.size());
+        return PagedResponse.<AdminUserSubscriptionResponse>builder()
+                .content(subscriptionResponses)
+                .pageNo(subscriptions.getNumber())
+                .pageSize(subscriptions.getSize())
+                .totalElements(subscriptions.getTotalElements())
+                .totalPages(subscriptions.getTotalPages())
+                .isLast(subscriptions.isLast())
+                .build();
     }
     
     // ==================== MAPPING METHODS ====================

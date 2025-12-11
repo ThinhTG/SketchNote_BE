@@ -47,4 +47,22 @@ public interface CreditTransactionRepository extends JpaRepository<CreditTransac
     @Query("SELECT COUNT(ct) FROM CreditTransaction ct " +
            "WHERE ct.user.id = :userId AND ct.type = 'USAGE'")
     Long countAiUsage(@Param("userId") Long userId);
+    
+    // Admin: filter by type
+    Page<CreditTransaction> findByType(CreditTransactionType type, Pageable pageable);
+    
+    // Admin: search by user email, description, referenceId
+    @Query("SELECT ct FROM CreditTransaction ct JOIN ct.user u WHERE " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(ct.description) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(ct.referenceId) LIKE LOWER(CONCAT('%', :search, '%'))")
+    Page<CreditTransaction> searchByKeyword(@Param("search") String search, Pageable pageable);
+    
+    // Admin: search + filter type
+    @Query("SELECT ct FROM CreditTransaction ct JOIN ct.user u WHERE " +
+           "ct.type = :type AND (" +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(ct.description) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(ct.referenceId) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<CreditTransaction> searchByKeywordAndType(@Param("search") String search, @Param("type") CreditTransactionType type, Pageable pageable);
 }

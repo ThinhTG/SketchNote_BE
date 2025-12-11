@@ -86,7 +86,7 @@ public class MessageServiceImpl implements MessageService {
                 responses,
                 messagePage.getNumber(),
                 messagePage.getSize(),
-                (int) messagePage.getTotalElements(),
+                messagePage.getTotalElements(),
                 messagePage.getTotalPages(),
                 messagePage.isLast()
         );
