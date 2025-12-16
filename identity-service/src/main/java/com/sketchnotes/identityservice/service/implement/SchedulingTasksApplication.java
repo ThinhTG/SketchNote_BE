@@ -11,7 +11,8 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class SchedulingTasksApplication {
-    IVerifyTokenRepository verifyTokenRepository;
+   private final IVerifyTokenRepository verifyTokenRepository;
+
     @Scheduled(cron = "0 * * * * ?")
     public void cleanUpExpiredTokens() {
         List<VerifyToken> listToken =  verifyTokenRepository.findVerifyTokensByUsedFalse();
