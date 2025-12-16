@@ -1,68 +1,162 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>Verify your email</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f8;
             margin: 0;
             padding: 0;
+            background-color: #f1f6fb;
+            font-family: Arial, Helvetica, sans-serif;
         }
+
+        .wrapper {
+            width: 100%;
+            padding: 24px 0;
+        }
+
         .container {
-            max-width: 600px;
-            margin: 40px auto;
+            max-width: 650px;
+            margin: 0 auto;
             background-color: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
         }
-        .btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 12px 24px;
-            background-color: #4CAF50;
-            color: #ffffff !important;
-            text-decoration: none;
-            border-radius: 6px;
+
+        .header {
+            background: linear-gradient(135deg, #1e88e5, #42a5f5);
+            color: #ffffff;
+            padding: 22px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 0.5px;
+        }
+
+        .header p {
+            margin-top: 8px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 24px;
+            color: #333333;
+            line-height: 1.6;
+        }
+
+        .content h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .highlight {
+            color: #1e88e5;
             font-weight: bold;
         }
+
+        .btn-wrapper {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background-color: #1e88e5;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 6px 16px rgba(30, 136, 229, 0.4);
+        }
+
+        .btn:hover {
+            background-color: #1565c0;
+        }
+
+        .note {
+            background-color: #f5f9ff;
+            border-left: 4px solid #1e88e5;
+            padding: 12px 16px;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .logo-text {
+            font-family: 'Pacifico', cursive;
+            font-size: 35px;
+            letter-spacing: 1px;
+        }
+
         .footer {
-            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
             font-size: 12px;
             color: #888888;
+            background-color: #fafafa;
         }
     </style>
 </head>
+
 <body>
-<div class="container">
+<div class="wrapper">
+    <div class="container">
 
-    <h2>Hello <span th:text="${name}">User</span> 👋</h2>
+        <!-- Header -->
+        <div class="header">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <img src="https://res.cloudinary.com/dk3yac2ie/image/upload/v1765870134/sfsugrqtnizilox7wqdl.png"
+                     alt="Sketch Icon" width="40" height="40" style="display: block;" />
+                <span class="logo-text">SketchNotes</span>
+            </div>
+            <p>Turn your ideas into beautiful sketches</p>
+        </div>
 
-    <p>
-        Thank you for registering an account at <b>SketchNotes</b>.
-    </p>
 
-    <p>
-        Please confirm your email address by clicking the button below:
-    </p>
+        <!-- Content -->
+        <div class="content">
+            <h2>Hello <span th:text="${name}">User</span> 👋</h2>
 
-    <a th:href="${verifyLink}" class="btn">
-        Verify Email
-    </a>
+            <p>
+                Thank you for joining <span class="highlight">SketchNotes</span> —
+                a creative space where your ideas come to life through sketches and notes.
+            </p>
 
-    <p>
-        This verification link will expire in <b>15 minutes</b>.
-    </p>
+            <p>
+                To complete your registration, please confirm your email address by clicking the button below:
+            </p>
 
-    <p>
-        If you did not create this account, please ignore this email.
-    </p>
+            <div class="btn-wrapper">
+                <a th:href="${verifyLink}" class="btn">
+                    Verify My Email
+                </a>
+            </div>
 
-    <div class="footer">
-        <p>© 2025 SketchNotes. All rights reserved.</p>
+            <div class="note">
+                ⏰ This verification link will expire in <b>15 minutes</b>.
+            </div>
+
+            <p style="margin-top: 20px;">
+                If you didn’t create this account, you can safely ignore this email.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 SketchNotes. All rights reserved.</p>
+            <p>Made with ❤️ for creative minds</p>
+        </div>
+
     </div>
-
 </div>
 </body>
+
 </html>
