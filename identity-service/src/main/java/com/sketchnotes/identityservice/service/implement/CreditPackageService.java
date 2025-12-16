@@ -42,14 +42,10 @@ public class CreditPackageService implements INotificationService.ICreditPackage
     @Override
     @Transactional
     public CreditPackageResponse createPackage(CreditPackageRequest request) {
-        log.info("Creating new credit package: {}", request.getName());
-        
-        // Validate giá giảm không được lớn hơn giá gốc
         if (request.getDiscountedPrice().compareTo(request.getOriginalPrice()) > 0) {
             throw new AppException(ErrorCode.INVALID_PRICE);
         }
-        
-        // Tính phần trăm giảm giá
+
         BigDecimal discountPercent = calculateDiscountPercent(
                 request.getOriginalPrice(), 
                 request.getDiscountedPrice()
@@ -68,16 +64,13 @@ public class CreditPackageService implements INotificationService.ICreditPackage
                 .build();
         
         CreditPackage saved = creditPackageRepository.save(creditPackage);
-        log.info("Credit package created successfully with ID: {}", saved.getId());
-        
         return mapToResponse(saved);
     }
     
     @Override
     @Transactional
     public CreditPackageResponse updatePackage(Long id, CreditPackageRequest request) {
-        log.info("Updating credit package ID: {}", id);
-        
+
         CreditPackage creditPackage = creditPackageRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CREDIT_PACKAGE_NOT_FOUND));
         
@@ -109,7 +102,6 @@ public class CreditPackageService implements INotificationService.ICreditPackage
         }
         
         CreditPackage updated = creditPackageRepository.save(creditPackage);
-        log.info("Credit package updated successfully: {}", id);
         
         return mapToResponse(updated);
     }

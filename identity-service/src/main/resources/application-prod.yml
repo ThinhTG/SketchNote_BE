@@ -4,19 +4,36 @@ server:
 # Gateway configuration for Swagger (PRODUCTION)
 gateway:
   url: https://sketchnote.litecsys.com
-  account-path: ""  # Không có prefix, routes trực tiếp /api/auth/**, /api/users/**...
+  account-path: ""
 
 # WebSocket allowed origins for notifications
 websocket:
   allowed-origins: "*"
-
 link:
   verify-email: https://love-haven.vercel.app/verify-result
+  verify-link: https://sketchnote.litecsys.com/api/auth/verify-email?token=
+  verify-email-failed: https://love-haven.vercel.app/verify-failed
 cors:
   allowed-origins: "http://34.177.90.19:8888"
 spring:
   application:
     name: account-service
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: appsketchnote@gmail.com
+    password: boyl krlw anph oqcf
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    default-encoding: UTF-8
   cloud:
     discovery:
       enabled: true
