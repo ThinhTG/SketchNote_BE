@@ -27,6 +27,9 @@ public enum ErrorCode{
     CLIENT_NOT_FOUND(400, "Client not found", HttpStatus.BAD_REQUEST),
     ROLE_NOT_FOUND(400, "Role not found", HttpStatus.BAD_REQUEST),
     USER_INACTIVE(400, "User is inactive", HttpStatus.BAD_REQUEST),
+    TOKEN_ALREADY_USED(400, "Token has already been used", HttpStatus.BAD_REQUEST),
+
+
 
     // OAuth2 / Token API errors
     INVALID_GRANT(400, "Invalid email or password", HttpStatus.BAD_REQUEST),
