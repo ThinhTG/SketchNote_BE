@@ -1,4 +1,4 @@
-package com.sketchnotes.identityservice.service;
+package com.sketchnotes.identityservice.service.implement;
 
 import com.sketchnotes.identityservice.client.IdentityClient;
 import com.sketchnotes.identityservice.dtos.identity.TokenExchangeParam;
