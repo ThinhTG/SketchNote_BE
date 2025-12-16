@@ -44,7 +44,6 @@ public class AuthenticationService implements  IAuthService {
     private final IWalletService walletService;
     private final TokenService tokenService;
     private final EmailService emailService;
-    private final IVerifyTokenRepository verifyTokenRepository;
     @Value("${idp.client-id}")
     @NonFinal
    private String clientId;
