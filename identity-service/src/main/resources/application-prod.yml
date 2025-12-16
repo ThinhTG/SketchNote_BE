@@ -10,9 +10,9 @@ gateway:
 websocket:
   allowed-origins: "*"
 link:
-  verify-email: https://love-haven.vercel.app/verify-result
+  verify-email: https://sketch-note-visual-note-taking.web.app/verify-email-success
   verify-link: https://sketchnote.litecsys.com/api/auth/verify-email?token=
-  verify-email-failed: https://love-haven.vercel.app/verify-failed
+  verify-email-failed: https://sketch-note-visual-note-taking.web.app/verify-email-failed
 cors:
   allowed-origins: "http://34.177.90.19:8888"
 spring:

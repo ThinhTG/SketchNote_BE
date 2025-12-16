@@ -55,7 +55,9 @@ public class TokenService implements ITokenService {
         if (verifyToken.getExpiredAt().isBefore(LocalDateTime.now())) {
             throw new AppException(ErrorCode.TOKEN_EXPIRED);
         }
-
+        if (verifyToken.getUsed()) {
+            throw new AppException(ErrorCode.TOKEN_ALREADY_USED);
+        }
         User user = verifyToken.getUser();
         user.setVerified(true);
 
