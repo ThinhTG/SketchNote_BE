@@ -20,11 +20,9 @@ public class SecurityConfig {
             "/api/auth/refresh-token",
             "/api/auth/forgot-password",
             "/api/auth/login-google",
-            "/api/auth/verify-email",
             "/api/auth/login-google-mobile",
             "/api/payment/payos/webhook",
             "/api/users/public/**",
-
             "/internal/deposit-for-designer",
             "/api/wallet/internal/**",
             // WebSocket endpoints

@@ -1,4 +1,4 @@
-package com.sketchnotes.identityservice.service.implement;
+package com.sketchnotes.identityservice.service;
 
 import com.sketchnotes.identityservice.dtos.request.CreateNotificationRequest;
 import com.sketchnotes.identityservice.dtos.response.NotificationDto;

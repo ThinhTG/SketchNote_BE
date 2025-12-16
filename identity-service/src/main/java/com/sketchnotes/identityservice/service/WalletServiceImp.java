@@ -1,4 +1,4 @@
-package com.sketchnotes.identityservice.service.implement;
+package com.sketchnotes.identityservice.service;
 
 import com.sketchnotes.identityservice.model.Transaction;
 import com.sketchnotes.identityservice.model.User;

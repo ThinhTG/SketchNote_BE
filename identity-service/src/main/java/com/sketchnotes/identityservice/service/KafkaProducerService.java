@@ -1,4 +1,4 @@
-package com.sketchnotes.identityservice.service.implement;
+package com.sketchnotes.identityservice.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

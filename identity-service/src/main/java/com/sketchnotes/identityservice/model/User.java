@@ -33,8 +33,6 @@ public class User{
     private String avatarUrl;
     private LocalDateTime createAt;
     private  LocalDateTime  updateAt;
-    @Column(name = "is_verified", nullable = false)
-    private boolean verified = false;
     
     // AI Credits management
     @Column(nullable = false, columnDefinition = "integer default 100")
@@ -62,10 +60,7 @@ public class User{
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserSubscription> subscriptions;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<VerifyToken> verifyTokens;
-
+    
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<BankAccount> bankAccounts;

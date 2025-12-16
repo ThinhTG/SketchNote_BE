@@ -1,6 +1,6 @@
 package com.sketchnotes.identityservice.controller;
 
-import com.sketchnotes.identityservice.service.implement.AdminStatsService;
+import com.sketchnotes.identityservice.service.AdminStatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;

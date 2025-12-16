@@ -5,12 +5,9 @@ server:
 gateway:
   url: http://localhost:8888  # Local gateway
   account-path: ""  # Không có prefix, routes trực tiếp /api/auth/**, /api/users/**...
-mail:
-  mail-from: appsketchnote@gmail.com
+
 link:
   verify-email: https://love-haven.vercel.app/verify-result
-  verify-link: http://localhost:8888/api/auth/verify-email?token=
-  verify-email-failed: https://love-haven.vercel.app/verify-failed
 
 cors:
   allowed-origins: "http://34.177.90.19:8888"
@@ -24,24 +21,6 @@ websocket:
 spring:
   application:
     name: account-service
-  thymeleaf:
-    prefix: classpath:/templates/
-    suffix: .html
-    mode: HTML
-
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: appsketchnote@gmail.com
-    password: boyl krlw anph oqcf
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-    default-encoding: UTF-8
-
   cloud:
     discovery:
       enabled: true
