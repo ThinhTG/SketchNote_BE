@@ -24,7 +24,7 @@ public class AuthController {
     @NonFinal
     private String linkSuccessVerifyEmail;
 
-    @Value("${link.fail-verify-email}")
+    @Value("${link.verify-email-failed}")
     @NonFinal
     private String linkFailVerifyEmail;
 
