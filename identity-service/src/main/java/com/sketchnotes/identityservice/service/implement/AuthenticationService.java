@@ -1,4 +1,4 @@
-package com.sketchnotes.identityservice.service;
+package com.sketchnotes.identityservice.service.implement;
 
 
 import com.auth0.jwt.JWT;
@@ -6,15 +6,17 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.sketchnotes.identityservice.client.IdentityClient;
 import com.sketchnotes.identityservice.dtos.identity.*;
 import com.sketchnotes.identityservice.dtos.request.*;
+import com.sketchnotes.identityservice.dtos.response.EmailDetail;
 import com.sketchnotes.identityservice.dtos.response.LoginResponse;
 import com.sketchnotes.identityservice.enums.Role;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.exception.ErrorNormalizer;
 import com.sketchnotes.identityservice.model.User;
+import com.sketchnotes.identityservice.model.VerifyToken;
 import com.sketchnotes.identityservice.repository.IUserRepository;
+import com.sketchnotes.identityservice.repository.IVerifyTokenRepository;
 import com.sketchnotes.identityservice.service.interfaces.IAuthService;
-import com.sketchnotes.identityservice.service.KafkaProducerService;
 import com.sketchnotes.identityservice.service.interfaces.IWalletService;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +28,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 
 @Service
@@ -37,6 +42,9 @@ public class AuthenticationService implements  IAuthService {
     private final IUserRepository userRepository;
     private final ErrorNormalizer errorNormalizer;
     private final IWalletService walletService;
+    private final TokenService tokenService;
+    private final EmailService emailService;
+    private final IVerifyTokenRepository verifyTokenRepository;
     @Value("${idp.client-id}")
     @NonFinal
    private String clientId;
@@ -49,7 +57,9 @@ public class AuthenticationService implements  IAuthService {
     @NonFinal
     private String linkVerifyEmail;
 
-
+    @Value("${link.verify-link}")
+    @NonFinal
+    private String linkVerifyToken;
 
     @Override
     public LoginResponse login(LoginRequest request) {
@@ -66,13 +76,14 @@ public class AuthenticationService implements  IAuthService {
                             .build()
             );
             DecodedJWT jwt = JWT.decode(tokenResponse.getAccessToken());
-//            boolean emailVerified = jwt.getClaim("email_verified").asBoolean();
-//            if (!emailVerified) {
-//                throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
-//            }
             // Tìm user trong DB (nếu có)
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+
+            if (!user.isVerified()) {
+                throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+            }
+
             if (!user.isActive()) {
                 throw new AppException(ErrorCode.USER_INACTIVE);
             }
@@ -216,7 +227,6 @@ public class AuthenticationService implements  IAuthService {
     @Override
     public LoginResponse loginWithGoogleMobile(LoginGoogleMobileRequest request) {
         try {
-            log.info("Starting Google Mobile login process");
             
             // 1. Decode Google ID token
             DecodedJWT jwt = JWT.decode(request.getIdToken());
@@ -226,7 +236,6 @@ public class AuthenticationService implements  IAuthService {
             if (issuer == null || 
                 (!issuer.equals("https://accounts.google.com") && 
                  !issuer.equals("accounts.google.com"))) {
-                log.error("Invalid issuer in Google ID token: {}", issuer);
                 throw new AppException(ErrorCode.INVALID_TOKEN);
             }
             
@@ -290,6 +299,7 @@ public class AuthenticationService implements  IAuthService {
                     .lastName(lastName != null ? lastName : "")
                     .role(Role.CUSTOMER)
                     .isActive(true)
+                        .verified(true)
                     .createAt(LocalDateTime.now())
                     .avatarUrl(pictureUrl)
                     .build();
@@ -305,9 +315,6 @@ public class AuthenticationService implements  IAuthService {
                 }
                 
             } else {
-                // User exists, update password in Keycloak for this session
-                log.info("Existing user logging in via Google Mobile: {}", email);
-                
                 if (user.getKeycloakId() != null) {
                     try {
                         TokenExchangeResponse adminToken = identityClient.exchangeClientToken(
@@ -336,7 +343,6 @@ public class AuthenticationService implements  IAuthService {
             
             // 6. Validate user status
             if (!user.isActive()) {
-                log.warn("Inactive user attempted Google Mobile login: {}", user.getEmail());
                 throw new AppException(ErrorCode.USER_INACTIVE);
             }
             
@@ -352,22 +358,17 @@ public class AuthenticationService implements  IAuthService {
                     .build()
             );
             
-            log.info("Google Mobile login successful for user: {}", user.getEmail());
-            
+
             return LoginResponse.builder()
                 .accessToken(tokenResponse.getAccessToken())
                 .refreshToken(tokenResponse.getRefreshToken())
                 .build();
                 
         } catch (FeignException ex) {
-            log.error("Keycloak error during Google Mobile login: Status={}, Message={}", 
-                ex.status(), ex.getMessage());
             throw errorNormalizer.handleKeyCloakException(ex);
         } catch (AppException ex) {
-            log.error("Application error during Google Mobile login: {}", ex.getMessage());
             throw ex;
         } catch (Exception ex) {
-            log.error("Unexpected error during Google Mobile login", ex);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
@@ -375,6 +376,11 @@ public class AuthenticationService implements  IAuthService {
     @Override
     public void register(RegisterRequest request) {
         try {
+            User existingUser = userRepository.findByEmail(request.getEmail())
+                    .orElse(null);
+            if (existingUser != null) {
+                throw new AppException(ErrorCode.EMAIL_EXISTED);
+            }
             TokenExchangeResponse token = identityClient.exchangeClientToken(TokenExchangeParam.builder()
                     .grant_type("client_credentials")
                     .client_id(clientId)
@@ -408,11 +414,27 @@ public class AuthenticationService implements  IAuthService {
                     .createAt(LocalDateTime.now())
                     .role(Role.CUSTOMER)
                     .isActive(true)
+                    .verified(false)
                     .avatarUrl(request.getAvatarUrl())
                     .build();
                 user = userRepository.save(user);
             walletService.createWallet(user.getId());
 
+            String emailVerifyToken = tokenService.generateNewVerifyToken(user);
+
+            // 4. Create verify link
+            String verifyLink =
+                    linkVerifyToken + emailVerifyToken;
+            // 5. Send mail
+            EmailDetail emailDetail = new EmailDetail();
+            emailDetail.setRecipient(request.getEmail());
+            emailDetail.setSubject("Verify your email");
+
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("verifyLink", verifyLink);
+            variables.put("name", request.getFirstName() + " " + request.getLastName());
+
+            emailService.sendMailTemplate(emailDetail, variables, "verify-email");
         } catch (FeignException exception) {
             throw errorNormalizer.handleKeyCloakException(exception);
         }

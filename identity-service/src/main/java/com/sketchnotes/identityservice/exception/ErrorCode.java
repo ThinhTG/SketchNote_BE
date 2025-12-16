@@ -41,7 +41,9 @@ public enum ErrorCode{
     BLOG_NOT_FOUND(404, "Blog not found", HttpStatus.BAD_REQUEST),
     CONTENT_NOT_FOUND(404, "Content not found", HttpStatus.BAD_REQUEST),
     EMAIL_NOT_VERIFIED(400, "Email not verified", HttpStatus.BAD_REQUEST),
-    
+    EMAIL_SENDING_FAILED(500, "Email sending failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    TOKEN_EXPIRED(400, "Token expired", HttpStatus.BAD_REQUEST),
+
     // Subscription errors
     SUBSCRIPTION_PLAN_NOT_FOUND(404, "Subscription plan not found", HttpStatus.NOT_FOUND),
     SUBSCRIPTION_NOT_FOUND(404, "Subscription not found", HttpStatus.NOT_FOUND),

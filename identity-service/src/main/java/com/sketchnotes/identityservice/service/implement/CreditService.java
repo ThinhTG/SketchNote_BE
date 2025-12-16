@@ -1,4 +1,4 @@
-package com.sketchnotes.identityservice.service;
+package com.sketchnotes.identityservice.service.implement;
 
 import com.sketchnotes.identityservice.dtos.request.PurchaseCreditRequest;
 import com.sketchnotes.identityservice.dtos.request.UseCreditRequest;
@@ -21,8 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Service implementation cho quản lý AI Credits
