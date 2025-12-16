@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface IVerifyTokenRepository extends JpaRepository<VerifyToken, Long> {
     List<VerifyToken> findByUserAndUsedFalse(User user);
     Optional<VerifyToken> findByToken(String token);
+    List<VerifyToken> findVerifyTokensByUsedFalse();
 }
