@@ -7,8 +7,10 @@ import com.sketchnotes.identityservice.dtos.response.CreditTransactionResponse;
 import com.sketchnotes.identityservice.enums.CreditTransactionType;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
+import com.sketchnotes.identityservice.model.CreditPackage;
 import com.sketchnotes.identityservice.model.CreditTransaction;
 import com.sketchnotes.identityservice.model.User;
+import com.sketchnotes.identityservice.repository.CreditPackageRepository;
 import com.sketchnotes.identityservice.repository.CreditTransactionRepository;
 import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.service.interfaces.ICreditService;
@@ -32,6 +34,7 @@ public class CreditService implements ICreditService {
     
     private final IUserRepository userRepository;
     private final CreditTransactionRepository creditTransactionRepository;
+    private final CreditPackageRepository creditPackageRepository;
     private final IWalletService walletService;
     
     // Số credit miễn phí cho user mới
@@ -219,6 +222,22 @@ public class CreditService implements ICreditService {
      * Helper method để map CreditTransaction sang Response DTO
      */
     private CreditTransactionResponse mapToResponse(CreditTransaction transaction) {
+        String packageName = null;
+        
+        // Nếu là giao dịch mua gói, extract packageId từ referenceId và lookup tên gói
+        if (transaction.getType() == CreditTransactionType.PACKAGE_PURCHASE 
+                && transaction.getReferenceId() != null 
+                && transaction.getReferenceId().startsWith("PKG-")) {
+            try {
+                Long packageId = Long.parseLong(transaction.getReferenceId().replace("PKG-", ""));
+                packageName = creditPackageRepository.findById(packageId)
+                        .map(CreditPackage::getName)
+                        .orElse(null);
+            } catch (NumberFormatException e) {
+                log.warn("Invalid package reference ID: {}", transaction.getReferenceId());
+            }
+        }
+        
         return CreditTransactionResponse.builder()
                 .id(transaction.getId())
                 .type(transaction.getType())
@@ -226,6 +245,7 @@ public class CreditService implements ICreditService {
                 .balanceAfter(transaction.getBalanceAfter())
                 .description(transaction.getDescription())
                 .referenceId(transaction.getReferenceId())
+                .packageName(packageName)
                 .createdAt(transaction.getCreatedAt())
                 .build();
     }
