@@ -426,9 +426,12 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
         // Lấy tất cả versions
         List<ResourceTemplateVersion> versions = versionRepository.findByTemplateIdOrderByCreatedAtDesc(template.getTemplateId());
 
-        // Lấy version PUBLISHED hiện tại (nếu có)
+        // Lấy version PUBLISHED hiện tại dựa trên currentPublishedVersionId của template
+        // Không dùng findFirst() vì có thể có nhiều version PUBLISHED, 
+        // cần lấy đúng version mà designer đã chọn làm current
+        Long currentPublishedVersionId = template.getCurrentPublishedVersionId();
         Optional<ResourceTemplateVersion> publishedVersion = versions.stream()
-                .filter(v -> v.getStatus().equals(ResourceTemplate.TemplateStatus.PUBLISHED))
+                .filter(v -> v.getVersionId().equals(currentPublishedVersionId))
                 .findFirst();
 
         // Tính statistics
