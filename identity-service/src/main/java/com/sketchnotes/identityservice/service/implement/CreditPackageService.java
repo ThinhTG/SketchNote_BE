@@ -232,19 +232,20 @@ public class CreditPackageService implements INotificationService.ICreditPackage
         log.info("User {} credits updated: {} -> {}", userId, previousBalance, newBalance);
         
         // 7. Tạo transaction record
+        String currency = creditPackage.getCurrency() != null ? creditPackage.getCurrency() : "VND";
         CreditTransaction transaction = CreditTransaction.builder()
                 .user(user)
                 .type(CreditTransactionType.PACKAGE_PURCHASE)
                 .amount(creditPackage.getCreditAmount())
                 .balanceAfter(newBalance)
                 .description(String.format(
-                        "Purchased package '%s': %d credits for %s %s (saved %s %s)",
+                        "Purchased package %s: %d credits for %s VND",
                         creditPackage.getName(),
                         creditPackage.getCreditAmount(),
                         amountToPay,
-                        creditPackage.getCurrency(),
-                        creditPackage.getSavingsAmount(),
-                        creditPackage.getCurrency()
+                        currency,
+                        creditPackage.getSavingsAmount() != null ? creditPackage.getSavingsAmount() : BigDecimal.ZERO,
+                        currency
                 ))
                 .referenceId("PKG-" + packageId)
                 .build();

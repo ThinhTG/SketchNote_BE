@@ -24,6 +24,7 @@ public class CreditTransactionResponse {
     private Integer balanceAfter;
     private String description;
     private String referenceId;
+    private String packageName; // Tên gói (nếu là giao dịch mua gói)
     
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
