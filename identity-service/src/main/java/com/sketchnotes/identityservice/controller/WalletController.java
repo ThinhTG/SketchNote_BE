@@ -2,11 +2,15 @@ package com.sketchnotes.identityservice.controller;
 
 
 import com.sketchnotes.identityservice.dtos.ApiResponse;
+import com.sketchnotes.identityservice.dtos.response.TransactionHistoryPagedResponse;
+import com.sketchnotes.identityservice.enums.TransactionType;
 import com.sketchnotes.identityservice.model.Transaction;
 import com.sketchnotes.identityservice.model.Wallet;
+import com.sketchnotes.identityservice.service.interfaces.ITransactionService;
 import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import com.sketchnotes.identityservice.service.interfaces.IWalletService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -14,10 +18,12 @@ import java.math.BigDecimal;
 @RestController
 @RequestMapping("/api/wallet")
 @RequiredArgsConstructor
+@Slf4j
 public class WalletController {
 
     private final IWalletService walletService;
     private final IUserService userService;
+    private final ITransactionService transactionService;
 
     @PostMapping("/create")
     public ApiResponse<Wallet> createWallet() {
@@ -98,6 +104,38 @@ public class WalletController {
         }
     }
 
-}
+    /**
+     * Lấy lịch sử giao dịch của user hiện tại với phân trang và balance
+     * GET /api/wallet/transactions/history?page=0&size=10&type=DEPOSIT&sortBy=createdAt&sortDir=desc
+     * 
+     * @param page Số trang (mặc định: 0)
+     * @param size Số lượng phần tử mỗi trang (mặc định: 10)
+     * @param type Loại giao dịch: DEPOSIT, WITHDRAW, PAYMENT, COURSE_FEE, SUBSCRIPTION (optional)
+     * @param sortBy Field để sắp xếp (mặc định: createdAt)
+     * @param sortDir Hướng sắp xếp: asc hoặc desc (mặc định: desc)
+     * @return TransactionHistoryPagedResponse bao gồm balance và danh sách transactions phân trang
+     */
+    @GetMapping("/transactions/history")
+    public ApiResponse<TransactionHistoryPagedResponse> getTransactionHistory(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) TransactionType type,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        
+        var user = userService.getCurrentUser();
+        if (user == null || user.getId() == null) {
+            throw new RuntimeException("User not authenticated!");
+        }
+        
+        log.info("Getting transaction history for user {}: page={}, size={}, type={}, sortBy={}, sortDir={}",
+                user.getId(), page, size, type, sortBy, sortDir);
+        
+        TransactionHistoryPagedResponse response = transactionService.getTransactionHistoryByUserId(
+                user.getId(), type, page, size, sortBy, sortDir);
+        
+        return ApiResponse.success(response, "Transaction history retrieved successfully");
+    }
 
+}
 
