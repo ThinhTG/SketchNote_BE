@@ -50,7 +50,7 @@ public class SecurityConfig {
 
                         // Swagger
                         .requestMatchers(SWAGGER_ENDPOINTS).permitAll()
-
+                        .requestMatchers(HttpMethod.GET, "api/learning/courses/**").permitAll()
                         // OTHER REQUESTS MUST AUTHENTICATE
                         .anyRequest().authenticated()
                 )
