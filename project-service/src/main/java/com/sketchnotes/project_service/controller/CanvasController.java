@@ -15,19 +15,24 @@ public class CanvasController {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    @MessageMapping("/project/{projectId}/action")
+    /**
+     * Handle stroke/drawing actions only
+     * Client sends to: /app/project/{projectId}/stroke
+     * Server broadcasts to: /topic/project/{projectId}/stroke
+     */
+    @MessageMapping("/project/{projectId}/stroke")
     public void handleAction(
             @DestinationVariable Long projectId,
             CanvasAction action
     ) {
-        log.info("📥📥📥 [Canvas] Received action for project: {}", projectId);
+        log.info("📥📥📥 [Canvas] Received stroke action for project: {}", projectId);
         log.info("📥 [Canvas] Action type: {}", action.getType());
         log.info("📥 [Canvas] Action tool: {}", action.getTool());
         log.info("📥 [Canvas] User ID: {}", action.getUserId());
         log.info("📥 [Canvas] Payload keys: {}", action.getPayload() != null ? action.getPayload().keySet() : "null");
         
-        // broadcast cho tất cả user trong project
-        String destination = "/topic/project/" + projectId;
+        // broadcast cho tất cả user trong project (stroke-specific topic)
+        String destination = "/topic/project/" + projectId + "/stroke";
         log.info("📤 [Canvas] Broadcasting to: {}", destination);
         
         try {

@@ -93,15 +93,19 @@ public class CollaborationWebSocketController {
     private static final int SYNC_CHUNK_SIZE = 100;
 
     /**
-     * Main action handler for all collaboration events
+     * Main action handler for all collaboration events (element, page, image, sync, lock)
      * 
-     * Client sends to: /app/project/{projectId}/action
-     * Server broadcasts to: /topic/project/{projectId}
+     * *** ROUTE SEPARATED FROM CanvasController ***
+     * - CanvasController: /project/{projectId}/stroke → stroke drawing only
+     * - This controller: /project/{projectId}/collaboration → everything else
+     * 
+     * Client sends to: /app/project/{projectId}/collaboration
+     * Server broadcasts to: /topic/project/{projectId}/collaboration
      * 
      * @param projectId Project ID from path
      * @param message Collaboration message containing type and payload
      */
-    @MessageMapping("/project/{projectId}/action")
+    @MessageMapping("/project/{projectId}/collaboration")
     public void handleProjectAction(
             @DestinationVariable Long projectId,
             @Payload Map<String, Object> message) {
@@ -507,9 +511,10 @@ public class CollaborationWebSocketController {
     
     /**
      * Broadcast message to all users in a project
+     * Uses /topic/project/{projectId}/collaboration to avoid conflict with stroke topic
      */
     private void broadcastToProject(Long projectId, Object message) {
-        String destination = "/topic/project/" + projectId;
+        String destination = "/topic/project/" + projectId + "/collaboration";
         try {
             messagingTemplate.convertAndSend(destination, message);
             log.debug("📤 [Collab] Broadcast to {}", destination);
