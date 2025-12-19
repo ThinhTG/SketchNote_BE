@@ -21,10 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -113,6 +110,9 @@ public class UserResourceServiceImpl implements UserResourceService {
         
         // 🔹 If no templates found from both sources, return empty list
         if (templateIdsSet.isEmpty()) return java.util.Collections.emptyList();
+
+        // 🔹 Convert Set to List for repository query
+        List<Long> templateIds = new ArrayList<>(templateIdsSet);
 
         // 🔹 Get templates - only PUBLISHED ones
         List<ResourceTemplate> templates = resourceTemplateRepository
