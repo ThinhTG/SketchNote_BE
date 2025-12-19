@@ -39,6 +39,16 @@ public class WalletController {
         return ApiResponse.success(wallet, "Wallet retrieved successfully");
     }
 
+    // Internal endpoint to get wallet by userId (for service-to-service communication)
+    @GetMapping("/user/{userId}")
+    public ApiResponse<Wallet> getWalletByUserId(@PathVariable Long userId) {
+        Wallet wallet = walletService.getWalletByUserId(userId);
+        if (wallet == null) {
+            return ApiResponse.error(404, "Wallet not found for user", null);
+        }
+        return ApiResponse.success(wallet, "Wallet retrieved successfully");
+    }
+
     // Internal endpoint để deposit tiền cho designer khi order thành công
     @PostMapping("/internal/deposit-for-designer")
     public ApiResponse<Transaction> depositForDesigner(

@@ -14,8 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.List;
+import java.util.Set;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -69,13 +72,31 @@ public class UserResourceServiceImpl implements UserResourceService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getPurchasedTemplates(Long userId) {
-        // 🔹 Get all resource template IDs that user has purchased
-        List<Long> templateIds = userResourceRepository.findActiveTemplateIdsByUserId(userId);
-        if (templateIds == null || templateIds.isEmpty()) return java.util.Collections.emptyList();
+        // 🔹 Use Set to avoid duplicates (in case user owns and also purchased their own template)
+        Set<Long> templateIdsSet = new HashSet<>();
+        
+        // 🔹 1. Get all resource template IDs that user has purchased
+        List<Long> purchasedTemplateIds = userResourceRepository.findActiveTemplateIdsByUserId(userId);
+        if (purchasedTemplateIds != null && !purchasedTemplateIds.isEmpty()) {
+            templateIdsSet.addAll(purchasedTemplateIds);
+        }
+        
+        // 🔹 2. Get all template IDs that user owns (designerId == userId)
+        // Only get PUBLISHED templates that the user created
+        List<ResourceTemplate> ownedTemplates = resourceTemplateRepository
+                .findByDesignerIdAndStatus(userId, ResourceTemplate.TemplateStatus.PUBLISHED);
+        if (ownedTemplates != null && !ownedTemplates.isEmpty()) {
+            for (ResourceTemplate template : ownedTemplates) {
+                templateIdsSet.add(template.getTemplateId());
+            }
+        }
+        
+        // 🔹 If no templates found from both sources, return empty list
+        if (templateIdsSet.isEmpty()) return java.util.Collections.emptyList();
 
         // 🔹 Get templates - only PUBLISHED ones
         List<ResourceTemplate> templates = resourceTemplateRepository
-                .findByTemplateIdInAndStatus(templateIds, ResourceTemplate.TemplateStatus.PUBLISHED);
+                .findByTemplateIdInAndStatus(new java.util.ArrayList<>(templateIdsSet), ResourceTemplate.TemplateStatus.PUBLISHED);
 
         List<ResourceTemplateDTO> result = new java.util.ArrayList<>();
         for (ResourceTemplate rt : templates) {

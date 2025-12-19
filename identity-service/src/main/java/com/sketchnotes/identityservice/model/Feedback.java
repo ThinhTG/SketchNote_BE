@@ -85,12 +85,10 @@ public class Feedback {
         }
     }
 
-    // Helper method to check if this is course feedback
     public boolean isCourseFeedback() {
         return courseId != null;
     }
 
-    // Helper method to check if this is resource feedback
     public boolean isResourceFeedback() {
         return resourceId != null;
     }

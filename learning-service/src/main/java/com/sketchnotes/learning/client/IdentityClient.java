@@ -1,14 +1,17 @@
 package com.sketchnotes.learning.client;
 
 import com.sketchnotes.learning.dto.ApiResponse;
+import com.sketchnotes.learning.dto.CourseDTO;
+import com.sketchnotes.learning.dto.EnrollmentDTO;
+import com.sketchnotes.learning.dto.response.TransactionResponse;
 import com.sketchnotes.learning.dto.response.UserResponse;
+import com.sketchnotes.learning.dto.response.WalletResponse;
+import com.sketchnotes.learning.enums.TransactionType;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.math.BigDecimal;
 
 @FeignClient(
         name = "account-service"
@@ -21,6 +24,9 @@ public interface IdentityClient {
     @GetMapping("/api/users/public/{id}")
     ApiResponse<UserResponse> getUser(@PathVariable Long id);
 
+    @GetMapping("/api/wallet/user/{userId}")
+    ApiResponse<WalletResponse> getWalletByUserId(@PathVariable Long userId);
+
     @PostMapping("/api/wallet/charge-course")
     ApiResponse<TransactionResponse> chargeCourse(
             @RequestParam Long userId,
@@ -28,4 +34,5 @@ public interface IdentityClient {
             @RequestParam(required = false) String description,
             @RequestParam(defaultValue = "COURSE_PAYMENT") TransactionType type
     );
+    
 }

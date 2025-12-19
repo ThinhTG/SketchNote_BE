@@ -42,7 +42,10 @@ public enum ErrorCode {
     COURSE_HAS_ENROLLMENTS(400, "Cannot modify or delete course that has been purchased by users", HttpStatus.BAD_REQUEST),
     
     // Lesson errors
-    LESSON_NOT_FOUND(404, "Lesson not found", HttpStatus.NOT_FOUND);
+    LESSON_NOT_FOUND(404, "Lesson not found", HttpStatus.NOT_FOUND),
+    
+    // Wallet errors
+    INSUFFICIENT_BALANCE(402, "Insufficient balance in wallet", HttpStatus.PAYMENT_REQUIRED);
     
     private final int code;
     private final HttpStatusCode statusCode;

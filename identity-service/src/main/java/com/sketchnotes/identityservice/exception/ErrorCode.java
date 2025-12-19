@@ -75,10 +75,15 @@ public enum ErrorCode{
     WITHDRAWAL_ALREADY_PROCESSED(409, "Request is already processed", HttpStatus.CONFLICT),
     WITHDRAWAL_FAILED(500, "Failed to create withdrawal request", HttpStatus.INTERNAL_SERVER_ERROR),
     
+    
     // Bank Account errors
     BANK_ACCOUNT_NOT_FOUND(404, "Bank account not found", HttpStatus.NOT_FOUND),
     ACCOUNT_NUMBER_ALREADY_EXISTS(409, "Account number already exists for this user", HttpStatus.CONFLICT),
-    NO_DEFAULT_BANK_ACCOUNT(404, "No default bank account found", HttpStatus.NOT_FOUND);
+    NO_DEFAULT_BANK_ACCOUNT(404, "No default bank account found", HttpStatus.NOT_FOUND),
+    
+    // Content Moderation errors
+    AI_MODERATION_FAILED(500, "AI content moderation failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    AI_RESPONSE_PARSE_FAILED(500, "Failed to parse AI moderation response", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;
     private final HttpStatusCode statusCode;
