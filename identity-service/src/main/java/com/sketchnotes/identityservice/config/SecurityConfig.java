@@ -24,6 +24,7 @@ public class SecurityConfig {
             "/api/auth/login-google-mobile",
             "/api/payment/payos/webhook",
             "/api/users/public/**",
+            "/api/blogs/**",
 
             "/internal/deposit-for-designer",
             "/api/wallet/internal/**",
