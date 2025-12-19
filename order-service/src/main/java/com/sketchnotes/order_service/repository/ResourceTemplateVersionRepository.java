@@ -99,4 +99,35 @@ public interface ResourceTemplateVersionRepository extends JpaRepository<Resourc
             ResourceTemplate.TemplateStatus status,
             Pageable pageable
     );
+
+    /**
+     * Lấy tất cả PUBLISHED versions của template (từ cũ đến mới)
+     */
+    @Query("SELECT v FROM ResourceTemplateVersion v WHERE v.templateId = :templateId " +
+           "AND v.status = 'PUBLISHED' ORDER BY v.createdAt ASC")
+    List<ResourceTemplateVersion> findPublishedVersionsByTemplateIdOrderByCreatedAtAsc(
+            @Param("templateId") Long templateId
+    );
+
+    /**
+     * Lấy tất cả PUBLISHED versions từ một version ID trở đi (bao gồm version đó)
+     * Used to get all versions user has access to (purchased version + newer versions)
+     */
+    @Query("SELECT v FROM ResourceTemplateVersion v WHERE v.templateId = :templateId " +
+           "AND v.status = 'PUBLISHED' " +
+           "AND v.createdAt >= (SELECT v2.createdAt FROM ResourceTemplateVersion v2 WHERE v2.versionId = :fromVersionId) " +
+           "ORDER BY v.createdAt ASC")
+    List<ResourceTemplateVersion> findPublishedVersionsFromVersionId(
+            @Param("templateId") Long templateId,
+            @Param("fromVersionId") Long fromVersionId
+    );
+
+    /**
+     * Lấy tất cả PUBLISHED versions của một template theo danh sách template IDs
+     */
+    @Query("SELECT v FROM ResourceTemplateVersion v WHERE v.templateId IN :templateIds " +
+           "AND v.status = 'PUBLISHED' ORDER BY v.templateId, v.createdAt ASC")
+    List<ResourceTemplateVersion> findPublishedVersionsByTemplateIds(
+            @Param("templateIds") List<Long> templateIds
+    );
 }

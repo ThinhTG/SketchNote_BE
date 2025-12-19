@@ -3,9 +3,12 @@ package com.sketchnotes.order_service.controller;
 import com.sketchnotes.order_service.client.IdentityClient;
 import com.sketchnotes.order_service.dtos.ApiResponse;
 import com.sketchnotes.order_service.dtos.PagedResponseDTO;
+import com.sketchnotes.order_service.dtos.PurchasedTemplateDTO;
 import com.sketchnotes.order_service.entity.UserResource;
 import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
 import com.sketchnotes.order_service.service.UserResourceService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/orders/user_resources")
 @RequiredArgsConstructor
+@Tag(name = "User Resources", description = "APIs for managing user purchased resources")
 public class UserResourceController {
     private final UserResourceService userResourceService;
     private final IdentityClient identityClient;
@@ -52,13 +56,34 @@ public class UserResourceController {
 
     /**
      * 📦 [GET] Lấy danh sách ResourceTemplate mà user đã mua (bao gồm các itemUrl)dv
+     * @deprecated Use /user/me/templates/v2 for better version support
      */
+    @Deprecated
     @GetMapping("/user/me/templates")
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<ResourceTemplateDTO>>> getMyPurchasedTemplates() {
         var user = identityClient.getCurrentUser();
         List<ResourceTemplateDTO> templates = userResourceService.getPurchasedTemplates(user.getResult().getId());
         return ResponseEntity.ok(ApiResponse.success(templates, "Fetched purchased templates"));
+    }
+
+    /**
+     * 📦 [GET] Lấy danh sách ResourceTemplate mà user đã mua với thông tin version đầy đủ
+     * - User sẽ thấy version đã mua (purchasedVersion)
+     * - User sẽ thấy version mới nhất (currentVersion) nếu có
+     * - User có quyền truy cập tất cả version từ lúc mua trở đi (free upgrade)
+     */
+    @Operation(
+        summary = "Get purchased templates with version info",
+        description = "Returns all templates purchased by the user with full version information. " +
+                      "Users can access their purchased version plus all newer versions (free upgrade)."
+    )
+    @GetMapping("/user/me/templates/v2")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<List<PurchasedTemplateDTO>>> getMyPurchasedTemplatesWithVersions() {
+        var user = identityClient.getCurrentUser();
+        List<PurchasedTemplateDTO> templates = userResourceService.getPurchasedTemplatesWithVersions(user.getResult().getId());
+        return ResponseEntity.ok(ApiResponse.success(templates, "Fetched purchased templates with version info"));
     }
 
     /**

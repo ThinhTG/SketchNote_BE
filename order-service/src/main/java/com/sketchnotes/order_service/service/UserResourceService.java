@@ -2,6 +2,7 @@ package com.sketchnotes.order_service.service;
 
 import com.sketchnotes.order_service.entity.UserResource;
 import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
+import com.sketchnotes.order_service.dtos.PurchasedTemplateDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -25,8 +26,18 @@ public interface UserResourceService {
 
     /**
      * Lấy danh sách ResourceTemplate mà user đã mua (bao gồm items có itemUrl)
+     * @deprecated Use getPurchasedTemplatesWithVersions for better version support
      */
+    @Deprecated
     java.util.List<ResourceTemplateDTO> getPurchasedTemplates(Long userId);
+    
+    /**
+     * Lấy danh sách ResourceTemplate mà user đã mua với thông tin version đầy đủ.
+     * User sẽ có quyền truy cập:
+     * - Version đã mua (purchasedVersionId)
+     * - Tất cả các version mới hơn (free upgrade)
+     */
+    List<PurchasedTemplateDTO> getPurchasedTemplatesWithVersions(Long userId);
     
     /**
      * Get user resource by userId and resourceId

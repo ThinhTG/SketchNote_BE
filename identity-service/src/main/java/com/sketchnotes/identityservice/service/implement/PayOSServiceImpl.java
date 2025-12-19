@@ -45,8 +45,8 @@ public class PayOSServiceImpl implements IPaymentGatewayService {
                     .orderCode(orderCode)
                     .amount(amount.longValue())
                     .description(txnRef)
-                    .returnUrl("https://mystic-blind-box.web.app/wallet-success")
-                    .cancelUrl("https://mystic-blind-box.web.app/wallet-fail")
+                    .returnUrl("https://sketch-note-visual-note-taking.web.app/wallet-success")
+                    .cancelUrl("https://sketch-note-visual-note-taking.web.app/wallet-fail")
                     .build();
 
             CreatePaymentLinkResponse checkoutResponse = payOS.paymentRequests().create(paymentData);

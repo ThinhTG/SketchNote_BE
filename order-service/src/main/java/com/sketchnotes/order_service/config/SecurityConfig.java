@@ -25,6 +25,9 @@ public class SecurityConfig {
             "/api/orders/template/designer/{designerId}/type/{type}",
             "/api/orders/template/search",
             "/api/orders/template/{id}/price",
+            "/api/orders/admin/dashboard/top-resources",
+            "/api/orders/admin/dashboard/top-courses",
+            
             // swagger endpoints
             "/v3/api-docs/**",
             "/swagger-ui/**",

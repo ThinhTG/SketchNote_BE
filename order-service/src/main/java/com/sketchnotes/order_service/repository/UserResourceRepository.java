@@ -34,4 +34,11 @@ public interface UserResourceRepository  extends JpaRepository<UserResource,Long
      * Used by identity-service to validate feedback eligibility
      */
     Optional<UserResource> findByUserIdAndResourceTemplateIdAndActiveTrue(Long userId, Long resourceTemplateId);
+
+    /**
+     * Find all active user resources with their purchased version info
+     * Used to get version access info for users
+     */
+    @Query("SELECT ur FROM UserResource ur WHERE ur.userId = :userId AND ur.active = true")
+    List<UserResource> findActiveResourcesWithVersionByUserId(@org.springframework.data.repository.query.Param("userId") Long userId);
 }
