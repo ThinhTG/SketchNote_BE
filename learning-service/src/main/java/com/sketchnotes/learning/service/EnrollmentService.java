@@ -1,8 +1,8 @@
 package com.sketchnotes.learning.service;
 
 import com.sketchnotes.learning.client.IdentityClient;
-import com.sketchnotes.learning.client.TransactionResponse;
-import com.sketchnotes.learning.client.TransactionType;
+import com.sketchnotes.learning.dto.response.TransactionResponse;
+import com.sketchnotes.learning.enums.TransactionType;
 import com.sketchnotes.learning.dto.ApiResponse;
 import com.sketchnotes.learning.dto.CourseDTO;
 import com.sketchnotes.learning.dto.EnrollmentDTO;
@@ -37,9 +37,34 @@ public class EnrollmentService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
 
-        // Kiểm tra xem user đã đăng ký khóa học này chưa
+        // Check if user is already enrolled in this course
         if (enrollmentRepository.findByCourse_CourseIdAndUserId(courseId, userId).isPresent()) {
             throw new RuntimeException("User already enrolled in this course");
+        }
+
+        // Check wallet balance through HTTP client call to account service
+        try {
+            ApiResponse<com.sketchnotes.learning.dto.response.WalletResponse> walletResponse = 
+                    identityClient.getWalletByUserId(userId);
+            
+            if (walletResponse == null || walletResponse.getResult() == null) {
+                throw new RuntimeException("Unable to retrieve wallet information");
+            }
+            
+            com.sketchnotes.learning.dto.response.WalletResponse wallet = walletResponse.getResult();
+            
+            // Check if wallet has sufficient balance
+            if (wallet.getBalance().compareTo(java.math.BigDecimal.valueOf(course.getPrice())) < 0) {
+                throw new com.sketchnotes.learning.exception.AppException(
+                        com.sketchnotes.learning.exception.ErrorCode.INSUFFICIENT_BALANCE
+                );
+            }
+            
+        } catch (com.sketchnotes.learning.exception.AppException e) {
+            // Re-throw AppException to preserve error code
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to check wallet balance: " + e.getMessage());
         }
 
         CourseEnrollment enrollment = new CourseEnrollment();
@@ -50,7 +75,7 @@ public class EnrollmentService {
         CourseEnrollment saved = enrollmentRepository.save(enrollment);
 
         try {
-            // Gọi API thanh toán từ identity service
+            // Call payment API from identity service
             ApiResponse<TransactionResponse> paymentResponse = identityClient.chargeCourse(
                     userId,
                     course.getPrice(),
@@ -58,18 +83,18 @@ public class EnrollmentService {
                     TransactionType.COURSE_PAYMENT
             );
 
-            // Thanh toán thành công
+            // Payment successful
             enrollment.setStatus(EnrollmentStatus.ENROLLED);
             enrollment = enrollmentRepository.save(enrollment);
 
-            // Tăng studentCount của course lên 1 khi enroll thành công
+            // Increment course student count when enrollment is successful
             course.setStudentCount(course.getStudentCount() + 1);
             courseRepository.save(course);
 
             return enrollmentMapper.toDTO(enrollment);
             
         } catch (Exception e) {
-            // Xử lý lỗi và rollback nếu cần
+            // Handle error and rollback if needed
             enrollment.setStatus(EnrollmentStatus.CANCELLED);
             enrollmentRepository.save(enrollment);
             throw new RuntimeException("Failed to process enrollment: " + e.getMessage());

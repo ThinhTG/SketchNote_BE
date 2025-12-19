@@ -5,8 +5,10 @@ import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.dtos.request.BlogRequest;
 import com.sketchnotes.identityservice.dtos.request.PublishRequest;
 import com.sketchnotes.identityservice.dtos.request.UpdateBlogRequest;
+import com.sketchnotes.identityservice.dtos.response.BlogModerationHistoryResponse;
 import com.sketchnotes.identityservice.dtos.response.BlogResponse;
 import com.sketchnotes.identityservice.enums.BlogStatus;
+import com.sketchnotes.identityservice.service.implement.ContentModerationService;
 import com.sketchnotes.identityservice.service.interfaces.BlogService;
 import com.sketchnotes.identityservice.ultils.PagedResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BlogController {
     private final BlogService postService;
+    private final ContentModerationService moderationService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<BlogResponse>> create(@RequestBody BlogRequest req){
@@ -44,7 +47,7 @@ public class BlogController {
     public ResponseEntity<ApiResponse<PagedResponse<BlogResponse>>> list(
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "PUBLISHED") BlogStatus status){
+            @RequestParam BlogStatus status){
         PagedResponse<BlogResponse> response = postService.getAll(pageNo, pageSize, status);
         return ResponseEntity.ok(ApiResponse.success( response,"Get data successful"));
     }
@@ -69,5 +72,25 @@ public class BlogController {
     public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id){
         postService.deleteBlog(id);
         return ResponseEntity.ok(ApiResponse.success( null,"Delete successful"));
+    }
+
+    @Operation(
+            summary = "Get latest moderation history",
+            description = "Get the most recent AI moderation check result for a blog"
+    )
+    @GetMapping("/{id}/moderation/latest")
+    public ResponseEntity<ApiResponse<BlogModerationHistoryResponse>> getLatestModerationHistory(@PathVariable Long id) {
+        BlogModerationHistoryResponse response = moderationService.getLatestModerationHistory(id);
+        return ResponseEntity.ok(ApiResponse.success(response, "Get latest moderation history successful"));
+    }
+
+    @Operation(
+            summary = "Get all moderation history",
+            description = "Get all AI moderation check history for a blog, ordered by most recent first"
+    )
+    @GetMapping("/{id}/moderation/history")
+    public ResponseEntity<ApiResponse<List<BlogModerationHistoryResponse>>> getAllModerationHistory(@PathVariable Long id) {
+        List<BlogModerationHistoryResponse> response = moderationService.getAllModerationHistory(id);
+        return ResponseEntity.ok(ApiResponse.success(response, "Get moderation history successful"));
     }
 }

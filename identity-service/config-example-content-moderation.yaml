@@ -1,0 +1,93 @@
+# ===================================
+# CONTENT MODERATION SERVICE CONFIG
+# ===================================
+# Copy các config này vào application.yaml hoặc application.properties
+
+# ===== YAML Format (application.yaml) =====
+google:
+  cloud:
+    # GCP Project ID (REQUIRED)
+    # Lấy từ: https://console.cloud.google.com
+    project-id: your-gcp-project-id
+    
+    # Region/Location (OPTIONAL - default: us-central1)
+    # Recommended: us-central1, asia-southeast1, europe-west1
+    location: us-central1
+    
+    # AI Model Name (OPTIONAL - default: gemini-1.5-flash)
+    # Options:
+    #   - gemini-1.5-flash (Nhanh, rẻ - RECOMMENDED)
+    #   - gemini-1.5-pro (Chính xác hơn, đắt hơn)
+    model-name: gemini-1.5-flash
+
+# ===== Properties Format (application.properties) =====
+# google.cloud.project-id=your-gcp-project-id
+# google.cloud.location=us-central1
+# google.cloud.model-name=gemini-1.5-flash
+
+# ===================================
+# GOOGLE CLOUD CREDENTIALS SETUP
+# ===================================
+
+# Option 1: Service Account Key File (RECOMMENDED for Production)
+# 1. Tạo Service Account: https://console.cloud.google.com/iam-admin/serviceaccounts
+# 2. Grant roles: "Vertex AI User"
+# 3. Tạo JSON key và download
+# 4. Set environment variable:
+#    export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-key.json"
+
+# Option 2: Application Default Credentials (Development)
+# Run: gcloud auth application-default login
+
+# ===================================
+# VERTEX AI API SETUP
+# ===================================
+
+# 1. Enable Vertex AI API:
+#    https://console.cloud.google.com/apis/library/aiplatform.googleapis.com
+
+# 2. Enable Generative AI API:
+#    https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com
+
+# 3. Check quota:
+#    https://console.cloud.google.com/iam-admin/quotas
+
+# ===================================
+# SCHEDULER CONFIG (Already in code)
+# ===================================
+
+# Scheduled task runs every 5 minutes
+# Checks blogs that are PENDING_REVIEW for more than 15 minutes
+# To change:
+#   - Edit fixedRate in @Scheduled annotation (in milliseconds)
+#   - Edit minusMinutes(15) to change waiting time
+
+# ===================================
+# EXAMPLE FULL CONFIG
+# ===================================
+
+# application.yaml
+---
+spring:
+  application:
+    name: identity-service
+
+google:
+  cloud:
+    project-id: sketchnote-project-123456
+    location: asia-southeast1
+    model-name: gemini-1.5-flash
+
+# ===================================
+# TESTING
+# ===================================
+
+# Test với curl:
+# curl -X GET http://localhost:8080/api/admin/blogs/123/check
+
+# Expected response:
+# {
+#   "isSafe": true,
+#   "safetyScore": 100,
+#   "reason": "Nội dung an toàn..."
+# }

@@ -1,4 +1,4 @@
-package com.sketchnotes.learning.client;
+package com.sketchnotes.learning.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

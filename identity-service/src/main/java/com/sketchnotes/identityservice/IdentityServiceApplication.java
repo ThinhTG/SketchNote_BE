@@ -15,6 +15,7 @@ import java.util.TimeZone;
 @EnableFeignClients
 @EnableJpaAuditing
 @EnableCaching
+@EnableScheduling
 public class IdentityServiceApplication {
 
     public static void main(String[] args) {

@@ -62,6 +62,10 @@ spring:
     url: jdbc:postgresql://34.177.90.19:6432/usersdb
     username: admin
     password: admin
+  gemini:
+    project-id: ${GOOGLE_CLOUD_PROJECT_ID}
+    location: us-central1
+    model: gemini-1.5-flash-001
   jpa:
     hibernate:
       ddl-auto: update

@@ -12,6 +12,17 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // Handle custom AppException
+    @ExceptionHandler(AppException.class)
+    public ApiResponse<?> handleAppException(AppException ex) {
+        ErrorCode errorCode = ex.getErrorCode();
+        return ApiResponse.error(
+                errorCode.getCode(),
+                ex.getMessage(),
+                null
+        );
+    }
+
     // Handle lỗi chung chung
     @ExceptionHandler(Exception.class)
     public ApiResponse<?> handleException(Exception ex) {

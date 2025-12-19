@@ -36,7 +36,7 @@ public class PaymentService {
     public void handlePaymentSuccess(PaymentSucceededEvent event) {
         orderRepository.findById(event.getOrderId()).ifPresentOrElse(order -> {
             boolean alreadyPaid = "PAID".equalsIgnoreCase(order.getPaymentStatus());
-
+            String s  = "sdfgsdfg";
             try {
                 if (!alreadyPaid) {
                     order.setPaymentStatus("PAID");

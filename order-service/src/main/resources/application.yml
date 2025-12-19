@@ -91,14 +91,6 @@ spring:
         jwt:
           issuer-uri: http://34.177.90.19:8090/realms/sketchnote
 
-# Thêm logging để debug
-logging:
-  level:
-    root: INFO
-    com.sketchnotes: DEBUG
-    org.springframework: DEBUG
-    org.hibernate: DEBUG
-
 eureka:
   client:
     service-url:

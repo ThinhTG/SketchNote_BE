@@ -1,4 +1,4 @@
-package com.sketchnotes.learning.client;
+package com.sketchnotes.learning.enums;
 
 public enum TransactionType {
     DEPOSIT,            // Nạp tiền vào ví
