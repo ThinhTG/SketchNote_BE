@@ -218,4 +218,22 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
            "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS'")
     BigDecimal getAllTimeTokenRevenue();
+    
+    /**
+     * Lấy top token/credit packages được mua nhiều nhất
+     * Join với credit_transactions và credit_packages để lấy thông tin chi tiết
+     * referenceId format: "PKG-{packageId}"
+     * Note: total_revenue tính theo giá hiện tại của package * số lượng mua
+     */
+    @Query(value = "SELECT cp.id as package_id, cp.name as package_name, " +
+           "COUNT(ct.id) as purchase_count, " +
+           "COALESCE(SUM(cp.discounted_price), 0) as total_revenue " +
+           "FROM credit_transactions ct " +
+           "JOIN credit_packages cp ON CAST(SUBSTRING(ct.reference_id FROM 5) AS BIGINT) = cp.id " +
+           "WHERE ct.type = 'PACKAGE_PURCHASE' " +
+           "AND ct.reference_id LIKE 'PKG-%' " +
+           "GROUP BY cp.id, cp.name " +
+           "ORDER BY purchase_count DESC " +
+           "LIMIT :limit", nativeQuery = true)
+    List<Object[]> getTopTokenPackages(@Param("limit") int limit);
 }
