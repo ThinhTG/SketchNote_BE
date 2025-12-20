@@ -51,10 +51,11 @@ public class AdminRevenueServiceImpl implements IAdminRevenueService {
     public AdminWalletOverviewDTO getWalletOverview() {
         log.info("Getting Admin Wallet Overview");
         
-        // Tổng doanh thu từ tất cả thời gian (Subscription + Token)
+        // Tổng doanh thu từ tất cả thời gian (Subscription + Token + Course)
         BigDecimal totalRevenue = adminRevenueRepository.getAllTimeRevenue();
         BigDecimal subscriptionRevenue = adminRevenueRepository.getAllTimeSubscriptionRevenue();
         BigDecimal tokenRevenue = adminRevenueRepository.getAllTimeTokenRevenue();
+        BigDecimal courseRevenue = adminRevenueRepository.getAllTimeCourseRevenue();
         
         // Tổng tiền user đã deposit/withdraw (để tham khảo)
         BigDecimal totalDeposits = adminRevenueRepository.getTotalUserDeposits();
@@ -69,6 +70,7 @@ public class AdminRevenueServiceImpl implements IAdminRevenueService {
                 .totalBalance(totalRevenue)
                 .subscriptionBalance(subscriptionRevenue)
                 .tokenBalance(tokenRevenue)
+                .courseBalance(courseRevenue)
                 .totalUserDeposits(totalDeposits)
                 .totalUserWithdrawals(totalWithdrawals)
                 .totalUserWalletBalance(totalUserWalletBalance)
@@ -89,16 +91,20 @@ public class AdminRevenueServiceImpl implements IAdminRevenueService {
         // Lấy tổng doanh thu
         BigDecimal totalSubscriptionRevenue = BigDecimal.ZERO;
         BigDecimal totalTokenRevenue = BigDecimal.ZERO;
+        BigDecimal totalCourseRevenue = BigDecimal.ZERO;
         Long subscriptionTxCount = 0L;
         Long tokenTxCount = 0L;
+        Long courseTxCount = 0L;
         
         List<AdminRevenueStatsDTO.RevenueDataPoint> subscriptionTimeSeries = new ArrayList<>();
         List<AdminRevenueStatsDTO.RevenueDataPoint> tokenTimeSeries = new ArrayList<>();
+        List<AdminRevenueStatsDTO.RevenueDataPoint> courseTimeSeries = new ArrayList<>();
         List<AdminRevenueStatsDTO.RevenueDataPoint> totalTimeSeries = new ArrayList<>();
         
         // Fetch data based on type
         boolean fetchSubscription = "all".equals(normalizedType) || "subscription".equals(normalizedType);
         boolean fetchToken = "all".equals(normalizedType) || "token".equals(normalizedType);
+        boolean fetchCourse = "all".equals(normalizedType) || "course".equals(normalizedType);
         
         if (fetchSubscription) {
             totalSubscriptionRevenue = adminRevenueRepository.getTotalSubscriptionRevenue(start, end);
@@ -112,25 +118,36 @@ public class AdminRevenueServiceImpl implements IAdminRevenueService {
             tokenTimeSeries = getTimeSeriesData(start, end, normalizedGroupBy, "token");
         }
         
+        if (fetchCourse) {
+            totalCourseRevenue = adminRevenueRepository.getTotalCourseRevenue(start, end);
+            courseTxCount = adminRevenueRepository.countCourseTransactions(start, end);
+            courseTimeSeries = getTimeSeriesData(start, end, normalizedGroupBy, "course");
+        }
+        
         // Calculate total time series
         if ("all".equals(normalizedType)) {
             totalTimeSeries = getTimeSeriesData(start, end, normalizedGroupBy, "total");
         } else if (fetchSubscription) {
             totalTimeSeries = subscriptionTimeSeries;
-        } else {
+        } else if (fetchToken) {
             totalTimeSeries = tokenTimeSeries;
+        } else {
+            totalTimeSeries = courseTimeSeries;
         }
         
-        BigDecimal totalRevenue = totalSubscriptionRevenue.add(totalTokenRevenue);
+        BigDecimal totalRevenue = totalSubscriptionRevenue.add(totalTokenRevenue).add(totalCourseRevenue);
         
         return AdminRevenueStatsDTO.builder()
                 .totalRevenue(totalRevenue)
                 .totalSubscriptionRevenue(totalSubscriptionRevenue)
                 .totalTokenRevenue(totalTokenRevenue)
+                .totalCourseRevenue(totalCourseRevenue)
                 .subscriptionTransactionCount(subscriptionTxCount)
                 .tokenTransactionCount(tokenTxCount)
+                .courseTransactionCount(courseTxCount)
                 .subscriptionRevenueTimeSeries(subscriptionTimeSeries)
                 .tokenRevenueTimeSeries(tokenTimeSeries)
+                .courseRevenueTimeSeries(courseTimeSeries)
                 .totalRevenueTimeSeries(totalTimeSeries)
                 .build();
     }
@@ -143,12 +160,14 @@ public class AdminRevenueServiceImpl implements IAdminRevenueService {
         AdminRevenueStatsDTO revenueStats = getRevenueStats(start, end, groupBy, "all");
         List<AdminRevenueDashboardDTO.TopSubscriptionDTO> topSubscriptions = getTopSubscriptions(5);
         List<AdminRevenueDashboardDTO.TopTokenPackageDTO> topTokenPackages = getTopTokenPackages(5);
+        List<AdminRevenueDashboardDTO.TopCourseDTO> topCourses = getTopCourses(5);
         
         return AdminRevenueDashboardDTO.builder()
                 .walletOverview(walletOverview)
                 .revenueStats(revenueStats)
                 .topSubscriptions(topSubscriptions)
                 .topTokenPackages(topTokenPackages)
+                .topCourses(topCourses)
                 .build();
     }
     
@@ -203,6 +222,22 @@ public class AdminRevenueServiceImpl implements IAdminRevenueService {
                 .collect(Collectors.toList());
     }
     
+    @Override
+    public List<AdminRevenueDashboardDTO.TopCourseDTO> getTopCourses(int limit) {
+        log.info("Getting top {} courses", limit);
+        
+        List<Object[]> results = adminRevenueRepository.getTopCourses(limit);
+        
+        return results.stream()
+                .map(row -> AdminRevenueDashboardDTO.TopCourseDTO.builder()
+                        .courseId(null) // Course ID không có trong identity-service
+                        .courseName((String) row[0])
+                        .purchaseCount(((Number) row[1]).longValue())
+                        .totalRevenue((BigDecimal) row[2])
+                        .build())
+                .collect(Collectors.toList());
+    }
+    
     // ==================== SO SÁNH ====================
     
     @Override
@@ -246,7 +281,7 @@ public class AdminRevenueServiceImpl implements IAdminRevenueService {
             return "all";
         }
         String normalized = type.trim().toLowerCase();
-        if (!normalized.equals("all") && !normalized.equals("subscription") && !normalized.equals("token")) {
+        if (!normalized.equals("all") && !normalized.equals("subscription") && !normalized.equals("token") && !normalized.equals("course")) {
             return "all";
         }
         return normalized;
@@ -284,6 +319,8 @@ public class AdminRevenueServiceImpl implements IAdminRevenueService {
                 return adminRevenueRepository.getSubscriptionRevenueByDay(start, end);
             case "token":
                 return adminRevenueRepository.getTokenRevenueByDay(start, end);
+            case "course":
+                return adminRevenueRepository.getCourseRevenueByDay(start, end);
             default:
                 return adminRevenueRepository.getTotalRevenueByDay(start, end);
         }
@@ -295,6 +332,8 @@ public class AdminRevenueServiceImpl implements IAdminRevenueService {
                 return adminRevenueRepository.getSubscriptionRevenueByMonth(start, end);
             case "token":
                 return adminRevenueRepository.getTokenRevenueByMonth(start, end);
+            case "course":
+                return adminRevenueRepository.getCourseRevenueByMonth(start, end);
             default:
                 return adminRevenueRepository.getTotalRevenueByMonth(start, end);
         }
@@ -306,6 +345,8 @@ public class AdminRevenueServiceImpl implements IAdminRevenueService {
                 return adminRevenueRepository.getSubscriptionRevenueByYear(start, end);
             case "token":
                 return adminRevenueRepository.getTokenRevenueByYear(start, end);
+            case "course":
+                return adminRevenueRepository.getCourseRevenueByYear(start, end);
             default:
                 return adminRevenueRepository.getTotalRevenueByYear(start, end);
         }

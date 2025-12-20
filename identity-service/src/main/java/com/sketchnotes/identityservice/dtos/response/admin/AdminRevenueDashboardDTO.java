@@ -38,6 +38,11 @@ public class AdminRevenueDashboardDTO {
     private List<TopTokenPackageDTO> topTokenPackages;
     
     /**
+     * Top khóa học bán chạy
+     */
+    private List<TopCourseDTO> topCourses;
+    
+    /**
      * DTO cho top subscription plan
      */
     @Data
@@ -61,6 +66,20 @@ public class AdminRevenueDashboardDTO {
     public static class TopTokenPackageDTO {
         private Long packageId;
         private String packageName;
+        private Long purchaseCount;
+        private BigDecimal totalRevenue;
+    }
+    
+    /**
+     * DTO cho top khóa học bán chạy
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TopCourseDTO {
+        private Long courseId;
+        private String courseName;
         private Long purchaseCount;
         private BigDecimal totalRevenue;
     }

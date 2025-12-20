@@ -65,6 +65,13 @@ public interface IAdminRevenueService {
      */
     List<AdminRevenueDashboardDTO.TopTokenPackageDTO> getTopTokenPackages(int limit);
     
+    /**
+     * Lấy top khóa học bán chạy nhất
+     * @param limit Số lượng kết quả tối đa
+     * @return List các top courses
+     */
+    List<AdminRevenueDashboardDTO.TopCourseDTO> getTopCourses(int limit);
+    
     // ==================== SO SÁNH ====================
     
     /**

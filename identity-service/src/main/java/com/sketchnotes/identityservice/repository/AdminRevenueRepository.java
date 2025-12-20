@@ -40,10 +40,19 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
                                     @Param("end") LocalDateTime end);
     
     /**
-     * Tổng doanh thu từ tất cả nguồn (Subscription + Token)
+     * Tổng doanh thu từ bán khóa học trong khoảng thời gian
      */
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
-           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS') AND t.status = 'SUCCESS' " +
+           "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS' " +
+           "AND t.createdAt BETWEEN :start AND :end")
+    BigDecimal getTotalCourseRevenue(@Param("start") LocalDateTime start, 
+                                     @Param("end") LocalDateTime end);
+    
+    /**
+     * Tổng doanh thu từ tất cả nguồn (Subscription + Token + Course)
+     */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS', 'COURSE_FEE') AND t.status = 'SUCCESS' " +
            "AND t.createdAt BETWEEN :start AND :end")
     BigDecimal getTotalRevenue(@Param("start") LocalDateTime start, 
                                @Param("end") LocalDateTime end);
@@ -67,6 +76,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
            "AND t.createdAt BETWEEN :start AND :end")
     Long countTokenTransactions(@Param("start") LocalDateTime start, 
                                 @Param("end") LocalDateTime end);
+    
+    /**
+     * Đếm số giao dịch mua khóa học thành công
+     */
+    @Query("SELECT COUNT(t) FROM Transaction t " +
+           "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS' " +
+           "AND t.createdAt BETWEEN :start AND :end")
+    Long countCourseTransactions(@Param("start") LocalDateTime start, 
+                                 @Param("end") LocalDateTime end);
     
     // ==================== DOANH THU THEO NGÀY ====================
     
@@ -95,16 +113,28 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
                                         @Param("end") LocalDateTime end);
     
     /**
-     * Tổng doanh thu theo ngày (Subscription + Token)
+     * Tổng doanh thu theo ngày (Subscription + Token + Course)
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM-DD') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
-                   "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS') AND t.status = 'SUCCESS' " +
+                   "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS', 'COURSE_FEE') AND t.status = 'SUCCESS' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getTotalRevenueByDay(@Param("start") LocalDateTime start, 
                                         @Param("end") LocalDateTime end);
+    
+    /**
+     * Doanh thu khóa học theo ngày
+     */
+    @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM-DD') as period, " +
+                   "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
+                   "FROM transaction t " +
+                   "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS' " +
+                   "AND t.created_at BETWEEN :start AND :end " +
+                   "GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getCourseRevenueByDay(@Param("start") LocalDateTime start, 
+                                         @Param("end") LocalDateTime end);
     
     // ==================== DOANH THU THEO THÁNG ====================
     
@@ -138,11 +168,23 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
-                   "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS') AND t.status = 'SUCCESS' " +
+                   "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS', 'COURSE_FEE') AND t.status = 'SUCCESS' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getTotalRevenueByMonth(@Param("start") LocalDateTime start, 
                                           @Param("end") LocalDateTime end);
+    
+    /**
+     * Doanh thu khóa học theo tháng
+     */
+    @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM') as period, " +
+                   "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
+                   "FROM transaction t " +
+                   "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS' " +
+                   "AND t.created_at BETWEEN :start AND :end " +
+                   "GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getCourseRevenueByMonth(@Param("start") LocalDateTime start, 
+                                           @Param("end") LocalDateTime end);
     
     // ==================== DOANH THU THEO NĂM ====================
     
@@ -176,11 +218,23 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     @Query(value = "SELECT to_char(t.created_at, 'YYYY') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
-                   "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS') AND t.status = 'SUCCESS' " +
+                   "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS', 'COURSE_FEE') AND t.status = 'SUCCESS' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getTotalRevenueByYear(@Param("start") LocalDateTime start, 
                                          @Param("end") LocalDateTime end);
+    
+    /**
+     * Doanh thu khóa học theo năm
+     */
+    @Query(value = "SELECT to_char(t.created_at, 'YYYY') as period, " +
+                   "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
+                   "FROM transaction t " +
+                   "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS' " +
+                   "AND t.created_at BETWEEN :start AND :end " +
+                   "GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getCourseRevenueByYear(@Param("start") LocalDateTime start, 
+                                          @Param("end") LocalDateTime end);
     
     // ==================== WALLET OVERVIEW (THAM KHẢO) ====================
     
@@ -202,7 +256,7 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
      * Tổng doanh thu từ tất cả thời gian (All-time revenue)
      */
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
-           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS') AND t.status = 'SUCCESS'")
+           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS', 'COURSE_FEE') AND t.status = 'SUCCESS'")
     BigDecimal getAllTimeRevenue();
     
     /**
@@ -218,6 +272,13 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
            "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS'")
     BigDecimal getAllTimeTokenRevenue();
+    
+    /**
+     * Tổng doanh thu khóa học từ tất cả thời gian
+     */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS'")
+    BigDecimal getAllTimeCourseRevenue();
     
     /**
      * Lấy top token/credit packages được mua nhiều nhất
@@ -236,4 +297,20 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
            "ORDER BY purchase_count DESC " +
            "LIMIT :limit", nativeQuery = true)
     List<Object[]> getTopTokenPackages(@Param("limit") int limit);
+    
+    /**
+     * Lấy top khóa học được mua nhiều nhất
+     * Parse course name từ description (format: "Payment for course: {courseName}")
+     * Vì không có course entity trong identity-service, ta group by description
+     */
+    @Query(value = "SELECT " +
+           "COALESCE(NULLIF(TRIM(SUBSTRING(t.description FROM 'Payment for course: (.+)')), ''), t.description) as course_name, " +
+           "COUNT(*) as purchase_count, " +
+           "COALESCE(SUM(t.amount), 0) as total_revenue " +
+           "FROM transaction t " +
+           "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS' " +
+           "GROUP BY course_name " +
+           "ORDER BY purchase_count DESC " +
+           "LIMIT :limit", nativeQuery = true)
+    List<Object[]> getTopCourses(@Param("limit") int limit);
 }
