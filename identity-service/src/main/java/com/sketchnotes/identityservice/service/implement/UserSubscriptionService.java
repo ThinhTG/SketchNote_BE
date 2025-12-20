@@ -23,8 +23,10 @@ import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.repository.IUserSubscriptionRepository;
 import com.sketchnotes.identityservice.repository.IWalletRepository;
 import com.sketchnotes.identityservice.repository.ITransactionRepository;
+import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import com.sketchnotes.identityservice.service.interfaces.IUserSubscriptionService;
 import com.sketchnotes.identityservice.service.interfaces.IRoleService;
+import com.sketchnotes.identityservice.service.interfaces.IWalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -48,6 +50,8 @@ public class UserSubscriptionService implements IUserSubscriptionService {
     private final ITransactionRepository transactionRepository;
     private final ProjectServiceClient projectServiceClient;
     private final IRoleService roleService;
+    private final IUserService userService;
+    private final IWalletService walletService;
 
     @Override
     public SubscriptionUpgradeCheckResponse checkUpgrade(Long userId, Long planId) {
@@ -247,6 +251,20 @@ public class UserSubscriptionService implements IUserSubscriptionService {
 
         log.info("Successfully created subscription {} for user {} with transaction {}", 
                 savedSubscription.getSubscriptionId(), userId, savedTransaction.getTransactionId());
+
+        // cộng tiền cho admin
+        var Admin = userService.getUsersByRole(Role.ADMIN);
+        if (Admin.isEmpty()) {
+            log.error("No admin user found to receive course fee");
+        } else {
+            var adminUser = Admin.get(0); // Lấy admin đầu tiên
+            Wallet adminWallet = walletService.getWalletByUserId(adminUser.getId());
+            if (adminWallet == null) {
+                // Tạo wallet nếu chưa có
+                adminWallet = walletService.createWallet(adminUser.getId());
+            }
+            walletService.deposit(adminWallet.getWalletId(), plan.getPrice());
+        }
 
         return mapToResponse(savedSubscription);
     }

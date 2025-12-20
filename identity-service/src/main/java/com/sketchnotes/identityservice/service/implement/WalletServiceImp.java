@@ -1,5 +1,6 @@
 package com.sketchnotes.identityservice.service.implement;
 
+import com.sketchnotes.identityservice.enums.Role;
 import com.sketchnotes.identityservice.model.Transaction;
 import com.sketchnotes.identityservice.model.User;
 import com.sketchnotes.identityservice.model.Wallet;
@@ -8,9 +9,11 @@ import com.sketchnotes.identityservice.enums.TransactionType;
 import com.sketchnotes.identityservice.repository.ITransactionRepository;
 import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.repository.IWalletRepository;
+import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import com.sketchnotes.identityservice.service.interfaces.IWalletService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,11 +23,13 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class WalletServiceImp implements IWalletService {
 
     private final IWalletRepository walletRepository;
     private final ITransactionRepository transactionRepository;
     private final IUserRepository userRepository;
+    private final IUserService  userService;
 
     @Override
     public Wallet createWallet(Long userId) {
@@ -120,6 +125,19 @@ public class WalletServiceImp implements IWalletService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
+        // cộng tiền cho admin
+        var Admin = userService.getUsersByRole(Role.ADMIN);
+        if (Admin.isEmpty()) {
+            log.error("No admin user found to receive course fee");
+        } else {
+            var adminUser = Admin.get(0); // Lấy admin đầu tiên
+            Wallet adminWallet = getWalletByUserId(adminUser.getId());
+            if (adminWallet == null) {
+                // Tạo wallet nếu chưa có
+                adminWallet = createWallet(adminUser.getId());
+            }
+            deposit(adminWallet.getWalletId(), amount);
+        }
         return transactionRepository.save(transaction);
     }
 
