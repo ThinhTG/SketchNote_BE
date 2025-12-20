@@ -47,7 +47,7 @@ public class BlogController {
     public ResponseEntity<ApiResponse<PagedResponse<BlogResponse>>> list(
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam BlogStatus status){
+            @RequestParam(defaultValue = "PUBLISHED") BlogStatus status){
         PagedResponse<BlogResponse> response = postService.getAll(pageNo, pageSize, status);
         return ResponseEntity.ok(ApiResponse.success( response,"Get data successful"));
     }
