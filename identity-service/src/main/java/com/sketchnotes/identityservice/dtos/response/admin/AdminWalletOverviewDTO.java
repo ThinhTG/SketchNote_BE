@@ -33,6 +33,11 @@ public class AdminWalletOverviewDTO {
     private BigDecimal tokenBalance;
     
     /**
+     * Tổng tiền từ bán khóa học
+     */
+    private BigDecimal courseBalance;
+    
+    /**
      * Tổng tiền users đã nạp vào hệ thống (để tham khảo, không thuộc Admin)
      */
     private BigDecimal totalUserDeposits;

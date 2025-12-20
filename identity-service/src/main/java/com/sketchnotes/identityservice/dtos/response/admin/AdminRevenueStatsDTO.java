@@ -37,6 +37,11 @@ public class AdminRevenueStatsDTO {
     private BigDecimal totalTokenRevenue;
     
     /**
+     * Tổng doanh thu từ bán khóa học
+     */
+    private BigDecimal totalCourseRevenue;
+    
+    /**
      * Số lượng giao dịch subscription thành công
      */
     private Long subscriptionTransactionCount;
@@ -45,6 +50,11 @@ public class AdminRevenueStatsDTO {
      * Số lượng giao dịch mua token thành công
      */
     private Long tokenTransactionCount;
+    
+    /**
+     * Số lượng giao dịch mua khóa học thành công
+     */
+    private Long courseTransactionCount;
     
     // ==================== DỮ LIỆU THEO THỜI GIAN ====================
     
@@ -57,6 +67,11 @@ public class AdminRevenueStatsDTO {
      * Doanh thu token theo thời gian (day/month/year)
      */
     private List<RevenueDataPoint> tokenRevenueTimeSeries;
+    
+    /**
+     * Doanh thu khóa học theo thời gian (day/month/year)
+     */
+    private List<RevenueDataPoint> courseRevenueTimeSeries;
     
     /**
      * Tổng doanh thu theo thời gian (day/month/year)
