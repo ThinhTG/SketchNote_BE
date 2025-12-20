@@ -191,9 +191,16 @@ public class AdminRevenueServiceImpl implements IAdminRevenueService {
     public List<AdminRevenueDashboardDTO.TopTokenPackageDTO> getTopTokenPackages(int limit) {
         log.info("Getting top {} token packages", limit);
         
-        // Tạm thời return empty list - có thể implement khi có CreditPurchase entity
-        // Hoặc query từ Transaction với description chứa package info
-        return new ArrayList<>();
+        List<Object[]> results = adminRevenueRepository.getTopTokenPackages(limit);
+        
+        return results.stream()
+                .map(row -> AdminRevenueDashboardDTO.TopTokenPackageDTO.builder()
+                        .packageId(((Number) row[0]).longValue())
+                        .packageName((String) row[1])
+                        .purchaseCount(((Number) row[2]).longValue())
+                        .totalRevenue((BigDecimal) row[3])
+                        .build())
+                .collect(Collectors.toList());
     }
     
     // ==================== SO SÁNH ====================
