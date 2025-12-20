@@ -4,16 +4,19 @@ import com.sketchnotes.identityservice.dtos.request.CreditPackageRequest;
 import com.sketchnotes.identityservice.dtos.response.CreditPackageResponse;
 import com.sketchnotes.identityservice.dtos.response.PurchasePackageResponse;
 import com.sketchnotes.identityservice.enums.CreditTransactionType;
+import com.sketchnotes.identityservice.enums.Role;
 import com.sketchnotes.identityservice.enums.TransactionType;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.model.CreditPackage;
 import com.sketchnotes.identityservice.model.CreditTransaction;
 import com.sketchnotes.identityservice.model.User;
+import com.sketchnotes.identityservice.model.Wallet;
 import com.sketchnotes.identityservice.repository.CreditPackageRepository;
 import com.sketchnotes.identityservice.repository.CreditTransactionRepository;
 import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.service.interfaces.INotificationService;
+import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import com.sketchnotes.identityservice.service.interfaces.IWalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +41,7 @@ public class CreditPackageService implements INotificationService.ICreditPackage
     private final IUserRepository userRepository;
     private final IWalletService walletService;
     private final CreditTransactionRepository creditTransactionRepository;
+    private final IUserService userService;
     
     @Override
     @Transactional
@@ -223,7 +227,19 @@ public class CreditPackageService implements INotificationService.ICreditPackage
             log.error("Unexpected error during payment for user {}: {}", userId, e.getMessage());
             throw new AppException(ErrorCode.INSUFFICIENT_BALANCE);
         }
-        
+        // cộng tiền cho admin
+        var Admin = userService.getUsersByRole(Role.ADMIN);
+        if (Admin.isEmpty()) {
+            log.error("No admin user found to receive course fee");
+        } else {
+            var adminUser = Admin.get(0); // Lấy admin đầu tiên
+            Wallet adminWallet = walletService.getWalletByUserId(adminUser.getId());
+            if (adminWallet == null) {
+                // Tạo wallet nếu chưa có
+                adminWallet = walletService.createWallet(adminUser.getId());
+            }
+            walletService.deposit(adminWallet.getWalletId(), amountToPay);
+        }
         // 6. Cộng credits cho user
         Integer newBalance = previousBalance + creditPackage.getCreditAmount();
         user.setAiCredits(newBalance);
