@@ -5,11 +5,8 @@ import com.sketchnotes.order_service.dtos.ResourceImageDTO;
 import com.sketchnotes.order_service.dtos.ResourceTemplateDTO;
 import com.sketchnotes.order_service.dtos.designer.ResourceTemplateVersionDTO;
 import com.sketchnotes.order_service.dtos.PurchasedTemplateDTO;
-import com.sketchnotes.order_service.entity.UserResource;
-import com.sketchnotes.order_service.entity.ResourceTemplate;
-import com.sketchnotes.order_service.entity.ResourceTemplateItem;
-import com.sketchnotes.order_service.entity.ResourceTemplateVersion;
-import com.sketchnotes.order_service.entity.ResourceTemplateVersionItem;
+import com.sketchnotes.order_service.entity.*;
+import com.sketchnotes.order_service.repository.ResourceImageRepository;
 import com.sketchnotes.order_service.repository.UserResourceRepository;
 import com.sketchnotes.order_service.repository.ResourceTemplateRepository;
 import com.sketchnotes.order_service.repository.ResourceTemplateVersionRepository;
@@ -33,6 +30,7 @@ public class UserResourceServiceImpl implements UserResourceService {
 
    private final UserResourceRepository userResourceRepository;
    private final ResourceTemplateRepository resourceTemplateRepository;
+   private final ResourceImageRepository imageRepository;
    private final ResourceTemplateVersionRepository versionRepository;
    private final OrderMapper orderMapper;
 
@@ -118,19 +116,22 @@ public class UserResourceServiceImpl implements UserResourceService {
         List<ResourceTemplate> templates = resourceTemplateRepository
                 .findByTemplateIdInAndStatus(templateIds, ResourceTemplate.TemplateStatus.PUBLISHED);
 
-        List<ResourceTemplateDTO> result = new java.util.ArrayList<>();
+        List<ResourceTemplateDTO> result = new ArrayList<>();
         for (ResourceTemplate rt : templates) {
             // 🔹 IMPORTANT: Always return the CURRENT PUBLISHED VERSION
             // When user purchases version 1.0, they automatically get upgraded to version 2.0 when it's published
             // This is done by using currentPublishedVersionId to fetch the latest version data
-            
+           List<ResourcesTemplateImage> images = imageRepository.findByResourceTemplateAndIsThumbnailTrue(rt)
+                    .orElse(null);
             ResourceTemplateDTO dto = ResourceTemplateDTO.builder()
                     .resourceTemplateId(rt.getTemplateId())
                     .designerId(rt.getDesignerId())
                     .name(rt.getName())
                     .description(rt.getDescription())
+                    .isOwner(rt.getDesignerId().equals(userId))
                     .type(rt.getType() != null ? rt.getType().name() : null)
                     .price(rt.getPrice())
+                    .bannerUrl((images != null && !images.isEmpty() ? images.get(0).getImageUrl() : null))
                     .expiredTime(rt.getExpiredTime())
                     .releaseDate(rt.getReleaseDate())
                     .createdAt(rt.getCreatedAt())
@@ -152,6 +153,7 @@ public class UserResourceServiceImpl implements UserResourceService {
                 }
                 dto.setItems(itemDTOs);
             }
+
 
             // Images are optional; if needed, map to ResourceImageDTO here.
             result.add(dto);
