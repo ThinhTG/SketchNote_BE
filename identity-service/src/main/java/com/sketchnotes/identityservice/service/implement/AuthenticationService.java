@@ -454,48 +454,23 @@ public class AuthenticationService implements  IAuthService {
 
     @Override
     public void sendVerifyEmail(VerifyEmailRequest request) {
-        try {
-            // Get admin token
-            TokenExchangeResponse token = identityClient.exchangeClientToken(
-                    TokenExchangeParam.builder()
-                            .grant_type("client_credentials")
-                            .client_id(clientId)
-                            .client_secret(clientSecret)
-                            .scope("openid")
-                            .build()
-            );
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+        String emailVerifyToken = tokenService.generateNewVerifyToken(user);
 
-            // Find user by email in Keycloak
-            List<UserInfo> users = identityClient.getUserByEmail(
-                    "Bearer " + token.getAccessToken(),
-                    request.getEmail()
-            );
+        // 4. Create verify link
+        String verifyLink =
+                linkVerifyToken + emailVerifyToken;
+        // 5. Send mail
+        EmailDetail emailDetail = new EmailDetail();
+        emailDetail.setRecipient(request.getEmail());
+        emailDetail.setSubject("Verify your email");
 
-            if (users == null || users.isEmpty()) {
-                throw new AppException(ErrorCode.USER_NOT_FOUND);
-            }
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("verifyLink", verifyLink);
+        variables.put("name", user.getFirstName() + " " + user.getLastName());
 
-            UserInfo userInfo = users.get(0);
-
-            // Send verification email
-            // redirect_uri: URL user will be redirected to after email verification
-            // Set to null to use default redirect URI from Keycloak client settings
-            identityClient.sendVerifyEmail(
-                    "Bearer " + token.getAccessToken(),
-                    userInfo.getId(),
-                    clientId,
-                    linkVerifyEmail
-            );
-
-            log.info("Verification email sent to: {}", request.getEmail());
-
-        } catch (FeignException ex) {
-            log.error("FeignException during send verify email: {}", ex.getMessage());
-            throw errorNormalizer.handleKeyCloakException(ex);
-        } catch (Exception ex) {
-            log.error("Unexpected exception during send verify email", ex);
-            throw ex;
-        }
+        emailService.sendMailTemplate(emailDetail, variables, "verify-email");
     }
 
     @Override
