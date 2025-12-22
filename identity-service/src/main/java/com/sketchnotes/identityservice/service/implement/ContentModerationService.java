@@ -331,11 +331,9 @@ public class ContentModerationService {
                     .reason(checkResult.getReason())
                     .build();
             moderationHistoryRepository.save(history);
-
-            // Update blog status
-            blog.setStatus(newStatus);
-            blogRepository.save(blog);
         }
+        blog.setStatus(newStatus);
+        blogRepository.save(blog);
     }
 
     /**
