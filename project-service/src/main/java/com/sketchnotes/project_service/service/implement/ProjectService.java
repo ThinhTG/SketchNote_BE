@@ -164,6 +164,11 @@ public class ProjectService implements IProjectService {
     public void deleteProject(Long id, Long ownerId) {
         Project project = projectRepository.findById(id).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
+        List<ProjectCollaboration> collaborations = projectCollaborationRepository.findByProjectAndDeletedAtIsNull(project);
+        for (ProjectCollaboration pc : collaborations) {
+            pc.setDeletedAt(LocalDateTime.now());
+            projectCollaborationRepository.save(pc);
+        }
         project.setDeletedAt(LocalDateTime.now());
         projectRepository.save(project);
     }
