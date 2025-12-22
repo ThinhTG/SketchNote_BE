@@ -102,4 +102,10 @@ public interface IdentityClient {
             @PathVariable("userId") String userId,
             @RequestBody UpdatePasswordParam passwordParam
     );
+    @PostMapping("/admin/realms/${idp.client-id}/users/{userId}/impersonation")
+    LoginExchangeResponse impersonateUser(
+            @RequestHeader("authorization") String token,
+            @PathVariable("userId") String userId
+    );
+
 }

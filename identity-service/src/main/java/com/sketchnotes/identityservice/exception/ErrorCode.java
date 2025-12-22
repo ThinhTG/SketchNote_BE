@@ -28,6 +28,8 @@ public enum ErrorCode{
     ROLE_NOT_FOUND(400, "Role not found", HttpStatus.BAD_REQUEST),
     USER_INACTIVE(400, "User is inactive", HttpStatus.BAD_REQUEST),
     TOKEN_ALREADY_USED(400, "Token has already been used", HttpStatus.BAD_REQUEST),
+    USER_ALREADY_EXISTS(400, "User already exists", HttpStatus.BAD_REQUEST),
+    GOOGLE_LOGIN_NOT_SUPPORTED(400, "Google login is not supported for existing users", HttpStatus.BAD_REQUEST),
 
 
 
