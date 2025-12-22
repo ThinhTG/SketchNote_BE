@@ -49,6 +49,7 @@ public class CollaborationWebSocketController {
     private static final String ELEMENT_CREATE = "ELEMENT_CREATE";
     private static final String ELEMENT_UPDATE = "ELEMENT_UPDATE";
     private static final String ELEMENT_DELETE = "ELEMENT_DELETE";
+    private static final String CANVAS_CLEAR = "CANVAS_CLEAR";       // ✅ NEW: Clear all elements on page
     private static final String STROKE_APPEND = "STROKE_APPEND";
     private static final String STROKE_END = "STROKE_END";
     private static final String STROKE_INIT = "STROKE_INIT";        // *** NEW: Late join ***
@@ -144,6 +145,11 @@ public class CollaborationWebSocketController {
             case ELEMENT_DELETE:
                 message.put("version", incrementVersion(projectId));
                 logElementDelete(projectId, userId, payload);
+                break;
+            case CANVAS_CLEAR:
+                // ✅ NEW: Handle canvas clear - increments version and broadcasts to all
+                message.put("version", incrementVersion(projectId));
+                logCanvasClear(projectId, userId, payload);
                 break;
             case STROKE_APPEND:
                 // *** CRITICAL: Track active strokes for late join ***
@@ -636,6 +642,16 @@ public class CollaborationWebSocketController {
             Map<String, Object> p = (Map<String, Object>) payload;
             Object elementId = p.get("elementId");
             log.info("🗑️ [Collab] User {} deleted element {} from project {}", userId, elementId, projectId);
+        }
+    }
+    
+    // ✅ NEW: Log canvas clear events
+    @SuppressWarnings("unchecked")
+    private void logCanvasClear(Long projectId, Object userId, Object payload) {
+        if (payload instanceof Map) {
+            Map<String, Object> p = (Map<String, Object>) payload;
+            Object pageId = p.get("pageId");
+            log.warn("🧹 [Collab] User {} cleared canvas on page {} in project {}", userId, pageId, projectId);
         }
     }
     
