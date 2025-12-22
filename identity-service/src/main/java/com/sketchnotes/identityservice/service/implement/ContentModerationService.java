@@ -16,6 +16,7 @@ import com.sketchnotes.identityservice.model.Content;
 import com.sketchnotes.identityservice.repository.BlogModerationHistoryRepository;
 import com.sketchnotes.identityservice.repository.BlogRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ContentModerationService {
 
     private final BlogRepository blogRepository;
@@ -35,20 +37,58 @@ public class ContentModerationService {
      * Scheduled task runs every 15 minutes to check blogs that need moderation
      * Only moderates blogs that have been published for more than 15 minutes
      */
-    @Scheduled(fixedRate = 15 * 60 * 1000) // Run every 15 minutes (15 * 60 * 1000 = 900000 ms)
+    @Scheduled(fixedRate =15*  60 * 1000) // Run every 15 minutes (15 * 60 * 1000 = 900000 ms)
     @Transactional
     public void moderatePendingBlogs() {
-        List<Blog> pendingBlogs = blogRepository.findBlogsForModeration(BlogStatus.PENDING_REVIEW);
+        try {
+            // Validate configuration before processing
+            validateConfiguration();
+            
+            List<Blog> pendingBlogs = blogRepository.findBlogsForModeration(BlogStatus.PENDING_REVIEW);
+            log.info("Checking {} pending blogs for moderation", pendingBlogs.size());
 
-        for (Blog blog : pendingBlogs) {
-            try {
-                ContentCheckResponse checkResult = checkBlogContent(blog);
-                updateBlogStatus(blog, checkResult);
-            } catch (Exception e) {
-                throw new AppException(ErrorCode.AI_MODERATION_FAILED);
+            for (Blog blog : pendingBlogs) {
+                log.info("Checking blog {} for moderation", blog.getId());
+                try {
+                    ContentCheckResponse checkResult = checkBlogContent(blog);
+                    updateBlogStatus(blog, checkResult);
+                    log.info("Successfully moderated blog {}: isSafe={}, score={}", 
+                            blog.getId(), checkResult.isSafe(), checkResult.getSafetyScore());
+                } catch (AppException e) {
+                    // Re-throw AppException as-is
+                    log.error("Failed to moderate blog {}: {} - {}", blog.getId(), e.getErrorCode(), e.getMessage());
+                    // Don't throw here - continue processing other blogs
+                } catch (Exception e) {
+                    log.error("Unexpected error moderating blog {}: {}", blog.getId(), e.getMessage(), e);
+                    // Don't throw here - continue processing other blogs
+                }
             }
+            
+            log.info("Completed moderation check for {} blogs", pendingBlogs.size());
+        } catch (Exception e) {
+            log.error("Error in scheduled moderation task: {}", e.getMessage(), e);
+            // Don't re-throw - let the scheduler continue
         }
+    }
 
+    /**
+     * Validate Gemini configuration
+     */
+    private void validateConfiguration() {
+        if (geminiProperties.getProjectId() == null || geminiProperties.getProjectId().trim().isEmpty()) {
+            log.error("Google Cloud Project ID is not configured. Please set GOOGLE_CLOUD_PROJECT_ID environment variable");
+            throw new AppException(ErrorCode.AI_CONFIG_MISSING);
+        }
+        if (geminiProperties.getLocation() == null || geminiProperties.getLocation().trim().isEmpty()) {
+            log.error("Google Cloud location is not configured");
+            throw new AppException(ErrorCode.AI_CONFIG_MISSING);
+        }
+        if (geminiProperties.getModel() == null || geminiProperties.getModel().trim().isEmpty()) {
+            log.error("Gemini model is not configured");
+            throw new AppException(ErrorCode.AI_CONFIG_MISSING);
+        }
+        log.debug("Gemini configuration validated: projectId={}, location={}, model={}", 
+                geminiProperties.getProjectId(), geminiProperties.getLocation(), geminiProperties.getModel());
     }
 
     /**
@@ -58,17 +98,40 @@ public class ContentModerationService {
      * @return ContentCheckResponse containing check results
      */
     public ContentCheckResponse checkBlogContent(Blog blog) {
+        log.info("Starting content check for blog {}", blog.getId());
+        
         try {
+            // Validate configuration
+            validateConfiguration();
+            
             // Build content for AI moderation
+            log.debug("Building content for moderation for blog {}", blog.getId());
             String contentToCheck = buildContentForModeration(blog);
+            log.debug("Content built, length: {} characters", contentToCheck.length());
 
             // Call Gemini AI for analysis
+            log.info("Calling Gemini AI for blog {} analysis", blog.getId());
             String aiResponse = analyzeContentWithGemini(contentToCheck);
+            log.debug("Received AI response for blog {}: {}", blog.getId(), aiResponse);
 
             // Parse AI response
-            return parseAIResponse(aiResponse);
+            log.debug("Parsing AI response for blog {}", blog.getId());
+            ContentCheckResponse response = parseAIResponse(aiResponse);
+            log.info("Successfully checked blog {}: isSafe={}, score={}", 
+                    blog.getId(), response.isSafe(), response.getSafetyScore());
+            
+            return response;
 
+        } catch (AppException e) {
+            // Re-throw AppException as-is
+            log.error("AppException while checking blog {}: {}", blog.getId(), e.getMessage());
+            throw e;
         } catch (Exception e) {
+            // Log the full exception details
+            log.error("Unexpected error checking blog content for blog {}: {} - {}", 
+                    blog.getId(), e.getClass().getName(), e.getMessage(), e);
+            
+            // Throw with more context
             throw new AppException(ErrorCode.AI_MODERATION_FAILED);
         }
     }
@@ -103,7 +166,12 @@ public class ContentModerationService {
      * Call Gemini AI to analyze content
      */
     private String analyzeContentWithGemini(String content) throws Exception {
-        try (VertexAI vertexAI = new VertexAI(geminiProperties.getProjectId(), geminiProperties.getLocation())) {
+        VertexAI vertexAI = null;
+        try {
+            log.debug("Initializing VertexAI with projectId: {}, location: {}", 
+                    geminiProperties.getProjectId(), geminiProperties.getLocation());
+            
+            vertexAI = new VertexAI(geminiProperties.getProjectId(), geminiProperties.getLocation());
             GenerativeModel model = new GenerativeModel(geminiProperties.getModel(), vertexAI);
 
             String prompt = String.format("""
@@ -137,9 +205,42 @@ public class ContentModerationService {
                                     
                     RETURN ONLY JSON, NO OTHER TEXT.
                     """, content);
-
+            
+            log.debug("Sending request to Gemini AI...");
             GenerateContentResponse response = model.generateContent(prompt);
-            return ResponseHandler.getText(response);
+            
+            String responseText = ResponseHandler.getText(response);
+            log.debug("Received response from Gemini AI, length: {} characters", responseText.length());
+            
+            return responseText;
+            
+        } catch (com.google.api.gax.rpc.UnauthenticatedException e) {
+            log.error("Authentication failed with Google Cloud. Please check your credentials and GOOGLE_CLOUD_PROJECT_ID environment variable: {}", e.getMessage());
+            throw new Exception("Google Cloud authentication failed. Please verify your credentials are properly configured.", e);
+        } catch (com.google.api.gax.rpc.PermissionDeniedException e) {
+            log.error("Permission denied accessing Vertex AI. Please check if Vertex AI API is enabled and you have proper permissions: {}", e.getMessage());
+            throw new Exception("Permission denied to access Vertex AI. Please enable the API and verify permissions.", e);
+        } catch (com.google.api.gax.rpc.NotFoundException e) {
+            log.error("Resource not found in Vertex AI. Please check project ID and location: {}", e.getMessage());
+            throw new Exception("Vertex AI resource not found. Please verify project ID and location configuration.", e);
+        } catch (com.google.api.gax.rpc.ApiException e) {
+            log.error("Vertex AI API error (status: {}): {}", e.getStatusCode(), e.getMessage(), e);
+            throw new Exception("Vertex AI API error: " + e.getMessage(), e);
+        } catch (java.io.IOException e) {
+            log.error("Network/IO error connecting to Vertex AI: {}", e.getMessage(), e);
+            throw new Exception("Network error connecting to Vertex AI: " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error calling Gemini AI: {} - {}", e.getClass().getName(), e.getMessage(), e);
+            throw new Exception("Unexpected error calling Gemini AI: " + e.getMessage(), e);
+        } finally {
+            if (vertexAI != null) {
+                try {
+                    vertexAI.close();
+                    log.debug("VertexAI connection closed");
+                } catch (Exception e) {
+                    log.warn("Error closing VertexAI connection: {}", e.getMessage());
+                }
+            }
         }
     }
 

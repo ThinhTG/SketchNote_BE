@@ -83,7 +83,11 @@ public enum ErrorCode{
     
     // Content Moderation errors
     AI_MODERATION_FAILED(500, "AI content moderation failed", HttpStatus.INTERNAL_SERVER_ERROR),
-    AI_RESPONSE_PARSE_FAILED(500, "Failed to parse AI moderation response", HttpStatus.INTERNAL_SERVER_ERROR);
+    AI_RESPONSE_PARSE_FAILED(500, "Failed to parse AI moderation response", HttpStatus.INTERNAL_SERVER_ERROR),
+    AI_CONFIG_MISSING(500, "Google Cloud configuration is missing. Please set GOOGLE_CLOUD_PROJECT_ID environment variable", HttpStatus.INTERNAL_SERVER_ERROR),
+    AI_AUTHENTICATION_FAILED(500, "Google Cloud authentication failed. Please verify your credentials", HttpStatus.INTERNAL_SERVER_ERROR),
+    AI_PERMISSION_DENIED(500, "Permission denied to access Vertex AI. Please enable the API and verify permissions", HttpStatus.INTERNAL_SERVER_ERROR),
+    AI_RESOURCE_NOT_FOUND(500, "Vertex AI resource not found. Please verify project ID and location", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;
     private final HttpStatusCode statusCode;

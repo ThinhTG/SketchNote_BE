@@ -505,7 +505,7 @@ public class AuthenticationService implements  IAuthService {
                     "Bearer " + token.getAccessToken(),
                     userInfo.getId(),
                     clientId,
-                    null,  // or "http://your-frontend-url.com/reset-success"
+                    null,
                     List.of("UPDATE_PASSWORD")
             );
 
