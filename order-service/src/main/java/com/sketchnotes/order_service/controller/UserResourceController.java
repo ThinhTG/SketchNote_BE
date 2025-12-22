@@ -112,5 +112,50 @@ public class UserResourceController {
         UserResource userResource = userResourceService.getUserResourceByUserIdAndResourceId(userId, resourceId);
         return ResponseEntity.ok(ApiResponse.success(userResource, "User resource retrieved successfully"));
     }
+    
+    /**
+     * 🔄 [POST] Upgrade user's resource to the latest published version (FREE)
+     * 
+     * Business rules:
+     * - Only the resource owner can upgrade
+     * - Upgrade is FREE (no payment required, no new order created)
+     * - Only updates for the specific user (not globally)
+     * - User must own the resource (active)
+     * - There must be a newer version available
+     */
+    @Operation(
+        summary = "Upgrade to latest version (free)",
+        description = "Allows user to upgrade their purchased resource to the latest published version for free. " +
+                      "This only updates for the specific user, no payment or new order is created."
+    )
+    @PostMapping("/user/me/resource/{resourceTemplateId}/upgrade")
+    @Transactional
+    public ResponseEntity<ApiResponse<UserResource>> upgradeToLatestVersion(
+            @PathVariable Long resourceTemplateId) {
+        var user = identityClient.getCurrentUser();
+        Long userId = user.getResult().getId();
+        
+        UserResource upgraded = userResourceService.upgradeToLatestVersion(userId, resourceTemplateId);
+        return ResponseEntity.ok(ApiResponse.success(upgraded, "Resource upgraded to latest version successfully"));
+    }
+    
+    /**
+     * 🔍 [GET] Check if there's a newer version available for the user's resource
+     */
+    @Operation(
+        summary = "Check for newer version",
+        description = "Check if there is a newer version available for a specific resource owned by the user."
+    )
+    @GetMapping("/user/me/resource/{resourceTemplateId}/check-upgrade")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<Boolean>> checkForNewerVersion(
+            @PathVariable Long resourceTemplateId) {
+        var user = identityClient.getCurrentUser();
+        Long userId = user.getResult().getId();
+        
+        boolean hasNewer = userResourceService.hasNewerVersionAvailable(userId, resourceTemplateId);
+        return ResponseEntity.ok(ApiResponse.success(hasNewer, 
+                hasNewer ? "A newer version is available" : "You are using the latest version"));
+    }
 
 }

@@ -38,5 +38,10 @@ public enum NotificationType {
     /**
      * Notifications for wallet transactions
      */
-    WALLET
+    WALLET,
+    
+    /**
+     * Notification sent to customers when a new version of a purchased resource is available
+     */
+    VERSION_AVAILABLE
 }

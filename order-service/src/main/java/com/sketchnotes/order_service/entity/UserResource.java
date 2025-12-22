@@ -26,7 +26,10 @@ public class UserResource {
     private Long resourceTemplateId;
 
     @Column(name = "purchased_version_id")
-    private Long purchasedVersionId; // Version ID that user purchased - they can access this version + all newer versions
+    private Long purchasedVersionId; // Version ID that user originally purchased
+
+    @Column(name = "current_version_id")
+    private Long currentVersionId; // Version ID that user is currently using (can be upgraded)
 
     private boolean active = true;   // có đang được sử dụng hay không, trường hợp hết hạn hoặc báo cáo hoàn tiền gì đó, maybe sử dụng
 

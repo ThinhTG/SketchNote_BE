@@ -41,4 +41,10 @@ public interface UserResourceRepository  extends JpaRepository<UserResource,Long
      */
     @Query("SELECT ur FROM UserResource ur WHERE ur.userId = :userId AND ur.active = true")
     List<UserResource> findActiveResourcesWithVersionByUserId(@org.springframework.data.repository.query.Param("userId") Long userId);
+    
+    /**
+     * Find all active users who own a specific resource template
+     * Used to send notifications when a new version is released
+     */
+    List<UserResource> findByResourceTemplateIdAndActiveTrue(Long resourceTemplateId);
 }

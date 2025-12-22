@@ -32,10 +32,12 @@ public class PurchasedTemplateDTO {
     // Version information
     private Long purchasedVersionId;        // Version ID that user originally purchased
     private String purchasedVersionNumber;  // Version number user purchased (e.g., "1.0")
-    private Long currentVersionId;          // Current latest published version ID
-    private String currentVersionNumber;    // Current latest version number (e.g., "2.0")
+    private Long currentVersionId;          // Version ID user is currently using (can be upgraded)
+    private String currentVersionNumber;    // Version number user is currently using
+    private Long latestVersionId;           // Latest published version ID
+    private String latestVersionNumber;     // Latest version number (e.g., "2.0")
     
-    // Flag to indicate if there's a newer version available
+    // Flag to indicate if there's a newer version available for upgrade
     private boolean hasNewerVersion;
     
     // Available versions for the user (purchased version + all newer versions)

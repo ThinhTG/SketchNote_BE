@@ -44,4 +44,26 @@ public interface UserResourceService {
      * Used by identity-service to validate feedback eligibility
      */
     UserResource getUserResourceByUserIdAndResourceId(Long userId, Long resourceId);
+    
+    /**
+     * Upgrade user's resource to the latest published version for free.
+     * This only updates for the specific user, not globally.
+     * No payment or new order is required.
+     * 
+     * @param userId the user ID
+     * @param resourceTemplateId the resource template ID to upgrade
+     * @return the updated UserResource with new currentVersionId
+     * @throws IllegalArgumentException if user doesn't own the resource
+     * @throws IllegalStateException if no newer version is available
+     */
+    UserResource upgradeToLatestVersion(Long userId, Long resourceTemplateId);
+    
+    /**
+     * Check if there's a newer version available for the user's resource.
+     * 
+     * @param userId the user ID
+     * @param resourceTemplateId the resource template ID
+     * @return true if a newer version is available
+     */
+    boolean hasNewerVersionAvailable(Long userId, Long resourceTemplateId);
 }

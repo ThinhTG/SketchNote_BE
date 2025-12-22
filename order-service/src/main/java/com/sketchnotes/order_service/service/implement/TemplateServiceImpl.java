@@ -513,6 +513,10 @@ public class TemplateServiceImpl implements TemplateService {
         version.setReviewedAt(java.time.LocalDateTime.now());
         version.setReviewedBy(staffId);
 
+        // Check if this is a NEW version (not the first version of the template)
+        boolean isNewVersionForExistingTemplate = template.getCurrentPublishedVersionId() != null 
+                && !template.getCurrentPublishedVersionId().equals(versionId);
+
         if (approve) {
             version.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
 
@@ -526,6 +530,14 @@ public class TemplateServiceImpl implements TemplateService {
 
             template.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
             template.setCurrentPublishedVersionId(version.getVersionId());
+            
+            versionRepository.save(version);
+            resourceTemplateRepository.save(template);
+            
+            // Send notification to all customers who own this resource about the new version
+            if (isNewVersionForExistingTemplate) {
+                notifyCustomersAboutNewVersion(template, version);
+            }
         } else {
             version.setStatus(ResourceTemplate.TemplateStatus.REJECTED);
             version.setReviewComment(reviewComment);
@@ -535,11 +547,60 @@ public class TemplateServiceImpl implements TemplateService {
                     && ResourceTemplate.TemplateStatus.PENDING_REVIEW.equals(template.getStatus())) {
                 template.setStatus(ResourceTemplate.TemplateStatus.REJECTED);
             }
+            
+            versionRepository.save(version);
+            resourceTemplateRepository.save(template);
         }
 
-        versionRepository.save(version);
-        resourceTemplateRepository.save(template);
         return orderMapper.toVersionDto(version);
+    }
+    
+    /**
+     * Notify all customers who own this resource about a new version being available.
+     * Customers will receive a notification and can choose to upgrade for free.
+     */
+    private void notifyCustomersAboutNewVersion(ResourceTemplate template, ResourceTemplateVersion newVersion) {
+        try {
+            // Find all users who own this resource and are not already on the latest version
+            List<com.sketchnotes.order_service.entity.UserResource> owners = 
+                    userResourceRepository.findByResourceTemplateIdAndActiveTrue(template.getTemplateId());
+            
+            String resourceName = template.getName();
+            String newVersionNumber = newVersion.getVersionNumber();
+            
+            for (com.sketchnotes.order_service.entity.UserResource owner : owners) {
+                // Only notify users who are not already on the latest version
+                Long userCurrentVersionId = owner.getCurrentVersionId();
+                if (userCurrentVersionId == null || !userCurrentVersionId.equals(newVersion.getVersionId())) {
+                    try {
+                        CreateNotificationRequest notification = CreateNotificationRequest.builder()
+                                .userId(owner.getUserId())
+                                .title("New Version Available")
+                                .message(String.format(
+                                        "A new version (%s) of the resource \"%s\" is available. You can upgrade for free.",
+                                        newVersionNumber, resourceName))
+                                .type("VERSION_AVAILABLE")
+                                .resourceItemId(template.getTemplateId())
+                                .build();
+                        
+                        identityClient.createNotification(notification);
+                        log.info("Sent new version notification to user {} for resource {}", 
+                                owner.getUserId(), template.getTemplateId());
+                    } catch (Exception e) {
+                        log.error("Failed to send notification to user {} for resource {}: {}", 
+                                owner.getUserId(), template.getTemplateId(), e.getMessage());
+                        // Continue with other users even if one notification fails
+                    }
+                }
+            }
+            
+            log.info("Completed sending new version notifications for resource {} version {}", 
+                    template.getTemplateId(), newVersion.getVersionNumber());
+        } catch (Exception e) {
+            log.error("Error while sending new version notifications for resource {}: {}", 
+                    template.getTemplateId(), e.getMessage());
+            // Don't fail the version approval if notifications fail
+        }
     }
 
     @Override
