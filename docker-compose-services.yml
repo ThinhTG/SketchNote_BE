@@ -4,6 +4,8 @@ services:
   identityservice:
     image: ghcr.io/alarmistt/identityservice:latest
     container_name: identityservice
+    env_file:
+      - .env
     ports:
       - "8089:8089"
     environment:
