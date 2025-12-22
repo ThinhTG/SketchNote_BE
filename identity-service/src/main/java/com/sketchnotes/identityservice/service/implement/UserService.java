@@ -53,7 +53,7 @@ public class UserService implements IUserService {
     @Override
     @Cacheable(value = "users", key = "#pageNo + '-' + #pageSize")
     public PagedResponse<UserResponse> getAllUsers(int pageNo, int pageSize) {
-        Pageable pageable =  PageRequest.of(pageNo, pageSize, Sort.by(Sort.Direction.ASC, "createdAt"));
+        Pageable pageable =  PageRequest.of(pageNo, pageSize, Sort.by(Sort.Direction.ASC, "createAt"));
         Page<User> users = userRepository.findAllByIsActiveTrue(pageable);
         List<UserResponse> userResponses = users.stream().map(user -> UserResponse.builder()
                 .id(user.getId())
