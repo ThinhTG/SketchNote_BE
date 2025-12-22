@@ -55,6 +55,7 @@ public class UserResourceServiceImpl implements UserResourceService {
             existing.setActive(true);
             existing.setOrderId(orderId);
             existing.setPurchasedVersionId(currentVersionId); // Update to current version
+            existing.setCurrentVersionId(currentVersionId); // Set current version to purchased version
             existing.setUpdatedAt(LocalDateTime.now());
             log.info("Reactivated UserResource for user {} template {} with version {}", userId, resourceTemplateId, currentVersionId);
             return userResourceRepository.save(existing);
@@ -65,6 +66,7 @@ public class UserResourceServiceImpl implements UserResourceService {
                 .userId(userId)
                 .resourceTemplateId(resourceTemplateId)
                 .purchasedVersionId(currentVersionId) // Save the version user purchased
+                .currentVersionId(currentVersionId) // Initially, current version equals purchased version
                 .active(true)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -197,6 +199,7 @@ public class UserResourceServiceImpl implements UserResourceService {
             if (userResource == null) continue;
 
             Long purchasedVersionId = userResource.getPurchasedVersionId();
+            Long userCurrentVersionId = userResource.getCurrentVersionId(); // Version user is currently using
             List<ResourceTemplateVersion> templateVersions = versionsByTemplate.getOrDefault(template.getTemplateId(), new ArrayList<>());
             
             // Filter versions: user can access purchased version + all newer versions
@@ -208,9 +211,23 @@ public class UserResourceServiceImpl implements UserResourceService {
                     .findFirst()
                     .orElse(null);
             
-            // Get current (latest) version
-            ResourceTemplateVersion currentVersion = templateVersions.isEmpty() ? null : 
+            // Get user's current version (what they are using now)
+            ResourceTemplateVersion userCurrentVersion = templateVersions.stream()
+                    .filter(v -> v.getVersionId().equals(userCurrentVersionId))
+                    .findFirst()
+                    .orElse(purchasedVersion); // fallback to purchased version if currentVersionId is null
+            
+            // Get latest published version
+            ResourceTemplateVersion latestVersion = templateVersions.isEmpty() ? null : 
                     templateVersions.get(templateVersions.size() - 1);
+            
+            // Determine if there's a newer version available for upgrade
+            boolean hasNewerVersion = latestVersion != null && userCurrentVersionId != null && 
+                    !latestVersion.getVersionId().equals(userCurrentVersionId);
+            // Also check if user has no currentVersionId set (legacy data)
+            if (latestVersion != null && userCurrentVersionId == null && purchasedVersionId != null) {
+                hasNewerVersion = !latestVersion.getVersionId().equals(purchasedVersionId);
+            }
             
             // Build DTO
             PurchasedTemplateDTO dto = PurchasedTemplateDTO.builder()
@@ -227,18 +244,19 @@ public class UserResourceServiceImpl implements UserResourceService {
                     .status(template.getStatus() != null ? template.getStatus().name() : null)
                     .purchasedVersionId(purchasedVersionId)
                     .purchasedVersionNumber(purchasedVersion != null ? purchasedVersion.getVersionNumber() : null)
-                    .currentVersionId(currentVersion != null ? currentVersion.getVersionId() : null)
-                    .currentVersionNumber(currentVersion != null ? currentVersion.getVersionNumber() : null)
-                    .hasNewerVersion(currentVersion != null && purchasedVersionId != null && 
-                            !currentVersion.getVersionId().equals(purchasedVersionId))
+                    .currentVersionId(userCurrentVersion != null ? userCurrentVersion.getVersionId() : null)
+                    .currentVersionNumber(userCurrentVersion != null ? userCurrentVersion.getVersionNumber() : null)
+                    .latestVersionId(latestVersion != null ? latestVersion.getVersionId() : null)
+                    .latestVersionNumber(latestVersion != null ? latestVersion.getVersionNumber() : null)
+                    .hasNewerVersion(hasNewerVersion)
                     .availableVersions(accessibleVersions.stream()
                             .map(orderMapper::toVersionDto)
                             .collect(Collectors.toList()))
                     .build();
 
-            // Set items and images from current version
-            if (currentVersion != null) {
-                dto.setItems(currentVersion.getItems().stream()
+            // Set items and images from user's CURRENT version (what they are using)
+            if (userCurrentVersion != null) {
+                dto.setItems(userCurrentVersion.getItems().stream()
                         .map(item -> ResourceItemDTO.builder()
                                 .itemIndex(item.getItemIndex())
                                 .itemUrl(item.getItemUrl())
@@ -246,7 +264,7 @@ public class UserResourceServiceImpl implements UserResourceService {
                                 .build())
                         .collect(Collectors.toList()));
                 
-                dto.setImages(currentVersion.getImages().stream()
+                dto.setImages(userCurrentVersion.getImages().stream()
                         .map(img -> ResourceImageDTO.builder()
                                 .imageUrl(img.getImageUrl())
                                 .isThumbnail(img.getIsThumbnail())
@@ -295,5 +313,82 @@ public class UserResourceServiceImpl implements UserResourceService {
         return userResourceRepository.findByUserIdAndResourceTemplateIdAndActiveTrue(userId, resourceId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         String.format("User %d has not purchased resource %d or it is not active", userId, resourceId)));
+    }
+    
+    @Override
+    @Transactional
+    public UserResource upgradeToLatestVersion(Long userId, Long resourceTemplateId) {
+        // 1. Find user's resource
+        UserResource userResource = userResourceRepository.findByUserIdAndResourceTemplateIdAndActiveTrue(userId, resourceTemplateId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("User %d has not purchased resource %d or it is not active", userId, resourceTemplateId)));
+        
+        // 2. Get the resource template to find the latest published version
+        ResourceTemplate template = resourceTemplateRepository.findById(resourceTemplateId)
+                .orElseThrow(() -> new IllegalArgumentException("Resource template not found: " + resourceTemplateId));
+        
+        Long latestVersionId = template.getCurrentPublishedVersionId();
+        if (latestVersionId == null) {
+            throw new IllegalStateException("No published version available for this resource");
+        }
+        
+        // 3. Check if user is already on the latest version
+        Long currentVersionId = userResource.getCurrentVersionId();
+        if (currentVersionId != null && currentVersionId.equals(latestVersionId)) {
+            throw new IllegalStateException("User is already using the latest version");
+        }
+        
+        // 4. Verify the latest version exists and is PUBLISHED
+        ResourceTemplateVersion latestVersion = versionRepository.findById(latestVersionId)
+                .orElseThrow(() -> new IllegalStateException("Latest version not found"));
+        
+        if (!ResourceTemplate.TemplateStatus.PUBLISHED.equals(latestVersion.getStatus())) {
+            throw new IllegalStateException("Latest version is not published");
+        }
+        
+        // 5. Upgrade the user's resource to the latest version (free upgrade)
+        userResource.setCurrentVersionId(latestVersionId);
+        userResource.setUpdatedAt(LocalDateTime.now());
+        
+        log.info("User {} upgraded resource {} from version {} to version {}", 
+                userId, resourceTemplateId, currentVersionId, latestVersionId);
+        
+        return userResourceRepository.save(userResource);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasNewerVersionAvailable(Long userId, Long resourceTemplateId) {
+        // 1. Find user's resource
+        Optional<UserResource> userResourceOpt = userResourceRepository
+                .findByUserIdAndResourceTemplateIdAndActiveTrue(userId, resourceTemplateId);
+        
+        if (userResourceOpt.isEmpty()) {
+            return false;
+        }
+        
+        UserResource userResource = userResourceOpt.get();
+        
+        // 2. Get the resource template
+        Optional<ResourceTemplate> templateOpt = resourceTemplateRepository.findById(resourceTemplateId);
+        if (templateOpt.isEmpty()) {
+            return false;
+        }
+        
+        ResourceTemplate template = templateOpt.get();
+        Long latestVersionId = template.getCurrentPublishedVersionId();
+        
+        if (latestVersionId == null) {
+            return false;
+        }
+        
+        // 3. Check if current version is different from latest
+        Long currentVersionId = userResource.getCurrentVersionId();
+        if (currentVersionId == null) {
+            // User has no current version set (legacy data), they can upgrade
+            return true;
+        }
+        
+        return !currentVersionId.equals(latestVersionId);
     }
 }
