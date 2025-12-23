@@ -6,6 +6,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.http.HttpMethod;
 
@@ -25,6 +27,9 @@ public class SecurityConfig {
             "/api/payment/payos/webhook",
             "/api/users/public/**",
             "/api/blogs/**",
+            
+            // Test endpoints (remove in production!)
+            "/api/test/**",
 
             "/internal/deposit-for-designer",
             "/api/wallet/internal/**",
@@ -40,6 +45,11 @@ public class SecurityConfig {
             "/configuration/**",
             "/webjars/**"
     };
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {

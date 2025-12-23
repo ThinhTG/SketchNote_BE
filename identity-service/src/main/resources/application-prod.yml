@@ -107,7 +107,12 @@ idp:
   url: http://34.177.90.19:8090
   client-id: sketchnote
   client-secret: QYHYNsUNOS40S0Z28N7IytIf9bLYhtK3
+security:
+  password:
+    encryption-key: "SketchNote2025!!"
 
+google:
+  client-ids: "344952841102-0nv4upmksce529gvgigqanjftlo0m1p5.apps.googleusercontent.com,344952841102-b6movtu6pin8ps01m749irn85qo64acs.apps.googleusercontent.com,407408718192.apps.googleusercontent.com"
 eureka:
   client:
     service-url:

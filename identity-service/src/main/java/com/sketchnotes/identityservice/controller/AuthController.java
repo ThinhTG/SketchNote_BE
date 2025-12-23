@@ -44,11 +44,6 @@ public class AuthController {
         LoginResponse response = authService.refreshToken(token);
         return ResponseEntity.ok(new  ApiResponse<LoginResponse>(200, "Token refreshed successfully", response));
     }
-    @PostMapping("/login-google")
-    public ResponseEntity<ApiResponse<LoginResponse>> loginGoogle(@Valid @RequestBody LoginGoogleRequest request) {
-        LoginResponse response = authService.loginWithGoogle(request);
-        return ResponseEntity.ok(new ApiResponse<LoginResponse>(200, "Login successful", response));
-    }
 
     @PostMapping("/login-google-mobile")
     public ResponseEntity<ApiResponse<LoginResponse>> loginGoogleMobile(@Valid @RequestBody LoginGoogleMobileRequest request) {
