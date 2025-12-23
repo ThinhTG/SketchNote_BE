@@ -1,5 +1,6 @@
 package com.sketchnotes.identityservice.repository;
 
+import com.sketchnotes.identityservice.enums.PaymentStatus;
 import com.sketchnotes.identityservice.enums.TransactionType;
 import com.sketchnotes.identityservice.model.Transaction;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +23,17 @@ public interface ITransactionRepository extends JpaRepository<Transaction,Long>,
     Page<Transaction> findByWalletWalletIdOrderByCreatedAtDesc(Long walletId, Pageable pageable);
     
     Optional<Transaction> findByOrderCode(Long orderCode);
+    
+    /**
+     * Tìm tất cả transactions PENDING có orderCode (PayOS) và đã tạo trước thời điểm cutoff.
+     * Dùng cho scheduled job cleanup pending transactions.
+     */
+    @Query("SELECT t FROM Transaction t WHERE t.status = :status " +
+           "AND t.orderCode IS NOT NULL " +
+           "AND t.createdAt < :cutoffTime")
+    List<Transaction> findPendingTransactionsBeforeCutoff(
+            @Param("status") PaymentStatus status,
+            @Param("cutoffTime") LocalDateTime cutoffTime);
     
     // Admin: filter by type
     Page<Transaction> findByType(TransactionType type, Pageable pageable);

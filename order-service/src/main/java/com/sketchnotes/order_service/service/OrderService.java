@@ -12,6 +12,16 @@ public interface OrderService {
     OrderResponseDTO updateOrderStatus(Long id, String status);
     OrderResponseDTO updatePaymentStatus(Long id, String paymentStatus);
     
+    /**
+     * Hủy đơn hàng đang PENDING.
+     * Chỉ user sở hữu order hoặc admin mới có thể hủy.
+     * 
+     * @param orderId ID của order
+     * @param userId ID của user thực hiện hành động
+     * @return OrderResponseDTO với trạng thái CANCELLED
+     */
+    OrderResponseDTO cancelOrder(Long orderId, Long userId);
+    
     // Template management
     List<ResourceTemplateDTO> getAllTemplates();
     List<ResourceTemplateDTO> getTemplatesByType(String type);

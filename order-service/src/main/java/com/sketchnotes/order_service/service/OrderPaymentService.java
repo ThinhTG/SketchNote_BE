@@ -30,4 +30,13 @@ public interface OrderPaymentService {
      * Thanh toán lại cho order có trạng thái PaymentFail
      */
     PaymentResponseDTO retryPaymentForFailedOrder(Long orderId);
+    
+    /**
+     * Kiểm tra và cập nhật trạng thái payment của order từ PayOS.
+     * Dùng khi cần manual check hoặc refresh status.
+     * 
+     * @param orderId ID của order
+     * @return OrderResponseDTO với trạng thái đã được cập nhật
+     */
+    OrderResponseDTO checkAndUpdatePaymentStatus(Long orderId);
 }

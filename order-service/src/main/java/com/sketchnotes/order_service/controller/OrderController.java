@@ -74,5 +74,25 @@ public class OrderController {
         var result = orderPaymentService.retryPaymentForFailedOrder(id);
         return ResponseEntity.ok(ApiResponse.success(result, "Payment retry created successfully"));
     }
-}
     
+    /**
+     * Kiểm tra và cập nhật trạng thái payment của order từ PayOS.
+     * Dùng khi user muốn refresh status hoặc admin muốn check manual.
+     */
+    @PostMapping("/{id}/payment/check-status")
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> checkAndUpdatePaymentStatus(@PathVariable Long id) {
+        var result = orderPaymentService.checkAndUpdatePaymentStatus(id);
+        return ResponseEntity.ok(ApiResponse.success(result, "Payment status checked and updated"));
+    }
+    
+    /**
+     * Hủy đơn hàng đang PENDING (user tự hủy).
+     */
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> cancelOrder(@PathVariable Long id) {
+        var apiResponse = identityClient.getCurrentUser();
+        UserResponse user = apiResponse.getResult();
+        var result = orderService.cancelOrder(id, user.getId());
+        return ResponseEntity.ok(ApiResponse.success(result, "Order cancelled successfully"));
+    }
+}

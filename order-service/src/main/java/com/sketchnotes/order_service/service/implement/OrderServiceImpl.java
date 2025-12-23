@@ -423,4 +423,34 @@ public class OrderServiceImpl implements OrderService {
                 .isLast(orders.isLast())
                 .build();
     }
+    
+    @Override
+    @Transactional
+    public OrderResponseDTO cancelOrder(Long orderId, Long userId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + orderId));
+        
+        // Kiểm tra quyền sở hữu
+        if (!order.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, 
+                    "You don't have permission to cancel this order");
+        }
+        
+        // Chỉ có thể hủy order đang PENDING
+        if (!"PENDING".equals(order.getOrderStatus()) || !"PENDING".equals(order.getPaymentStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    "Can only cancel orders with PENDING status. Current status: orderStatus=" + 
+                    order.getOrderStatus() + ", paymentStatus=" + order.getPaymentStatus());
+        }
+        
+        // Cập nhật trạng thái
+        order.setOrderStatus("CANCELLED");
+        order.setPaymentStatus("CANCELLED");
+        order.setUpdatedAt(LocalDateTime.now());
+        
+        Order savedOrder = orderRepository.save(order);
+        log.info("User {} cancelled order {}", userId, orderId);
+        
+        return enrichOrderResponse(orderMapper.toDto(savedOrder));
+    }
 }
