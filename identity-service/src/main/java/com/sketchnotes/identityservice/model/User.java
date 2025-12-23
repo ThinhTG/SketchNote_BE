@@ -31,6 +31,8 @@ public class User{
     private Role role;
     private boolean isActive;
     private String avatarUrl;
+    @JsonIgnore
+    private String password;
     private LocalDateTime createAt;
     private  LocalDateTime  updateAt;
     @Column(name = "is_verified", nullable = false)
