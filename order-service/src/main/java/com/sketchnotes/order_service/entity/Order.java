@@ -35,10 +35,10 @@ public class Order {
     private BigDecimal totalAmount;
 
     @Column(name = "payment_status", length = 50)
-    private String paymentStatus; // PENDING, PAID, FAILED, REFUNDED
+    private String paymentStatus; // PENDING, PAID, FAILED, CANCELLED, EXPIRED, REFUNDED
 
     @Column(name = "order_status", length = 50)
-    private String orderStatus; // PENDING, SUCCESS, CANCELED
+    private String orderStatus; // PENDING, SUCCESS, CANCELLED
 
     @Column(name = "invoice_number", length = 50)
     private String invoiceNumber;

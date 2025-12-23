@@ -218,4 +218,60 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
                 order.getTotalAmount()
         );
     }
+    
+    @Override
+    public OrderResponseDTO checkAndUpdatePaymentStatus(Long orderId) {
+        OrderResponseDTO order = orderService.getOrderById(orderId);
+        
+        // Nếu order đã có trạng thái cuối cùng, không cần check nữa
+        if (!"PENDING".equals(order.getPaymentStatus())) {
+            log.info("Order {} already has final payment status: {}", orderId, order.getPaymentStatus());
+            return order;
+        }
+        
+        String orderCode = generateOrderCode(order);
+        log.info("Checking payment status for order {} (orderCode: {})", orderId, orderCode);
+        
+        try {
+            PaymentResponseDTO paymentStatus = paymentClient.getPaymentStatus(orderCode);
+            
+            if (paymentStatus == null || paymentStatus.getStatus() == null) {
+                log.warn("No payment status found for orderCode: {}", orderCode);
+                return order;
+            }
+            
+            String status = paymentStatus.getStatus().toUpperCase();
+            log.info("Payment status for order {}: {}", orderId, status);
+            
+            switch (status) {
+                case "PAID":
+                    // Payment thành công - trigger callback handler
+                    handlePaymentCallback(orderId, "PAID");
+                    break;
+                    
+                case "CANCELLED":
+                case "EXPIRED":
+                    // Payment bị hủy hoặc hết hạn
+                    orderService.updatePaymentStatus(orderId, status);
+                    orderService.updateOrderStatus(orderId, "CANCELLED");
+                    log.info("Order {} marked as {} based on PayOS status", orderId, status);
+                    break;
+                    
+                case "PENDING":
+                    // Vẫn đang chờ - không làm gì
+                    log.info("Order {} still PENDING in PayOS", orderId);
+                    break;
+                    
+                default:
+                    log.warn("Unknown payment status: {} for order: {}", status, orderId);
+            }
+            
+            // Return updated order
+            return orderService.getOrderById(orderId);
+            
+        } catch (Exception e) {
+            log.error("Error checking payment status for order {}: {}", orderId, e.getMessage());
+            throw new RuntimeException("Failed to check payment status: " + e.getMessage());
+        }
+    }
 }

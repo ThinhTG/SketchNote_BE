@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -17,6 +18,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      */
     @Query("SELECT COUNT(o) FROM Order o WHERE o.resourceTemplateId = :templateId AND o.paymentStatus = 'PAID' AND o.orderStatus = 'SUCCESS'")
     Long countSuccessfulOrdersByTemplateId(@Param("templateId") Long templateId);
+    
+    /**
+     * Tìm tất cả orders PENDING đã tạo trước thời điểm cutoff.
+     * Dùng cho scheduled job cleanup pending orders.
+     */
+    @Query("SELECT o FROM Order o WHERE o.paymentStatus = 'PENDING' " +
+           "AND o.orderStatus = 'PENDING' " +
+           "AND o.createdAt < :cutoffTime")
+    List<Order> findPendingOrdersBeforeCutoff(@Param("cutoffTime") LocalDateTime cutoffTime);
     
     // ==================== ADMIN APIs ====================
     
