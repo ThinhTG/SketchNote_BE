@@ -2,13 +2,15 @@ package com.sketchnotes.learning.service;
 
 import com.sketchnotes.learning.client.IdentityClient;
 import com.sketchnotes.learning.dto.response.TransactionResponse;
-import com.sketchnotes.learning.enums.TransactionType;
+import com.sketchnotes.learning.dto.response.WalletResponse;
 import com.sketchnotes.learning.dto.ApiResponse;
 import com.sketchnotes.learning.dto.CourseDTO;
 import com.sketchnotes.learning.dto.EnrollmentDTO;
 import com.sketchnotes.learning.dto.enums.EnrollmentStatus;
 import com.sketchnotes.learning.entity.Course;
 import com.sketchnotes.learning.entity.CourseEnrollment;
+import com.sketchnotes.learning.exception.AppException;
+import com.sketchnotes.learning.exception.ErrorCode;
 import com.sketchnotes.learning.mapper.CourseMapper;
 import com.sketchnotes.learning.mapper.EnrollmentMapper;
 import com.sketchnotes.learning.repository.CourseEnrollmentRepository;
@@ -16,6 +18,7 @@ import com.sketchnotes.learning.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -42,61 +45,42 @@ public class EnrollmentService {
             throw new RuntimeException("User already enrolled in this course");
         }
 
-        // Check wallet balance through HTTP client call to account service
-        try {
-            ApiResponse<com.sketchnotes.learning.dto.response.WalletResponse> walletResponse = 
+            ApiResponse<WalletResponse> walletResponse =
                     identityClient.getWalletByUserId(userId);
             
             if (walletResponse == null || walletResponse.getResult() == null) {
                 throw new RuntimeException("Unable to retrieve wallet information");
             }
             
-            com.sketchnotes.learning.dto.response.WalletResponse wallet = walletResponse.getResult();
+            WalletResponse wallet = walletResponse.getResult();
             
             // Check if wallet has sufficient balance
             if (wallet.getBalance().compareTo(java.math.BigDecimal.valueOf(course.getPrice())) < 0) {
-                throw new com.sketchnotes.learning.exception.AppException(
-                        com.sketchnotes.learning.exception.ErrorCode.INSUFFICIENT_BALANCE
-                );
+                throw new AppException(ErrorCode.INSUFFICIENT_BALANCE );
             }
-            
-        } catch (com.sketchnotes.learning.exception.AppException e) {
-            // Re-throw AppException to preserve error code
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to check wallet balance: " + e.getMessage());
-        }
-
-        CourseEnrollment enrollment = new CourseEnrollment();
-        enrollment.setCourse(course);
-        enrollment.setUserId(userId);
-        enrollment.setEnrolledAt(LocalDateTime.now());
-        enrollment.setStatus(EnrollmentStatus.ENROLLED);
-        CourseEnrollment saved = enrollmentRepository.save(enrollment);
 
         try {
-            // Call payment API from identity service
-            ApiResponse<TransactionResponse> paymentResponse = identityClient.chargeCourse(
-                    userId,
-                    course.getPrice(),
-                    "Payment for course: " + course.getTitle(),
-                    TransactionType.COURSE_PAYMENT
-            );
-
-            // Payment successful
+            // Call wallet service to charge course fee
+            ApiResponse<TransactionResponse> chargeResponse =
+                    identityClient.chargeCourse(BigDecimal.valueOf(course.getPrice()));
+            
+            if (chargeResponse == null || chargeResponse.getCode() != 200) {
+                String errorMsg = chargeResponse != null ? chargeResponse.getMessage() : "Unknown error";
+                throw new RuntimeException("Failed to charge course fee: " + errorMsg);
+            }
+            CourseEnrollment enrollment = new CourseEnrollment();
+            enrollment.setCourse(course);
+            enrollment.setUserId(userId);
+            enrollment.setEnrolledAt(LocalDateTime.now());
             enrollment.setStatus(EnrollmentStatus.ENROLLED);
-            enrollment = enrollmentRepository.save(enrollment);
+            enrollmentRepository.save(enrollment);
 
-            // Increment course student count when enrollment is successful
             course.setStudentCount(course.getStudentCount() + 1);
             courseRepository.save(course);
 
             return enrollmentMapper.toDTO(enrollment);
-            
+
         } catch (Exception e) {
-            // Handle error and rollback if needed
-            enrollment.setStatus(EnrollmentStatus.CANCELLED);
-            enrollmentRepository.save(enrollment);
             throw new RuntimeException("Failed to process enrollment: " + e.getMessage());
         }
     }

@@ -3,6 +3,7 @@ package com.sketchnotes.learning.entity;
 import com.sketchnotes.learning.dto.enums.EnrollmentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 import java.math.BigDecimal;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 // CourseEnrollment.java
 @Entity
 @Data
+@ToString(exclude = "course")  // Tránh circular reference khi debug
 @Table(name = "course_enrollment")
 public class CourseEnrollment {
     @Id

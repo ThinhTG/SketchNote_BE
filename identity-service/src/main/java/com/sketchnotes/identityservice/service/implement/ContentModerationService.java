@@ -147,10 +147,47 @@ public class ContentModerationService {
 
     private String analyzeSingleImage(String imageUrl, String imageLabel) {
         try {
-            // Create request to Vision API
-            ImageSource imgSource = ImageSource.newBuilder().setImageUri(imageUrl).build();
-            Image img = Image.newBuilder().setSource(imgSource).build();
-            Feature feature = Feature.newBuilder().setType(Type.SAFE_SEARCH_DETECTION).build();
+            log.debug("Analyzing image: {} - URL/Data length: {}", imageLabel, 
+                    imageUrl != null ? imageUrl.length() : 0);
+            
+            Image img;
+            
+            // Check if it's base64 data or URL
+            if (imageUrl.startsWith("data:image/") || imageUrl.startsWith("iVBORw0KG") || 
+                imageUrl.startsWith("/9j/") || imageUrl.length() > 500) {
+                // It's base64 data
+                log.debug("{} appears to be base64 data", imageLabel);
+                
+                String base64Data = imageUrl;
+                // Remove data:image/xxx;base64, prefix if present
+                if (base64Data.startsWith("data:image/")) {
+                    base64Data = base64Data.substring(base64Data.indexOf(",") + 1);
+                }
+                
+                // Decode base64 to bytes
+                byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Data);
+                ByteString imgBytes = ByteString.copyFrom(imageBytes);
+                
+                img = Image.newBuilder()
+                        .setContent(imgBytes)
+                        .build();
+                        
+            } else {
+                // It's a URL
+                log.debug("{} appears to be URL: {}", imageLabel, imageUrl);
+                
+                ImageSource imgSource = ImageSource.newBuilder()
+                        .setImageUri(imageUrl)
+                        .build();
+                        
+                img = Image.newBuilder()
+                        .setSource(imgSource)
+                        .build();
+            }
+            
+            Feature feature = Feature.newBuilder()
+                    .setType(Type.SAFE_SEARCH_DETECTION)
+                    .build();
 
             AnnotateImageRequest request = AnnotateImageRequest.newBuilder()
                     .addFeatures(feature)
@@ -163,7 +200,9 @@ public class ContentModerationService {
             if (response.getResponsesCount() > 0) {
                 AnnotateImageResponse res = response.getResponses(0);
                 if (res.hasError()) {
-                    return imageLabel + ": ERROR checking image (" + res.getError().getMessage() + ")";
+                    String errorMsg = res.getError().getMessage();
+                    log.error("Vision API error for {}: {}", imageLabel, errorMsg);
+                    return imageLabel + ": ERROR - " + errorMsg;
                 }
 
                 SafeSearchAnnotation annotation = res.getSafeSearchAnnotation();
@@ -185,8 +224,12 @@ public class ContentModerationService {
             }
             return imageLabel + ": No analysis result";
 
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid base64 data for {}: {}", imageLabel, e.getMessage());
+            return imageLabel + ": FAILED - Invalid image data format";
         } catch (Exception e) {
-            return imageLabel + ": FAILED to analyze (Error: " + e.getMessage() + ")";
+            log.error("Exception analyzing image {}: {}", imageLabel, e.getMessage(), e);
+            return imageLabel + ": FAILED - " + e.getMessage();
         }
     }
 
@@ -328,7 +371,7 @@ public class ContentModerationService {
         }
         return "No detailed information from AI";
     }
-    
+
     /**
      * Update blog status based on moderation result
      *

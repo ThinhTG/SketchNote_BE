@@ -3,11 +3,13 @@ package com.sketchnotes.learning.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 import java.time.LocalDateTime;
 
 
 @Entity
 @Data
+@ToString(exclude = "course")  // Tránh circular reference khi debug
 @Table(name = "lesson")
 public class Lesson {
     @Id

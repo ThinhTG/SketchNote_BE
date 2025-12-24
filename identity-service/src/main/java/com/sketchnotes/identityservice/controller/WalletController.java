@@ -3,8 +3,10 @@ package com.sketchnotes.identityservice.controller;
 
 import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.dtos.response.TransactionHistoryPagedResponse;
+import com.sketchnotes.identityservice.dtos.response.TransactionResponse;
 import com.sketchnotes.identityservice.enums.Role;
 import com.sketchnotes.identityservice.enums.TransactionType;
+import com.sketchnotes.identityservice.mapper.TransactionMapper;
 import com.sketchnotes.identityservice.model.Transaction;
 import com.sketchnotes.identityservice.model.Wallet;
 import com.sketchnotes.identityservice.service.interfaces.ITransactionService;
@@ -59,7 +61,7 @@ public class WalletController {
 
     // Internal endpoint để deposit tiền cho designer khi order thành công
     @PostMapping("/internal/deposit-for-designer")
-    public ApiResponse<Transaction> depositForDesigner(
+    public ApiResponse<TransactionResponse> depositForDesigner(
             @RequestParam Long designerId,
             @RequestParam BigDecimal amount,
             @RequestParam(required = false) String description) {
@@ -70,7 +72,8 @@ public class WalletController {
                 wallet = walletService.createWallet(designerId);
             }
             Transaction transaction = walletService.deposit(wallet.getWalletId(), amount);
-            return ApiResponse.success(transaction, "Deposit for designer successful");
+            TransactionResponse response = TransactionMapper.toResponse(transaction);
+            return ApiResponse.success(response, "Deposit for designer successful");
         } catch (Exception e) {
             throw new RuntimeException("Failed to deposit for designer: " + e.getMessage(), e);
         }
@@ -78,9 +81,7 @@ public class WalletController {
 
 
     @PostMapping("/charge-course")
-    public ApiResponse<Transaction> chargeCourse(
-            @RequestParam BigDecimal price,
-            @RequestParam(required = false) String description) {
+    public ApiResponse<TransactionResponse> chargeCourse(@RequestParam BigDecimal price) {
             var user =  userService.getCurrentUser();
             // Lấy wallet
             Wallet wallet = walletService.getWalletByUserId(user.getId());
@@ -93,11 +94,12 @@ public class WalletController {
             }
             // Trừ tiền
             Transaction transaction = walletService.chargeCourse(wallet.getWalletId(), price);
-            return ApiResponse.success(transaction, "Course charged successfully");
+            TransactionResponse response = TransactionMapper.toResponse(transaction);
+            return ApiResponse.success(response, "Course charged successfully");
     }
 
     @PostMapping("/internal/pay-order")
-    public ApiResponse<Transaction> payOrder(
+    public ApiResponse<TransactionResponse> payOrder(
             @RequestParam Long userId,
             @RequestParam BigDecimal amount,
             @RequestParam(required = false) String description) {
@@ -110,7 +112,8 @@ public class WalletController {
                 return ApiResponse.error(402, "Insufficient balance in wallet", null);
             }
             Transaction transaction = walletService.pay(wallet.getWalletId(), amount);
-            return ApiResponse.success(transaction, "Order paid successfully");
+            TransactionResponse response = TransactionMapper.toResponse(transaction);
+            return ApiResponse.success(response, "Order paid successfully");
         } catch (Exception e) {
             return ApiResponse.error(500, "Failed to pay order: " + e.getMessage(), null);
         }
