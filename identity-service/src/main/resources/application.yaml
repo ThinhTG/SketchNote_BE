@@ -77,7 +77,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   security:
@@ -119,3 +119,13 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    org.apache.kafka: WARN
+    org.springframework.cloud.stream: WARN
+    org.springframework.kafka: WARN
+    org.springframework.data.redis.repository.configuration: WARN  # Suppress Redis repository warnings
+    com.sketchnotes: INFO
