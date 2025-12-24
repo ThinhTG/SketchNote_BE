@@ -21,7 +21,6 @@ public class ResourceTemplateVersionDTO {
     private String description;
     private String type;
     private BigDecimal price;
-    private LocalDate expiredTime;
     private LocalDate releaseDate;
     private String status;
     private LocalDateTime createdAt;

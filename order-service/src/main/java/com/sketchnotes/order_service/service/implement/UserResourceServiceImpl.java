@@ -134,7 +134,6 @@ public class UserResourceServiceImpl implements UserResourceService {
                     .type(rt.getType() != null ? rt.getType().name() : null)
                     .price(rt.getPrice())
                     .bannerUrl((images != null && !images.isEmpty() ? images.get(0).getImageUrl() : null))
-                    .expiredTime(rt.getExpiredTime())
                     .releaseDate(rt.getReleaseDate())
                     .createdAt(rt.getCreatedAt())
                     .updatedAt(rt.getUpdatedAt())
@@ -166,26 +165,45 @@ public class UserResourceServiceImpl implements UserResourceService {
     @Override
     @Transactional(readOnly = true)
     public List<PurchasedTemplateDTO> getPurchasedTemplatesWithVersions(Long userId) {
-        // 1. Get all user resources with purchased version info
+        // 1. Get all user resources with purchased version info (templates user PURCHASED)
         List<UserResource> userResources = userResourceRepository.findActiveResourcesWithVersionByUserId(userId);
-        if (userResources == null || userResources.isEmpty()) {
+        
+        // Use Set to collect unique template IDs and a map to track user resources
+        Set<Long> templateIdsSet = new HashSet<>();
+        Map<Long, UserResource> userResourceMap = new HashMap<>();
+        
+        if (userResources != null && !userResources.isEmpty()) {
+            for (UserResource ur : userResources) {
+                templateIdsSet.add(ur.getResourceTemplateId());
+                userResourceMap.put(ur.getResourceTemplateId(), ur);
+            }
+        }
+        
+        // 2. Get all template IDs that user OWNS (designerId == userId)
+        // Only get PUBLISHED templates that the user created
+        List<ResourceTemplate> ownedTemplates = resourceTemplateRepository
+                .findByDesignerIdAndStatus(userId, ResourceTemplate.TemplateStatus.PUBLISHED);
+        Set<Long> ownedTemplateIds = new HashSet<>();
+        if (ownedTemplates != null && !ownedTemplates.isEmpty()) {
+            for (ResourceTemplate template : ownedTemplates) {
+                templateIdsSet.add(template.getTemplateId());
+                ownedTemplateIds.add(template.getTemplateId());
+            }
+        }
+        
+        // 3. If no templates found from both sources, return empty list
+        if (templateIdsSet.isEmpty()) {
             return java.util.Collections.emptyList();
         }
 
-        // 2. Collect template IDs
-        List<Long> templateIds = userResources.stream()
-                .map(UserResource::getResourceTemplateId)
-                .collect(Collectors.toList());
+        // 4. Collect template IDs
+        List<Long> templateIds = new ArrayList<>(templateIdsSet);
 
-        // 3. Get templates - only PUBLISHED ones
+        // 5. Get templates - only PUBLISHED ones
         List<ResourceTemplate> templates = resourceTemplateRepository
                 .findByTemplateIdInAndStatus(templateIds, ResourceTemplate.TemplateStatus.PUBLISHED);
 
-        // 4. Create a map for quick lookup of userResource by templateId
-        java.util.Map<Long, UserResource> userResourceMap = userResources.stream()
-                .collect(Collectors.toMap(UserResource::getResourceTemplateId, ur -> ur, (a, b) -> a));
-
-        // 5. Get all published versions for these templates
+        // 6. Get all published versions for these templates
         List<ResourceTemplateVersion> allVersions = versionRepository.findPublishedVersionsByTemplateIds(templateIds);
         
         // Group versions by templateId
@@ -196,37 +214,59 @@ public class UserResourceServiceImpl implements UserResourceService {
         
         for (ResourceTemplate template : templates) {
             UserResource userResource = userResourceMap.get(template.getTemplateId());
-            if (userResource == null) continue;
+            boolean isOwner = ownedTemplateIds.contains(template.getTemplateId());
+            
+            // Skip if user neither purchased nor owns the template
+            if (userResource == null && !isOwner) continue;
 
-            Long purchasedVersionId = userResource.getPurchasedVersionId();
-            Long userCurrentVersionId = userResource.getCurrentVersionId(); // Version user is currently using
             List<ResourceTemplateVersion> templateVersions = versionsByTemplate.getOrDefault(template.getTemplateId(), new ArrayList<>());
             
-            // Filter versions: user can access purchased version + all newer versions
-            List<ResourceTemplateVersion> accessibleVersions = filterAccessibleVersions(templateVersions, purchasedVersionId);
+            // For owned templates (designer's own resources), they have access to ALL versions
+            // For purchased templates, they have access from purchased version onwards
+            Long purchasedVersionId = userResource != null ? userResource.getPurchasedVersionId() : null;
+            Long userCurrentVersionId = userResource != null ? userResource.getCurrentVersionId() : null;
             
-            // Get purchased version info
-            ResourceTemplateVersion purchasedVersion = templateVersions.stream()
-                    .filter(v -> v.getVersionId().equals(purchasedVersionId))
-                    .findFirst()
-                    .orElse(null);
+            // Filter versions: 
+            // - For owners: access to ALL versions
+            // - For purchasers: purchased version + all newer versions
+            List<ResourceTemplateVersion> accessibleVersions = isOwner ? 
+                    templateVersions : filterAccessibleVersions(templateVersions, purchasedVersionId);
+            
+            // Get purchased version info (null for owned templates)
+            ResourceTemplateVersion purchasedVersion = purchasedVersionId != null ? 
+                    templateVersions.stream()
+                            .filter(v -> v.getVersionId().equals(purchasedVersionId))
+                            .findFirst()
+                            .orElse(null)
+                    : null;
             
             // Get user's current version (what they are using now)
-            ResourceTemplateVersion userCurrentVersion = templateVersions.stream()
-                    .filter(v -> v.getVersionId().equals(userCurrentVersionId))
-                    .findFirst()
-                    .orElse(purchasedVersion); // fallback to purchased version if currentVersionId is null
+            // For owners: use the latest version
+            ResourceTemplateVersion userCurrentVersion;
+            if (isOwner && userResource == null) {
+                // Owner without purchase record - use latest version
+                userCurrentVersion = templateVersions.isEmpty() ? null : templateVersions.get(templateVersions.size() - 1);
+            } else {
+                userCurrentVersion = templateVersions.stream()
+                        .filter(v -> v.getVersionId().equals(userCurrentVersionId))
+                        .findFirst()
+                        .orElse(purchasedVersion); // fallback to purchased version if currentVersionId is null
+            }
             
             // Get latest published version
             ResourceTemplateVersion latestVersion = templateVersions.isEmpty() ? null : 
                     templateVersions.get(templateVersions.size() - 1);
             
             // Determine if there's a newer version available for upgrade
-            boolean hasNewerVersion = latestVersion != null && userCurrentVersionId != null && 
-                    !latestVersion.getVersionId().equals(userCurrentVersionId);
-            // Also check if user has no currentVersionId set (legacy data)
-            if (latestVersion != null && userCurrentVersionId == null && purchasedVersionId != null) {
-                hasNewerVersion = !latestVersion.getVersionId().equals(purchasedVersionId);
+            // Owners always have access to latest, so hasNewerVersion is false for them
+            boolean hasNewerVersion = false;
+            if (!isOwner || userResource != null) {
+                hasNewerVersion = latestVersion != null && userCurrentVersionId != null && 
+                        !latestVersion.getVersionId().equals(userCurrentVersionId);
+                // Also check if user has no currentVersionId set (legacy data)
+                if (latestVersion != null && userCurrentVersionId == null && purchasedVersionId != null) {
+                    hasNewerVersion = !latestVersion.getVersionId().equals(purchasedVersionId);
+                }
             }
             
             // Build DTO
@@ -237,11 +277,11 @@ public class UserResourceServiceImpl implements UserResourceService {
                     .description(template.getDescription())
                     .type(template.getType() != null ? template.getType().name() : null)
                     .price(template.getPrice())
-                    .expiredTime(template.getExpiredTime())
                     .releaseDate(template.getReleaseDate())
                     .createdAt(template.getCreatedAt())
                     .updatedAt(template.getUpdatedAt())
                     .status(template.getStatus() != null ? template.getStatus().name() : null)
+                    .isOwner(isOwner)
                     .purchasedVersionId(purchasedVersionId)
                     .purchasedVersionNumber(purchasedVersion != null ? purchasedVersion.getVersionNumber() : null)
                     .currentVersionId(userCurrentVersion != null ? userCurrentVersion.getVersionId() : null)

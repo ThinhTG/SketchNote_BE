@@ -68,22 +68,32 @@ public class UserResourceController {
     }
 
     /**
-     * 📦 [GET] Lấy danh sách ResourceTemplate mà user đã mua với thông tin version đầy đủ
+     * 📦 [GET] Lấy danh sách ResourceTemplate mà user sở hữu với thông tin version đầy đủ
+     * Bao gồm:
+     * - Templates mà user đã mua (purchased)
+     * - Templates mà user đăng bán (owned by designer)
+     * 
+     * Đối với purchased templates:
      * - User sẽ thấy version đã mua (purchasedVersion)
      * - User sẽ thấy version mới nhất (currentVersion) nếu có
      * - User có quyền truy cập tất cả version từ lúc mua trở đi (free upgrade)
+     * 
+     * Đối với owned templates:
+     * - User có quyền truy cập tất cả versions
+     * - isOwner = true để phân biệt
      */
     @Operation(
-        summary = "Get purchased templates with version info",
-        description = "Returns all templates purchased by the user with full version information. " +
-                      "Users can access their purchased version plus all newer versions (free upgrade)."
+        summary = "Get all owned templates with version info",
+        description = "Returns all templates owned by the user (both purchased and created). " +
+                      "For purchased templates: users can access their purchased version plus all newer versions (free upgrade). " +
+                      "For owned templates (designer's own resources): users have access to all versions."
     )
     @GetMapping("/user/me/templates/v2")
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<PurchasedTemplateDTO>>> getMyPurchasedTemplatesWithVersions() {
         var user = identityClient.getCurrentUser();
         List<PurchasedTemplateDTO> templates = userResourceService.getPurchasedTemplatesWithVersions(user.getResult().getId());
-        return ResponseEntity.ok(ApiResponse.success(templates, "Fetched purchased templates with version info"));
+        return ResponseEntity.ok(ApiResponse.success(templates, "Fetched owned templates with version info"));
     }
 
     /**

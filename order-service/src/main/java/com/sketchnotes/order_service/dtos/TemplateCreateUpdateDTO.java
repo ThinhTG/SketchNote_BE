@@ -16,7 +16,6 @@ public class TemplateCreateUpdateDTO {
     private String description;
     private String type;
     private BigDecimal price;
-    private LocalDate expiredTime;
     private LocalDate releaseDate;
     private java.util.List<ResourceImageDTO> images;
     private java.util.List<ResourceItemDTO> items;

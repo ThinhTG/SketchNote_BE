@@ -127,12 +127,6 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
     List<ResourceTemplate> findByTemplateIdInAndStatus(List<Long> templateIds, ResourceTemplate.TemplateStatus status);
 
     /**
-     * Lấy template sắp hết hạn theo status
-     */
-    @Query("SELECT rt FROM ResourceTemplate rt WHERE rt.status = :status AND rt.expiredTime IS NOT NULL AND rt.expiredTime <= :expiryDate")
-    List<ResourceTemplate> findByExpiredTimeBefore(@Param("expiryDate") LocalDate expiryDate, @Param("status") ResourceTemplate.TemplateStatus status);
-
-    /**
      * Lấy template mới nhất theo status
      */
     @Query("SELECT rt FROM ResourceTemplate rt WHERE rt.status = :status ORDER BY rt.createdAt DESC")

@@ -24,7 +24,6 @@ public class ResourceGalleryDTO {
     private String description;
     private String type;
     private BigDecimal price;
-    private LocalDate expiredTime;
     private LocalDate releaseDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

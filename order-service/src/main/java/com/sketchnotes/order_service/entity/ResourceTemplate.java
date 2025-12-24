@@ -36,9 +36,6 @@ public class ResourceTemplate {
     @Column(name = "price", precision = 15, scale = 2, nullable = false)
     private BigDecimal price;
 
-    @Column(name = "expired_time")
-    private LocalDate expiredTime;
-
     @Column(name = "release_date")
     private LocalDate releaseDate;
 
