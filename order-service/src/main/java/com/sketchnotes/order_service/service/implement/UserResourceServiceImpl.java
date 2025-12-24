@@ -216,16 +216,35 @@ public class UserResourceServiceImpl implements UserResourceService {
                     .findFirst()
                     .orElse(purchasedVersion); // fallback to purchased version if currentVersionId is null
             
-            // Get latest published version
-            ResourceTemplateVersion latestVersion = templateVersions.isEmpty() ? null : 
-                    templateVersions.get(templateVersions.size() - 1);
+            // Get latest published version - USE template.getCurrentPublishedVersionId() as the SINGLE SOURCE OF TRUTH
+            // This is updated when staff approves a new version in reviewVersion()
+            Long latestPublishedVersionId = template.getCurrentPublishedVersionId();
+            ResourceTemplateVersion latestVersion = null;
+            if (latestPublishedVersionId != null) {
+                latestVersion = templateVersions.stream()
+                        .filter(v -> v.getVersionId().equals(latestPublishedVersionId))
+                        .findFirst()
+                        .orElse(null);
+                // If not found in list (shouldn't happen but fallback), try to get from last in list
+                if (latestVersion == null && !templateVersions.isEmpty()) {
+                    latestVersion = templateVersions.get(templateVersions.size() - 1);
+                }
+            } else if (!templateVersions.isEmpty()) {
+                // Fallback for legacy templates without currentPublishedVersionId
+                latestVersion = templateVersions.get(templateVersions.size() - 1);
+            }
             
             // Determine if there's a newer version available for upgrade
-            boolean hasNewerVersion = latestVersion != null && userCurrentVersionId != null && 
-                    !latestVersion.getVersionId().equals(userCurrentVersionId);
-            // Also check if user has no currentVersionId set (legacy data)
-            if (latestVersion != null && userCurrentVersionId == null && purchasedVersionId != null) {
-                hasNewerVersion = !latestVersion.getVersionId().equals(purchasedVersionId);
+            // User's effective current version is: currentVersionId if set, otherwise purchasedVersionId
+            Long userEffectiveVersionId = userCurrentVersionId != null ? userCurrentVersionId : purchasedVersionId;
+            boolean hasNewerVersion = false;
+            
+            if (latestPublishedVersionId != null && userEffectiveVersionId != null) {
+                // Compare using the authoritative latestPublishedVersionId from template
+                hasNewerVersion = !latestPublishedVersionId.equals(userEffectiveVersionId);
+            } else if (latestVersion != null && userEffectiveVersionId != null) {
+                // Fallback to version object comparison
+                hasNewerVersion = !latestVersion.getVersionId().equals(userEffectiveVersionId);
             }
             
             // Build DTO
@@ -380,13 +399,19 @@ public class UserResourceServiceImpl implements UserResourceService {
             return false;
         }
         
-        // 3. Check if current version is different from latest
-        Long currentVersionId = userResource.getCurrentVersionId();
-        if (currentVersionId == null) {
-            // User has no current version set (legacy data), they can upgrade
+        // 3. Determine user's effective current version
+        // Priority: currentVersionId > purchasedVersionId
+        Long userEffectiveVersionId = userResource.getCurrentVersionId();
+        if (userEffectiveVersionId == null) {
+            userEffectiveVersionId = userResource.getPurchasedVersionId();
+        }
+        
+        // 4. If user has no version info at all (legacy data), they can upgrade
+        if (userEffectiveVersionId == null) {
             return true;
         }
         
-        return !currentVersionId.equals(latestVersionId);
+        // 5. Check if user's effective version is different from latest
+        return !userEffectiveVersionId.equals(latestVersionId);
     }
 }
