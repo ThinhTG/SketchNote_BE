@@ -229,28 +229,22 @@ public class UserSubscriptionService implements IUserSubscriptionService {
                 .autoRenew(request.getAutoRenew())
                 .transactionId(transactionIdStr)
                 .build();
-
+        user.setMaxProjects(user.getMaxProjects() + plan.getNumberOfProjects());
+        userRepository.save(user);
         UserSubscription savedSubscription = userSubscriptionRepository.save(subscription);
 
         // Upgrade role if Designer plan
         if (plan.getPlanType() == PlanType.DESIGNER && user.getRole() != Role.DESIGNER) {
             user.setRole(Role.DESIGNER);
             userRepository.save(user);
-            log.info("Upgraded user {} to DESIGNER role in database", userId);
-            
+
             // Also update role in Keycloak
             try {
                 roleService.assignRoleByName(userId, "DESIGNER");
-                log.info("Upgraded user {} to DESIGNER role in Keycloak", userId);
             } catch (Exception e) {
-                log.error("Failed to update Keycloak role for user {}: {}", userId, e.getMessage());
-                // Don't fail the whole transaction if Keycloak update fails
-                // The database role is already updated
+               throw new AppException(ErrorCode.ROLE_ASSIGNMENT_FAILED);
             }
         }
-
-        log.info("Successfully created subscription {} for user {} with transaction {}", 
-                savedSubscription.getSubscriptionId(), userId, savedTransaction.getTransactionId());
 
         // cộng tiền cho admin
         var Admin = userService.getUsersByRole(Role.ADMIN);
@@ -272,7 +266,6 @@ public class UserSubscriptionService implements IUserSubscriptionService {
     @Override
     @Transactional
     public void cancelSubscription(Long userId, Long subscriptionId) {
-        log.info("User {} cancelling subscription {}", userId, subscriptionId);
 
         UserSubscription subscription = userSubscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new AppException(ErrorCode.SUBSCRIPTION_NOT_FOUND));
@@ -284,8 +277,6 @@ public class UserSubscriptionService implements IUserSubscriptionService {
         subscription.setStatus(SubscriptionStatus.CANCELLED);
         subscription.setAutoRenew(false);
         userSubscriptionRepository.save(subscription);
-
-        log.info("Cancelled subscription {}", subscriptionId);
     }
 
     @Override
@@ -413,6 +404,7 @@ public class UserSubscriptionService implements IUserSubscriptionService {
                 .description(subscription.getSubscriptionPlan().getDescription())
                 .isActive(subscription.getSubscriptionPlan().getIsActive())
                 .createdAt(subscription.getSubscriptionPlan().getCreatedAt())
+                .numberOfProjects(subscription.getSubscriptionPlan().getNumberOfProjects())
                 .updatedAt(subscription.getSubscriptionPlan().getUpdatedAt())
                 .build();
 

@@ -186,19 +186,9 @@ public class UserService implements IUserService {
         
         // Get project quota info
         int maxProjects = user.getMaxProjects();
-        Integer currentProjects = 0;
-        try {
-            currentProjects = projectServiceClient.getProjectCountByOwnerId(userId);
-        } catch (Exception e) {
-            log.error("Failed to get project count for user {}: {}", userId, e.getMessage());
-        }
-        
-        boolean canCreateProject;
-        if (maxProjects == -1) {
-            canCreateProject = true; // Unlimited
-        } else {
-            canCreateProject = currentProjects < maxProjects;
-        }
+        Integer currentProjects = projectServiceClient.getProjectCountByOwnerId(userId);
+
+
         
         return UserProfileWithSubscriptionResponse.builder()
                 .id(user.getId())
@@ -213,7 +203,7 @@ public class UserService implements IUserService {
                 .subscriptionEndDate(subscriptionEndDate)
                 .maxProjects(maxProjects)
                 .currentProjects(currentProjects)
-                .canCreateProject(canCreateProject)
+                .canCreateProject(maxProjects > currentProjects)
                 .build();
     }
 }

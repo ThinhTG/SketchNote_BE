@@ -25,6 +25,7 @@ public enum ErrorCode{
     EMAIL_EXISTED(400, "Email already exists, please choose another one", HttpStatus.BAD_REQUEST),
     USER_NOT_EXISTED(400, "User does not exist", HttpStatus.BAD_REQUEST),
     CLIENT_NOT_FOUND(400, "Client not found", HttpStatus.BAD_REQUEST),
+    ROLE_ASSIGNMENT_FAILED(500, "Failed to assign role to user", HttpStatus.INTERNAL_SERVER_ERROR),
     ROLE_NOT_FOUND(400, "Role not found", HttpStatus.BAD_REQUEST),
     USER_INACTIVE(400, "User is inactive", HttpStatus.BAD_REQUEST),
     TOKEN_ALREADY_USED(400, "Token has already been used", HttpStatus.BAD_REQUEST),

@@ -37,11 +37,13 @@ public class User{
     private  LocalDateTime  updateAt;
     @Column(name = "is_verified", nullable = false)
     private boolean verified = false;
+
+    private Integer maxProjects = 3;
     
     // AI Credits management
-    @Column(nullable = false, columnDefinition = "integer default 100")
+    @Column(nullable = false, columnDefinition = "integer default 10")
     @Builder.Default
-    private Integer aiCredits = 100; // Số credit AI còn lại
+    private Integer aiCredits = 10; // Số credit AI còn lại
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
@@ -88,8 +90,4 @@ public class User{
         return getActiveSubscription() != null;
     }
 
-    // Helper method to get max projects allowed (3 for free, unlimited for subscription)
-    public int getMaxProjects() {
-        return hasActiveSubscription() ? -1 : 3; // -1 means unlimited
-    }
 }

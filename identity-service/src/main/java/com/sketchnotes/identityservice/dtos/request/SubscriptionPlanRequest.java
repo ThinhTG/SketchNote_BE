@@ -34,5 +34,9 @@ public class SubscriptionPlanRequest {
     @Size(max = 500, message = "Description must not exceed 500 characters")
     private String description;
 
+    @NotNull(message = "Number of projects is required")
+    @Min(value = 1, message = "Number of projects must be at least 1")
+    private Integer numberOfProjects;
+
     private Boolean isActive = true;
 }
