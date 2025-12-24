@@ -20,5 +20,6 @@ public class ProjectResponse {
     private boolean isOwner;
     private boolean isEdited;
     private String paperSize;
+    private boolean isAccepted;
     private List<PageResponse> pages;
 }

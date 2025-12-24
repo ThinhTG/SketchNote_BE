@@ -2,8 +2,8 @@ package com.sketchnotes.project_service.service.implement;
 
 import com.sketchnotes.project_service.client.IUserClient;
 import com.sketchnotes.project_service.dtos.ApiResponse;
+import com.sketchnotes.project_service.dtos.request.AcceptanceRequest;
 import com.sketchnotes.project_service.dtos.request.CollabRequest;
-import com.sketchnotes.project_service.dtos.request.ProjectRequest;
 import com.sketchnotes.project_service.dtos.response.ProjectCollaborationResponse;
 import com.sketchnotes.project_service.dtos.response.UserResponse;
 import com.sketchnotes.project_service.entity.Project;
@@ -25,6 +25,7 @@ public class ProjectCollaborationService implements IProjectCollaborationService
     private final IProjectCollaborationRepository projectCollaborationRepository;
     private final IProjectRepository projectRepository;
     private final IUserClient userClient;
+
     @Override
     public void inviteUserToProject(CollabRequest dto) {
         Project project = projectRepository.findById(dto.getProjectId()).filter(p -> p.getDeletedAt() == null)
@@ -33,12 +34,19 @@ public class ProjectCollaborationService implements IProjectCollaborationService
         if(!project.getOwnerId().equals(user.getResult().getId())) {
             throw new AppException(ErrorCode.FORBIDDEN_ACTION);
         }
+        ProjectCollaboration collab = projectCollaborationRepository.findByProjectAndUserIdAndDeletedAtIsNull(
+                        project, user.getResult().getId())
+                .orElse(null);
+        if (collab != null) {
+            throw new AppException(ErrorCode.USER_ALREADY_COLLABORATOR);
+        }
         ApiResponse<UserResponse> collabUser = userClient.getUserById(dto.getUserId());
         if(collabUser == null) {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
         ProjectCollaboration projectCollaboration = new ProjectCollaboration();
         projectCollaboration.setProject(project);
+        projectCollaboration.setAccepted(false);
         projectCollaboration.setUserId(collabUser.getResult().getId());
         projectCollaboration.setEdited(dto.isEdited());
         projectCollaborationRepository.save(projectCollaboration);
@@ -81,10 +89,6 @@ public class ProjectCollaborationService implements IProjectCollaborationService
     public List<ProjectCollaborationResponse> listProjectCollaborators(Long projectId) {
         Project project = projectRepository.findById(projectId).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
-        ApiResponse<UserResponse> user = userClient.getCurrentUser();
-        if(!project.getOwnerId().equals(user.getResult().getId())) {
-            throw new AppException(ErrorCode.FORBIDDEN_ACTION);
-        }
         List<ProjectCollaboration> projectCollaborations = projectCollaborationRepository.findByProjectAndDeletedAtIsNull(project);
         return projectCollaborations.stream().map(p -> ProjectCollaborationResponse.builder()
                 .projectId(p.getProject().getProjectId())
@@ -94,5 +98,21 @@ public class ProjectCollaborationService implements IProjectCollaborationService
                 .avatarUrl(userClient.getUserById(p.getUserId()).getResult().getAvatarUrl())
                 .createdAt(p.getCreatedAt())
                 .build()).toList();
+    }
+
+    @Override
+    public void acceptProjectInvitation(AcceptanceRequest request) {
+        Project project = projectRepository.findById(request.getProjectId()).filter(p -> p.getDeletedAt() == null)
+                .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
+        ApiResponse<UserResponse> user = userClient.getCurrentUser();
+        ProjectCollaboration projectCollaboration = projectCollaborationRepository.findByProjectAndUserIdAndDeletedAtIsNull(
+                        project, user.getResult().getId())
+                .orElseThrow(() -> new AppException(ErrorCode.COLLAB_NOT_FOUND));
+        if (projectCollaboration.isAccepted()) {
+            projectCollaboration.setAccepted(true);
+        }else {
+            projectCollaboration.setDeletedAt(LocalDateTime.now());
+        }
+        projectCollaborationRepository.save(projectCollaboration);
     }
 }
