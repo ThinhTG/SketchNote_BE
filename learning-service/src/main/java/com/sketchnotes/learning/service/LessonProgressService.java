@@ -10,6 +10,8 @@ import com.sketchnotes.learning.repository.CourseRepository;
 import com.sketchnotes.learning.repository.LessonRepository;
 import com.sketchnotes.learning.repository.UserLessonProgressRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LessonProgressService {
     private final UserLessonProgressRepository progressRepo;
     private final LessonRepository lessonRepo;
@@ -31,9 +34,8 @@ public class LessonProgressService {
         var enrollment = enrollRepo.findByUserIdAndCourse_CourseId(userId, courseId)
                 .orElseThrow(() -> new RuntimeException("User is not enrolled in this course"));
 
-
-        var progress = progressRepo.findByUserIdAndLesson_LessonId(userId, lessonId)
-                .orElseGet(() -> createNewProgress(userId, courseId, lessonId));
+        // Sử dụng getOrCreateProgress để handle race condition
+        var progress = getOrCreateProgress(userId, courseId, lessonId);
 
         // Cập nhật trạng thái
         if (request.isCompleted()) {
@@ -50,6 +52,31 @@ public class LessonProgressService {
 
         // Tính lại % tiến độ của khóa học
         recalcCourseProgress(userId, courseId);
+    }
+
+    /**
+     * Get existing progress or create new one with race condition handling.
+     * If a duplicate key exception occurs during insert, retry by fetching the existing record.
+     */
+    private UserLessonProgress getOrCreateProgress(Long userId, Long courseId, Long lessonId) {
+        // First, try to find existing progress
+        var existingProgress = progressRepo.findByUserIdAndLesson_LessonId(userId, lessonId);
+        if (existingProgress.isPresent()) {
+            return existingProgress.get();
+        }
+
+        // If not found, try to create new progress
+        try {
+            UserLessonProgress newProgress = createNewProgress(userId, courseId, lessonId);
+            // Save immediately to detect duplicate key early
+            return progressRepo.saveAndFlush(newProgress);
+        } catch (DataIntegrityViolationException e) {
+            // Race condition occurred - another request already created the record
+            // Retry fetching the existing record
+            log.warn("Race condition detected for userId={}, lessonId={}. Fetching existing record.", userId, lessonId);
+            return progressRepo.findByUserIdAndLesson_LessonId(userId, lessonId)
+                    .orElseThrow(() -> new RuntimeException("Failed to get or create progress for lesson: " + lessonId));
+        }
     }
 
     private UserLessonProgress createNewProgress(Long userId, Long courseId, Long lessonId) {
@@ -69,6 +96,8 @@ public class LessonProgressService {
         progress.setCourse(course);
         progress.setLesson(lesson);
         progress.setStatus(ProgressStatus.NOT_STARTED);
+        progress.setTimeSpent(0);
+        progress.setLastPosition(0);
         return progress;
     }
 
