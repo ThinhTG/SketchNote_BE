@@ -199,7 +199,37 @@ public class UserResourceServiceImpl implements UserResourceService {
 
             Long purchasedVersionId = userResource.getPurchasedVersionId();
             Long userCurrentVersionId = userResource.getCurrentVersionId(); // Version user is currently using
-            List<ResourceTemplateVersion> templateVersions = versionsByTemplate.getOrDefault(template.getTemplateId(), new ArrayList<>());
+            List<ResourceTemplateVersion> templateVersions = new ArrayList<>(
+                    versionsByTemplate.getOrDefault(template.getTemplateId(), new ArrayList<>()));
+
+            // Get latest published version - USE template.getCurrentPublishedVersionId() as the SINGLE SOURCE OF TRUTH
+            // This is updated when staff approves a new version in reviewVersion()
+            Long latestPublishedVersionId = template.getCurrentPublishedVersionId();
+            ResourceTemplateVersion latestVersion = null;
+
+            if (latestPublishedVersionId != null) {
+                // Try to find latest version in the existing list
+                latestVersion = templateVersions.stream()
+                        .filter(v -> v.getVersionId().equals(latestPublishedVersionId))
+                        .findFirst()
+                        .orElse(null);
+
+                // If latest version is NOT in the list, fetch it separately and add to list
+                // This ensures availableVersions includes ALL versions the user can access
+                if (latestVersion == null) {
+                    latestVersion = versionRepository.findById(latestPublishedVersionId).orElse(null);
+                    if (latestVersion != null && ResourceTemplate.TemplateStatus.PUBLISHED.equals(latestVersion.getStatus())) {
+                        templateVersions.add(latestVersion);
+                        // Sort by createdAt to maintain order
+                        templateVersions.sort((v1, v2) -> v1.getCreatedAt().compareTo(v2.getCreatedAt()));
+                    }
+                }
+            }
+
+            // Fallback: if still no latestVersion, use the last in list
+            if (latestVersion == null && !templateVersions.isEmpty()) {
+                latestVersion = templateVersions.get(templateVersions.size() - 1);
+            }
             
             // Filter versions: user can access purchased version + all newer versions
             List<ResourceTemplateVersion> accessibleVersions = filterAccessibleVersions(templateVersions, purchasedVersionId);
@@ -215,26 +245,9 @@ public class UserResourceServiceImpl implements UserResourceService {
                     .filter(v -> v.getVersionId().equals(userCurrentVersionId))
                     .findFirst()
                     .orElse(purchasedVersion); // fallback to purchased version if currentVersionId is null
-            
-            // Get latest published version - USE template.getCurrentPublishedVersionId() as the SINGLE SOURCE OF TRUTH
-            // This is updated when staff approves a new version in reviewVersion()
-            Long latestPublishedVersionId = template.getCurrentPublishedVersionId();
-            ResourceTemplateVersion latestVersion = null;
-            if (latestPublishedVersionId != null) {
-                latestVersion = templateVersions.stream()
-                        .filter(v -> v.getVersionId().equals(latestPublishedVersionId))
-                        .findFirst()
-                        .orElse(null);
-                // If not found in list (shouldn't happen but fallback), try to get from last in list
-                if (latestVersion == null && !templateVersions.isEmpty()) {
-                    latestVersion = templateVersions.get(templateVersions.size() - 1);
-                }
-            } else if (!templateVersions.isEmpty()) {
-                // Fallback for legacy templates without currentPublishedVersionId
-                latestVersion = templateVersions.get(templateVersions.size() - 1);
-            }
-            
 
+            // Determine if there's a newer version available for upgrade
+            // User's effective current version is: currentVersionId if set, otherwise purchasedVersionId
             Long userEffectiveVersionId = userCurrentVersionId != null ? userCurrentVersionId : purchasedVersionId;
             boolean hasNewerVersion = false;
             
@@ -269,24 +282,6 @@ public class UserResourceServiceImpl implements UserResourceService {
                             .map(orderMapper::toVersionDto)
                             .collect(Collectors.toList()))
                     .build();
-
-            // Set items and images from user's CURRENT version (what they are using)
-            if (userCurrentVersion != null) {
-                dto.setItems(userCurrentVersion.getItems().stream()
-                        .map(item -> ResourceItemDTO.builder()
-                                .itemIndex(item.getItemIndex())
-                                .itemUrl(item.getItemUrl())
-                                .imageUrl(item.getImageUrl())
-                                .build())
-                        .collect(Collectors.toList()));
-                
-                dto.setImages(userCurrentVersion.getImages().stream()
-                        .map(img -> ResourceImageDTO.builder()
-                                .imageUrl(img.getImageUrl())
-                                .isThumbnail(img.getIsThumbnail())
-                                .build())
-                        .collect(Collectors.toList()));
-            }
 
             result.add(dto);
         }
