@@ -27,10 +27,6 @@ public class SecurityConfig {
             "/api/payment/payos/webhook",
             "/api/users/public/**",
             "/api/blogs/**",
-            
-            // Test endpoints (remove in production!)
-            "/api/test/**",
-
             "/internal/deposit-for-designer",
             "/api/wallet/internal/**",
             // WebSocket endpoints

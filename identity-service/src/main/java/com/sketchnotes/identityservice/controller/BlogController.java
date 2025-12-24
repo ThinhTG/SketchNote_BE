@@ -7,6 +7,7 @@ import com.sketchnotes.identityservice.dtos.request.PublishRequest;
 import com.sketchnotes.identityservice.dtos.request.UpdateBlogRequest;
 import com.sketchnotes.identityservice.dtos.response.BlogModerationHistoryResponse;
 import com.sketchnotes.identityservice.dtos.response.BlogResponse;
+import com.sketchnotes.identityservice.dtos.response.ImageSafetyCheckResponse;
 import com.sketchnotes.identityservice.enums.BlogStatus;
 import com.sketchnotes.identityservice.service.implement.ContentModerationService;
 import com.sketchnotes.identityservice.service.interfaces.BlogService;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,7 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BlogController {
     private final BlogService postService;
-    private final ContentModerationService moderationService;
+    private final ContentModerationService contentModerationService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<BlogResponse>> create(@RequestBody BlogRequest req){
@@ -80,7 +82,7 @@ public class BlogController {
     )
     @GetMapping("/{id}/moderation/latest")
     public ResponseEntity<ApiResponse<BlogModerationHistoryResponse>> getLatestModerationHistory(@PathVariable Long id) {
-        BlogModerationHistoryResponse response = moderationService.getLatestModerationHistory(id);
+        BlogModerationHistoryResponse response = postService.getLatestModerationHistory(id);
         return ResponseEntity.ok(ApiResponse.success(response, "Get latest moderation history successful"));
     }
 
@@ -90,7 +92,18 @@ public class BlogController {
     )
     @GetMapping("/{id}/moderation/history")
     public ResponseEntity<ApiResponse<List<BlogModerationHistoryResponse>>> getAllModerationHistory(@PathVariable Long id) {
-        List<BlogModerationHistoryResponse> response = moderationService.getAllModerationHistory(id);
+        List<BlogModerationHistoryResponse> response = postService.getAllModerationHistory(id);
         return ResponseEntity.ok(ApiResponse.success(response, "Get moderation history successful"));
+    }
+
+    @Operation(
+            summary = "[TEST] Check image safety using Google Vision SafeSearch",
+            description = "Test endpoint to upload an image file and check if it contains adult, violent, racy, or medical content using Google Cloud Vision API"
+    )
+    @PostMapping(value = "/test/image-safety", consumes = "multipart/form-data")
+    public ResponseEntity<ApiResponse<ImageSafetyCheckResponse>> testImageSafety(
+            @RequestParam("file") MultipartFile file) {
+        ImageSafetyCheckResponse response = contentModerationService.testImageSafety(file);
+        return ResponseEntity.ok(ApiResponse.success(response, "Image safety check completed successfully"));
     }
 }

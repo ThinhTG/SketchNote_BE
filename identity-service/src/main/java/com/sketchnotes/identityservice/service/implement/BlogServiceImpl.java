@@ -2,14 +2,17 @@ package com.sketchnotes.identityservice.service.implement;
 import com.sketchnotes.identityservice.dtos.request.BlogRequest;
 import com.sketchnotes.identityservice.dtos.request.ContentRequest;
 import com.sketchnotes.identityservice.dtos.request.UpdateBlogRequest;
+import com.sketchnotes.identityservice.dtos.response.BlogModerationHistoryResponse;
 import com.sketchnotes.identityservice.dtos.response.BlogResponse;
 import com.sketchnotes.identityservice.dtos.response.ContentResponse;
 import com.sketchnotes.identityservice.enums.BlogStatus;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.model.Blog;
+import com.sketchnotes.identityservice.model.BlogModerationHistory;
 import com.sketchnotes.identityservice.model.Content;
 import com.sketchnotes.identityservice.model.User;
+import com.sketchnotes.identityservice.repository.BlogModerationHistoryRepository;
 import com.sketchnotes.identityservice.repository.BlogRepository;
 import com.sketchnotes.identityservice.repository.ContentRepository;
 import com.sketchnotes.identityservice.repository.IUserRepository;
@@ -21,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +36,8 @@ public class BlogServiceImpl implements BlogService {
     private final BlogRepository blogRepository;
     private final IUserRepository userRepository;
     private final ContentRepository contentRepository;
+    private final BlogModerationHistoryRepository moderationHistoryRepository;
+
 
     @Override
     public BlogResponse createBlog(BlogRequest request) {
@@ -151,5 +157,55 @@ public class BlogServiceImpl implements BlogService {
         return blogs.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+    }
+    /**
+     * Get the latest moderation history for a blog
+     *
+     * @param blogId ID of the blog
+     * @return Latest moderation history or null if not found
+     */
+    @Transactional(readOnly = true)
+    public BlogModerationHistoryResponse getLatestModerationHistory(Long blogId) {
+        // Verify blog exists
+        blogRepository.findByIdAndDeletedAtIsNull(blogId)
+                .orElseThrow(() -> new AppException(ErrorCode.BLOG_NOT_FOUND));
+
+        return moderationHistoryRepository.findLatestByBlogId(blogId)
+                .map(this::mapToResponse)
+                .orElse(null);
+    }
+
+    /**
+     * Get all moderation history for a blog
+     *
+     * @param blogId ID of the blog
+     * @return List of moderation history
+     */
+    @Transactional(readOnly = true)
+    public List<BlogModerationHistoryResponse> getAllModerationHistory(Long blogId) {
+        // Verify blog exists
+        blogRepository.findByIdAndDeletedAtIsNull(blogId)
+                .orElseThrow(() -> new AppException(ErrorCode.BLOG_NOT_FOUND));
+
+        return moderationHistoryRepository.findByBlogIdOrderByCheckedAtDesc(blogId)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    /**
+     * Map BlogModerationHistory entity to response DTO
+     */
+    private BlogModerationHistoryResponse mapToResponse(BlogModerationHistory history) {
+        return BlogModerationHistoryResponse.builder()
+                .id(history.getId())
+                .blogId(history.getBlog().getId())
+                .previousStatus(history.getPreviousStatus())
+                .newStatus(history.getNewStatus())
+                .isSafe(history.getIsSafe())
+                .safetyScore(history.getSafetyScore())
+                .reason(history.getReason())
+                .checkedAt(history.getCheckedAt())
+                .build();
     }
 }

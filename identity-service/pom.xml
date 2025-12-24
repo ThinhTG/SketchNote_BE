@@ -51,6 +51,12 @@
             <version>3.53.0</version>
         </dependency>
 
+        <!-- ===== Google Cloud Vision ===== -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-vision</artifactId>
+            <version>3.79.0</version>
+        </dependency>
         <!-- ===== Google API Client ===== -->
         <dependency>
             <groupId>com.google.api-client</groupId>
