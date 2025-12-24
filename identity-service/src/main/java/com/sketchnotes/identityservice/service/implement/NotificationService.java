@@ -49,11 +49,11 @@ public class NotificationService implements INotificationService {
         try {
             String destination = "/queue/notifications/" + request.getUserId();
             messagingTemplate.convertAndSend(destination, dto);
-            log.debug("Notification pushed to WebSocket destination: {}", destination);
+            log.info("✅ Notification pushed to WebSocket destination: {} for user {}", 
+                    destination, request.getUserId());
         } catch (Exception e) {
-            log.error("Failed to push notification via WebSocket for user {}: {}", 
+            log.error("❌ Failed to push notification via WebSocket for user {}: {}", 
                     request.getUserId(), e.getMessage(), e);
-            // Don't fail the request if WebSocket push fails
         }
         
         return dto;
