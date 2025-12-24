@@ -54,11 +54,13 @@ spring:
           destination: payment-failed
   datasource:
     hikari:
-      maximum-pool-size: 5
-      minimum-idle: 2
-      idle-timeout: 30000
-      connection-timeout: 20000
-      max-lifetime: 600000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600000  
+      connection-timeout: 30000  
+      max-lifetime: 1800000  
+      validation-timeout: 5000  
+      leak-detection-threshold: 60000 
     url: jdbc:postgresql://34.177.90.19:6432/usersdb
     username: admin
     password: admin
@@ -121,3 +123,12 @@ eureka:
     prefer-ip-address: true
     ip-address: 34.126.98.83
 
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    org.apache.kafka: WARN
+    org.springframework.cloud.stream: WARN
+    org.springframework.kafka: WARN
+    org.springframework.data.redis.repository.configuration: WARN  # Suppress Redis repository warnings
+    com.sketchnotes: INFO

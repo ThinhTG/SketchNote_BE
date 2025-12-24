@@ -50,7 +50,7 @@ public class ContentModerationService {
      * Scheduled task runs every 15 minutes to check blogs that need moderation
      * Only moderates blogs that have been published for more than 15 minutes
      */
-    @Scheduled(fixedRate = 15 * 60 * 1000) // Run every 15 minutes (15 * 60 * 1000 = 900000 ms)
+    @Scheduled(fixedRate = 60 * 1000) // Run every 15 minutes (15 * 60 * 1000 = 900000 ms)
     @Transactional
     public void moderatePendingBlogs() {
         validateConfiguration();
@@ -88,6 +88,10 @@ public class ContentModerationService {
             validateConfiguration();
 
             String contentToCheck = buildContentForModeration(blog);
+            
+            log.info("=== CONTENT SENT TO GEMINI ===");
+            log.info("{}", contentToCheck);
+            log.info("==============================");
 
             String aiResponse = analyzeContentWithGemini(contentToCheck);
 
@@ -147,9 +151,7 @@ public class ContentModerationService {
 
     private String analyzeSingleImage(String imageUrl, String imageLabel) {
         try {
-            log.debug("Analyzing image: {} - URL/Data length: {}", imageLabel, 
-                    imageUrl != null ? imageUrl.length() : 0);
-            
+            log.info("Analyzing image: {} - URL: {}", imageLabel, imageUrl);
             Image img;
             
             // Check if it's base64 data or URL
@@ -157,7 +159,7 @@ public class ContentModerationService {
                 imageUrl.startsWith("/9j/") || imageUrl.length() > 500) {
                 // It's base64 data
                 log.debug("{} appears to be base64 data", imageLabel);
-                
+
                 String base64Data = imageUrl;
                 // Remove data:image/xxx;base64, prefix if present
                 if (base64Data.startsWith("data:image/")) {
@@ -167,22 +169,33 @@ public class ContentModerationService {
                 // Decode base64 to bytes
                 byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Data);
                 ByteString imgBytes = ByteString.copyFrom(imageBytes);
-                
+
                 img = Image.newBuilder()
                         .setContent(imgBytes)
                         .build();
                         
             } else {
-                // It's a URL
-                log.debug("{} appears to be URL: {}", imageLabel, imageUrl);
+                // It's a URL - Download the image as bytes
+                log.info("{} is URL, downloading image: {}", imageLabel, imageUrl);
                 
-                ImageSource imgSource = ImageSource.newBuilder()
-                        .setImageUri(imageUrl)
-                        .build();
-                        
-                img = Image.newBuilder()
-                        .setSource(imgSource)
-                        .build();
+                try {
+                    // Download image from URL
+                    java.net.URL url = new java.net.URL(imageUrl);
+                    java.io.InputStream inputStream = url.openStream();
+                    byte[] imageBytes = inputStream.readAllBytes();
+                    inputStream.close();
+                    
+                    log.info("Successfully downloaded {} bytes for {}", imageBytes.length, imageLabel);
+                    
+                    ByteString imgBytes = ByteString.copyFrom(imageBytes);
+                    img = Image.newBuilder()
+                            .setContent(imgBytes)
+                            .build();
+                            
+                } catch (java.io.IOException e) {
+                    log.error("Failed to download image from URL {}: {}", imageUrl, e.getMessage());
+                    return imageLabel + ": ERROR - Failed to download image from URL";
+                }
             }
             
             Feature feature = Feature.newBuilder()
@@ -215,10 +228,14 @@ public class ContentModerationService {
                         isLikely(annotation.getMedical());
 
                 if (isSuspicious) {
+                    log.warn("{} flagged as suspicious: Adult={}, Violence={}, Racy={}, Medical={}", 
+                            imageLabel, annotation.getAdult(), annotation.getViolence(),
+                            annotation.getRacy(), annotation.getMedical());
                     return String.format("%s: WARNING DETECTED [Adult: %s, Violence: %s, Racy: %s, Medical: %s]",
                             imageLabel, annotation.getAdult(), annotation.getViolence(),
                             annotation.getRacy(), annotation.getMedical());
                 } else {
+                    log.info("{} is SAFE", imageLabel);
                     return imageLabel + ": SAFE";
                 }
             }
@@ -226,10 +243,10 @@ public class ContentModerationService {
 
         } catch (IllegalArgumentException e) {
             log.error("Invalid base64 data for {}: {}", imageLabel, e.getMessage());
-            return imageLabel + ": FAILED - Invalid image data format";
+            return imageLabel + ": ERROR - Invalid image data format";
         } catch (Exception e) {
             log.error("Exception analyzing image {}: {}", imageLabel, e.getMessage(), e);
-            return imageLabel + ": FAILED - " + e.getMessage();
+            return imageLabel + ": ERROR - " + e.getMessage();
         }
     }
 
@@ -283,6 +300,10 @@ public class ContentModerationService {
             GenerateContentResponse response = model.generateContent(prompt);
 
             String responseText = ResponseHandler.getText(response);
+            
+            log.info("=== GEMINI AI RESPONSE ===");
+            log.info("Response: {}", responseText);
+            log.info("=========================");
 
             return responseText;
 
