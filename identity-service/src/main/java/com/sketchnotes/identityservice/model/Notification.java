@@ -68,6 +68,12 @@ public class Notification {
     private Long orderId;
     
     /**
+     * Optional reference to a project (nullable)
+     */
+    @Column(name = "project_id")
+    private Long projectId;
+    
+    /**
      * Whether the user has read this notification
      */
     @Column(name = "is_read", nullable = false)

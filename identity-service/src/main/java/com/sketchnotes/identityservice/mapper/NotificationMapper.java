@@ -32,6 +32,7 @@ public class NotificationMapper {
                 .type(notification.getType())
                 .resourceItemId(notification.getResourceItemId())
                 .orderId(notification.getOrderId())
+                .projectId(notification.getProjectId())
                 .isRead(notification.isRead())
                 .createdAt(notification.getCreatedAt())
                 .build();
@@ -56,6 +57,7 @@ public class NotificationMapper {
                 .type(request.getType())
                 .resourceItemId(request.getResourceItemId())
                 .orderId(request.getOrderId())
+                .projectId(request.getProjectId())
                 .isRead(false)
                 .build();
     }

@@ -8,6 +8,7 @@ gateway:
 ai:
   url: http://34.126.98.83:8000
 
+
 spring:
   application:
     name: project-service

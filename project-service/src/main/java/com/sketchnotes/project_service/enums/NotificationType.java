@@ -1,4 +1,4 @@
-package com.sketchnotes.identityservice.enums;
+package com.sketchnotes.project_service.enums;
 
 /**
  * Enum representing different types of notifications in the system.
@@ -44,6 +44,14 @@ public enum NotificationType {
      * Notification sent to customers when a new version of a purchased resource is available
      */
     VERSION_AVAILABLE,
+    
+    /**
+     * Notifications for project collaboration invitations
+     */
     COLLABORATION,
+    
+    /**
+     * Notifications for blog rejection
+     */
     REJECT_BLOG
 }
