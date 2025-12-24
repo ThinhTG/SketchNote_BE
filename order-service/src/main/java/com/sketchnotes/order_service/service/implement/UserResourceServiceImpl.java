@@ -283,24 +283,6 @@ public class UserResourceServiceImpl implements UserResourceService {
                             .collect(Collectors.toList()))
                     .build();
 
-            // Set items and images from user's CURRENT version (what they are using)
-            if (userCurrentVersion != null) {
-                dto.setItems(userCurrentVersion.getItems().stream()
-                        .map(item -> ResourceItemDTO.builder()
-                                .itemIndex(item.getItemIndex())
-                                .itemUrl(item.getItemUrl())
-                                .imageUrl(item.getImageUrl())
-                                .build())
-                        .collect(Collectors.toList()));
-                
-                dto.setImages(userCurrentVersion.getImages().stream()
-                        .map(img -> ResourceImageDTO.builder()
-                                .imageUrl(img.getImageUrl())
-                                .isThumbnail(img.getIsThumbnail())
-                                .build())
-                        .collect(Collectors.toList()));
-            }
-
             result.add(dto);
         }
         
