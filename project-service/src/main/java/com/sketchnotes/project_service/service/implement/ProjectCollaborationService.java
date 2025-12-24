@@ -8,12 +8,16 @@ import com.sketchnotes.project_service.dtos.response.ProjectCollaborationRespons
 import com.sketchnotes.project_service.dtos.response.UserResponse;
 import com.sketchnotes.project_service.entity.Project;
 import com.sketchnotes.project_service.entity.ProjectCollaboration;
+import com.sketchnotes.project_service.enums.NotificationType;
+import com.sketchnotes.project_service.events.NotificationEvent;
 import com.sketchnotes.project_service.exception.AppException;
 import com.sketchnotes.project_service.exception.ErrorCode;
+import com.sketchnotes.project_service.producer.NotificationProducer;
 import com.sketchnotes.project_service.repository.IProjectCollaborationRepository;
 import com.sketchnotes.project_service.repository.IProjectRepository;
 import com.sketchnotes.project_service.service.IProjectCollaborationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,10 +25,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProjectCollaborationService implements IProjectCollaborationService {
     private final IProjectCollaborationRepository projectCollaborationRepository;
     private final IProjectRepository projectRepository;
     private final IUserClient userClient;
+    private final NotificationProducer notificationProducer;
 
     @Override
     public void inviteUserToProject(CollabRequest dto) {
@@ -35,7 +41,7 @@ public class ProjectCollaborationService implements IProjectCollaborationService
             throw new AppException(ErrorCode.FORBIDDEN_ACTION);
         }
         ProjectCollaboration collab = projectCollaborationRepository.findByProjectAndUserIdAndDeletedAtIsNull(
-                        project, user.getResult().getId())
+                        project, dto.getUserId())
                 .orElse(null);
         if (collab != null) {
             throw new AppException(ErrorCode.USER_ALREADY_COLLABORATOR);
@@ -51,6 +57,17 @@ public class ProjectCollaborationService implements IProjectCollaborationService
         projectCollaboration.setEdited(dto.isEdited());
         projectCollaborationRepository.save(projectCollaboration);
 
+        // Send notification event to Kafka
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .userId(collabUser.getResult().getId())
+                .title("Project Collaboration Invitation")
+                .message(String.format("You have been invited to collaborate on project: %s",
+                        project.getName()))
+                .type(NotificationType.COLLABORATION.toString())
+                .projectId(project.getProjectId())
+                .build();
+        
+        notificationProducer.sendNotificationEvent(notificationEvent);
     }
 
     @Override

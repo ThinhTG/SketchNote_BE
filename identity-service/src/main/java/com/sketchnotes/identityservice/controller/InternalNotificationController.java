@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/internal/notifications")
 @RequiredArgsConstructor
 @Slf4j
-@Hidden // Hide from Swagger UI as these are internal endpoints
+@Hidden
 public class InternalNotificationController {
     
     private final INotificationService notificationService;

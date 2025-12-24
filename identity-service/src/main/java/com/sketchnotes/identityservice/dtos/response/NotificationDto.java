@@ -28,6 +28,8 @@ public class NotificationDto {
     
     private Long orderId;
     
+    private Long projectId;
+    
     private boolean isRead;
     
     private LocalDateTime createdAt;

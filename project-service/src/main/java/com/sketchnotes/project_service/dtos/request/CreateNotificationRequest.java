@@ -1,13 +1,13 @@
-package com.sketchnotes.identityservice.dtos.request;
+package com.sketchnotes.project_service.dtos.request;
 
-import com.sketchnotes.identityservice.enums.NotificationType;
+import com.sketchnotes.project_service.enums.NotificationType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 /**
  * Request DTO for creating a new notification.
- * Used by internal services and admin endpoints.
+ * Used for internal service-to-service communication.
  */
 @Getter
 @Setter
@@ -37,17 +37,7 @@ public class CreateNotificationRequest {
     /**
      * Type of notification
      */
-    private NotificationType type;
-    
-    /**
-     * Optional resource/template reference
-     */
-    private Long resourceItemId;
-    
-    /**
-     * Optional order reference
-     */
-    private Long orderId;
+    private String type;
     
     /**
      * Optional project reference
