@@ -14,6 +14,7 @@ public enum ErrorCode {
     UNAUTHENTICATED(401, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(401, "You do not have permission", HttpStatus.FORBIDDEN),
     INVALID_KEY(1001, "Invalid key", HttpStatus.BAD_REQUEST),
+    USER_ALREADY_COLLABORATOR(400, "User is already a collaborator in this project", HttpStatus.BAD_REQUEST),
 
     // User errors
     USER_NOT_EXISTED(400, "User does not exist", HttpStatus.BAD_REQUEST),

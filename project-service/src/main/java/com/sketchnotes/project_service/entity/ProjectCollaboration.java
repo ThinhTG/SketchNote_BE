@@ -23,6 +23,7 @@ public class ProjectCollaboration {
 
     private Long userId;
     private boolean isEdited;
+    private boolean isAccepted = false;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;

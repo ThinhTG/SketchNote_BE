@@ -1,6 +1,7 @@
 package com.sketchnotes.project_service.controller;
 
 import com.sketchnotes.project_service.dtos.ApiResponse;
+import com.sketchnotes.project_service.dtos.request.AcceptanceRequest;
 import com.sketchnotes.project_service.dtos.request.CollabRequest;
 import com.sketchnotes.project_service.dtos.response.ProjectCollaborationResponse;
 import com.sketchnotes.project_service.service.IProjectCollaborationService;
@@ -41,5 +42,13 @@ public class ProjectCollaborationController {
             @PathVariable Long projectId) {
         List<ProjectCollaborationResponse> collaborators = projectCollaborationService.listProjectCollaborators(projectId);
         return ResponseEntity.ok(ApiResponse.success(collaborators, "Get data successful"));
+    }
+    @PutMapping("/accept")
+    public ResponseEntity<ApiResponse<String>> acceptInvitation(@RequestBody AcceptanceRequest dto) {
+        projectCollaborationService.acceptProjectInvitation(dto);
+        if(dto.isAccepted()) {
+            return ResponseEntity.ok(ApiResponse.success("Invitation accepted successfully"));
+        }
+            return ResponseEntity.ok(ApiResponse.success("Invitation declined successfully"));
     }
 }

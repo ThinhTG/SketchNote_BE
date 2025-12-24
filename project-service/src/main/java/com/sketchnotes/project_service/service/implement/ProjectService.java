@@ -124,7 +124,6 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
-
     public ProjectListResponse getSharedProjectsCurrentUser() {
         ApiResponse<UserResponse> user = userClient.getCurrentUser();
         List<ProjectCollaboration> projects = projectCollaborationRepository.findByUserIdAndDeletedAtIsNull(user.getResult().getId());
@@ -135,7 +134,7 @@ public class ProjectService implements IProjectService {
                 .map(pc -> {
                     Project project = pc.getProject();
                     boolean isEdited = pc.isEdited();
-                    return ProjectMapper.toCollabProjectDTO(project, isEdited);
+                    return ProjectMapper.toCollabProjectDTO(project, isEdited, pc.isAccepted());
                 })
                 .toList());
     }

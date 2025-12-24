@@ -50,7 +50,7 @@ public class ProjectMapper {
                 .build();
     }
 
-    public static ProjectResponse toCollabProjectDTO(Project project, boolean isEdited) {
+    public static ProjectResponse toCollabProjectDTO(Project project, boolean isEdited,boolean isAccepted) {
         if(project.getPages() == null || project.getPages().isEmpty()) {
             return ProjectResponse.builder()
                     .projectId(project.getProjectId())
@@ -59,6 +59,7 @@ public class ProjectMapper {
                     .paperSize(project.getPaperSize() == null ? null : project.getPaperSize().toString())
                     .ownerId(project.getOwnerId())
                     .imageUrl(project.getImageUrl())
+                    .isAccepted(isAccepted)
                     .isEdited(isEdited)
                     .isOwner(false)
                     .pages(null)
@@ -80,6 +81,7 @@ public class ProjectMapper {
                 .paperSize(project.getPaperSize() == null ? null : project.getPaperSize().toString())
                 .isEdited(isEdited)
                 .isOwner(false)
+                .isAccepted(isAccepted)
                 .pages(activePages)
                 .build();
     }
