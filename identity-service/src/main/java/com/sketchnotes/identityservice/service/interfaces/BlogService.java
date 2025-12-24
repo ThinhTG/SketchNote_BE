@@ -2,6 +2,7 @@ package com.sketchnotes.identityservice.service.interfaces;
 
 import com.sketchnotes.identityservice.dtos.request.BlogRequest;
 import com.sketchnotes.identityservice.dtos.request.UpdateBlogRequest;
+import com.sketchnotes.identityservice.dtos.response.BlogModerationHistoryResponse;
 import com.sketchnotes.identityservice.dtos.response.BlogResponse;
 import com.sketchnotes.identityservice.enums.BlogStatus;
 import com.sketchnotes.identityservice.ultils.PagedResponse;
@@ -17,4 +18,6 @@ public interface BlogService {
     void deleteBlog(Long id);
     List<BlogResponse> getBlogsByUserId(Long userId);
     List<BlogResponse> getMyBlogs();
+    List<BlogModerationHistoryResponse> getAllModerationHistory(Long blogId);
+    BlogModerationHistoryResponse getLatestModerationHistory(Long blogId);
 }
