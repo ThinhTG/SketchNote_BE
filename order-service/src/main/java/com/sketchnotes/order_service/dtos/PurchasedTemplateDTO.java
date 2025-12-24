@@ -40,11 +40,6 @@ public class PurchasedTemplateDTO {
     private boolean hasNewerVersion;
     
     // Available versions for the user (purchased version + all newer versions)
+    // Each version contains its own images and items
     private List<ResourceTemplateVersionDTO> availableVersions;
-    
-    // Images from current version (for display)
-    private List<ResourceImageDTO> images;
-    
-    // Items from current version (for download/use)
-    private List<ResourceItemDTO> items;
 }
