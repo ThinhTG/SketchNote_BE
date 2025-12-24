@@ -30,7 +30,7 @@ public class SubscriptionPlan {
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
-
+    private Integer numberOfProjects;
     @Column(length = 10)
     private String currency = "VND";
 

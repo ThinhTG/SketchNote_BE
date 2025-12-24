@@ -234,8 +234,7 @@ public class UserResourceServiceImpl implements UserResourceService {
                 latestVersion = templateVersions.get(templateVersions.size() - 1);
             }
             
-            // Determine if there's a newer version available for upgrade
-            // User's effective current version is: currentVersionId if set, otherwise purchasedVersionId
+
             Long userEffectiveVersionId = userCurrentVersionId != null ? userCurrentVersionId : purchasedVersionId;
             boolean hasNewerVersion = false;
             

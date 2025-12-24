@@ -24,7 +24,7 @@ public class UserProfileWithSubscriptionResponse implements Serializable {
     private Boolean hasActiveSubscription;
     private String subscriptionType;  // "Free", "Customer Pro - Monthly", "Designer - Yearly", etc.
     private LocalDateTime subscriptionEndDate;
-    private Integer maxProjects;  // -1 for unlimited, 3 for free tier
+    private Integer maxProjects;
     private Integer currentProjects;  // Current number of projects
     private Boolean canCreateProject;  // Whether user can create more projects
 }

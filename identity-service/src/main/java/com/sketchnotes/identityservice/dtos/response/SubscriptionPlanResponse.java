@@ -21,6 +21,7 @@ public class SubscriptionPlanResponse {
     private Integer durationDays;
     private String description;
     private Boolean isActive;
+    private Integer numberOfProjects;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
