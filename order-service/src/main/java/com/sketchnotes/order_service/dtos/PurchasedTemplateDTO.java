@@ -10,7 +10,8 @@ import java.util.List;
 
 /**
  * DTO for purchased templates that includes both the purchased version 
- * and the current (latest) version for user access
+ * and the current (latest) version for user access.
+ * Also used for templates owned by the user (designer's own resources).
  */
 @Data
 @NoArgsConstructor
@@ -23,14 +24,16 @@ public class PurchasedTemplateDTO {
     private String description;
     private String type;
     private BigDecimal price;
-    private LocalDate expiredTime;
     private LocalDate releaseDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String status;
     
+    // Indicates if the current user is the owner (designer) of this resource
+    private Boolean isOwner;
+    
     // Version information
-    private Long purchasedVersionId;        // Version ID that user originally purchased
+    private Long purchasedVersionId;        // Version ID that user originally purchased (null for owned resources)
     private String purchasedVersionNumber;  // Version number user purchased (e.g., "1.0")
     private Long currentVersionId;          // Version ID user is currently using (can be upgraded)
     private String currentVersionNumber;    // Version number user is currently using

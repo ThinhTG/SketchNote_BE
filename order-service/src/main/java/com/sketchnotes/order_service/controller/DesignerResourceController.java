@@ -119,12 +119,6 @@ public class DesignerResourceController {
         if (dto.getReleaseDate() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Release date is required and must be >= today");
         }
-        if (dto.getExpiredTime() != null && dto.getReleaseDate() != null) {
-            if (dto.getExpiredTime().isBefore(dto.getReleaseDate())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                        "Expiration date must be after the release date");
-            }
-        }
         
         ResourceTemplateVersionDTO version = designerResourceService.createNewVersion(
                 resourceTemplateId, designerId, dto);
@@ -136,7 +130,7 @@ public class DesignerResourceController {
     @Operation(
         summary = "Cập nhật version đang PENDING_REVIEW",
         description = "Chỉ có thể cập nhật version có status PENDING_REVIEW (chưa được approve). " +
-                      "Có thể update name, description, price, images, items, releaseDate, expiredTime."
+                      "Có thể update name, description, price, images, items, releaseDate."
     )
     @PutMapping("/versions/{versionId}")
     public ResponseEntity<ApiResponse<ResourceTemplateVersionDTO>> updateVersion(

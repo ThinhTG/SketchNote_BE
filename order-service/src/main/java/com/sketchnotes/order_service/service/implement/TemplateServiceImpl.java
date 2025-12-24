@@ -320,7 +320,6 @@ public class TemplateServiceImpl implements TemplateService {
         existingTemplate.setName(templateDTO.getName());
         existingTemplate.setDescription(templateDTO.getDescription());
         existingTemplate.setPrice(templateDTO.getPrice());
-        existingTemplate.setExpiredTime(templateDTO.getExpiredTime());
         existingTemplate.setReleaseDate(templateDTO.getReleaseDate());
         
         if (templateDTO.getType() != null) {
@@ -369,11 +368,8 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getTemplatesExpiringSoon(int days) {
-        LocalDate expiryDate = LocalDate.now().plusDays(days);
-        List<ResourceTemplate> templates = resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED).stream()
-                .filter(t -> t.getExpiredTime() != null && t.getExpiredTime().isBefore(expiryDate))
-                .toList();
-        return orderMapper.toTemplateDtoList(templates);
+        // This method is deprecated as expiredTime field has been removed
+        return java.util.Collections.emptyList();
     }
 
     @Override
@@ -525,7 +521,6 @@ public class TemplateServiceImpl implements TemplateService {
             template.setDescription(version.getDescription());
             template.setType(version.getType());
             template.setPrice(version.getPrice());
-            template.setExpiredTime(version.getExpiredTime());
             template.setReleaseDate(version.getReleaseDate());
 
             template.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
@@ -641,13 +636,6 @@ public class TemplateServiceImpl implements TemplateService {
         
         template.setPrice(templateDTO.getPrice());
         
-        // Convert LocalDateTime to LocalDate for expiredTime
-        if (templateDTO.getExpiredTime() != null) {
-            template.setExpiredTime(templateDTO.getExpiredTime().toLocalDate());
-        } else {
-            throw new IllegalArgumentException("Expired time is required");
-        }
-        
         template.setReleaseDate(LocalDate.now());
         template.setDesignerId(userId);
         template.setStatus(ResourceTemplate.TemplateStatus.PENDING_REVIEW);
@@ -686,7 +674,6 @@ public class TemplateServiceImpl implements TemplateService {
         version.setTemplateId(saved.getTemplateId());
         version.setPrice(saved.getPrice());
         version.setType(saved.getType());
-        version.setExpiredTime(saved.getExpiredTime());
         version.setReleaseDate(saved.getReleaseDate());
         version.setStatus(ResourceTemplate.TemplateStatus.PENDING_REVIEW);
         version.setCreatedBy(userId);

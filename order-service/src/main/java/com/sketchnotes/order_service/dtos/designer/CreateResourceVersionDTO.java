@@ -23,7 +23,6 @@ public class CreateResourceVersionDTO {
     private String description;
     private String type;
     private BigDecimal price;
-    private LocalDate expiredTime;
     private LocalDate releaseDate;
     
     // Images and items

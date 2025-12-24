@@ -137,7 +137,6 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
                 .description(dto.getDescription() != null ? dto.getDescription() : template.getDescription())
                 .type(dto.getType() != null ? ResourceTemplate.TemplateType.valueOf(dto.getType().toUpperCase()) : template.getType())
                 .price(dto.getPrice() != null ? dto.getPrice() : template.getPrice())
-                .expiredTime(dto.getExpiredTime())
                 .releaseDate(dto.getReleaseDate() != null ? dto.getReleaseDate() : LocalDate.now())
                 .status(ResourceTemplate.TemplateStatus.PENDING_REVIEW)
                 .createdBy(designerId)
@@ -209,7 +208,6 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
             version.setType(ResourceTemplate.TemplateType.valueOf(dto.getType().toUpperCase()));
         }
         if (dto.getPrice() != null) version.setPrice(dto.getPrice());
-        if (dto.getExpiredTime() != null) version.setExpiredTime(dto.getExpiredTime());
         if (dto.getReleaseDate() != null) version.setReleaseDate(dto.getReleaseDate());
 
         // Update images
@@ -357,7 +355,6 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
         template.setDescription(version.getDescription());
         template.setType(version.getType());
         template.setPrice(version.getPrice());
-        template.setExpiredTime(version.getExpiredTime());
         template.setReleaseDate(version.getReleaseDate());
         
         ResourceTemplate updated = resourceTemplateRepository.save(template);
