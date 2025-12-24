@@ -125,7 +125,7 @@ public class ProjectCollaborationService implements IProjectCollaborationService
         ProjectCollaboration projectCollaboration = projectCollaborationRepository.findByProjectAndUserIdAndDeletedAtIsNull(
                         project, user.getResult().getId())
                 .orElseThrow(() -> new AppException(ErrorCode.COLLAB_NOT_FOUND));
-        if (projectCollaboration.isAccepted()) {
+        if (request.isAccepted()) {
             projectCollaboration.setAccepted(true);
         }else {
             projectCollaboration.setDeletedAt(LocalDateTime.now());

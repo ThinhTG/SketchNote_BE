@@ -19,15 +19,11 @@ public class NotificationProducer {
     
     private static final String TOPIC = "notification-created";
     
-    /**
-     * Send notification event to Kafka
-     * @param event notification event object
-     */
+
     public void sendNotificationEvent(Object event) {
         try {
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(TOPIC, message);
-            log.info("Sent notification event to Kafka topic: {}", TOPIC);
         } catch (Exception e) {
             log.error("Failed to send notification event to Kafka: {}", e.getMessage(), e);
         }
