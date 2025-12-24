@@ -408,4 +408,55 @@ public class UserResourceServiceImpl implements UserResourceService {
         // 5. Check if user's effective version is different from latest
         return !userEffectiveVersionId.equals(latestVersionId);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<ResourceTemplateDTO> getDesignerPublishedTemplates(Long designerId) {
+        // Get all PUBLISHED templates that the designer owns
+        List<ResourceTemplate> ownedTemplates = resourceTemplateRepository
+                .findByDesignerIdAndStatus(designerId, ResourceTemplate.TemplateStatus.PUBLISHED);
+        
+        if (ownedTemplates == null || ownedTemplates.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        
+        List<ResourceTemplateDTO> result = new ArrayList<>();
+        for (ResourceTemplate rt : ownedTemplates) {
+            // Get thumbnail/banner image
+            List<ResourcesTemplateImage> images = imageRepository.findByResourceTemplateAndIsThumbnailTrue(rt)
+                    .orElse(null);
+            
+            ResourceTemplateDTO dto = ResourceTemplateDTO.builder()
+                    .resourceTemplateId(rt.getTemplateId())
+                    .designerId(rt.getDesignerId())
+                    .name(rt.getName())
+                    .description(rt.getDescription())
+                    .isOwner(true) // Always true since these are designer's own templates
+                    .type(rt.getType() != null ? rt.getType().name() : null)
+                    .price(rt.getPrice())
+                    .bannerUrl((images != null && !images.isEmpty() ? images.get(0).getImageUrl() : null))
+                    .releaseDate(rt.getReleaseDate())
+                    .createdAt(rt.getCreatedAt())
+                    .updatedAt(rt.getUpdatedAt())
+                    .status(rt.getStatus() != null ? rt.getStatus().name() : null)
+                    .build();
+
+            // Get items from the template
+            if (rt.getItems() != null) {
+                List<ResourceItemDTO> itemDTOs = new ArrayList<>();
+                for (ResourceTemplateItem item : rt.getItems()) {
+                    itemDTOs.add(ResourceItemDTO.builder()
+                            .resourceItemId(item.getResourceItemId())
+                            .itemIndex(item.getItemIndex())
+                            .itemUrl(item.getItemUrl())
+                            .imageUrl(item.getImageUrl())
+                            .build());
+                }
+                dto.setItems(itemDTOs);
+            }
+
+            result.add(dto);
+        }
+        return result;
+    }
 }

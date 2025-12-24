@@ -66,4 +66,13 @@ public interface UserResourceService {
      * @return true if a newer version is available
      */
     boolean hasNewerVersionAvailable(Long userId, Long resourceTemplateId);
+    
+    /**
+     * Lấy danh sách ResourceTemplate mà Designer đã đăng bán (không bao gồm các resource đã mua).
+     * Chỉ lấy các resource có status PUBLISHED.
+     * 
+     * @param designerId the designer's user ID
+     * @return list of published templates owned by the designer
+     */
+    List<ResourceTemplateDTO> getDesignerPublishedTemplates(Long designerId);
 }
