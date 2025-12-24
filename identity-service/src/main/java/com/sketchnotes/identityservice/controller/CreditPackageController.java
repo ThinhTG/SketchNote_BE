@@ -30,35 +30,23 @@ public class CreditPackageController {
     
     private final INotificationService.ICreditPackageService creditPackageService;
     private final IUserRepository userRepository;
-    
-    /**
-     * Lấy danh sách các gói credit đang active (cho User)
-     * GET /api/credit-packages
-     */
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<CreditPackageResponse>>> getActivePackages() {
-        log.info("Getting active credit packages");
         List<CreditPackageResponse> packages = creditPackageService.getActivePackages();
         return ResponseEntity.ok(ApiResponse.success(packages, "Credit packages retrieved successfully"));
     }
     
-    /**
-     * Lấy thông tin một gói credit theo ID
-     * GET /api/credit-packages/{id}
-     */
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<CreditPackageResponse>> getPackageById(@PathVariable Long id) {
-        log.info("Getting credit package by ID: {}", id);
         CreditPackageResponse response = creditPackageService.getPackageById(id);
         return ResponseEntity.ok(ApiResponse.success(response, "Credit package retrieved successfully"));
     }
-    
-    // ==================== USER APIs ====================
-    
+
     /**
      * Mua gói credit package (User)
      * POST /api/credit-packages/{packageId}/purchase
-     * 
      * Thanh toán bằng wallet, cộng credits vào tài khoản user
      */
     @PostMapping("/{packageId}/purchase")

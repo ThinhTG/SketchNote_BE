@@ -31,6 +31,7 @@ public class SubscriptionPlanService implements ISubscriptionPlanService {
                 .planName(request.getPlanName())
                 .planType(request.getPlanType())
                 .price(request.getPrice())
+                .numberOfProjects(request.getNumberOfProjects())
                 .currency(request.getCurrency())
                 .durationDays(request.getDurationDays())
                 .description(request.getDescription())
@@ -38,7 +39,6 @@ public class SubscriptionPlanService implements ISubscriptionPlanService {
                 .build();
 
         SubscriptionPlan savedPlan = subscriptionPlanRepository.save(plan);
-        log.info("Created subscription plan with ID: {}", savedPlan.getPlanId());
 
         return mapToResponse(savedPlan);
     }
@@ -46,21 +46,19 @@ public class SubscriptionPlanService implements ISubscriptionPlanService {
     @Override
     @Transactional
     public SubscriptionPlanResponse updatePlan(Long planId, SubscriptionPlanRequest request) {
-        log.info("Updating subscription plan ID: {}", planId);
-
         SubscriptionPlan plan = subscriptionPlanRepository.findById(planId)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
 
         plan.setPlanName(request.getPlanName());
         plan.setPlanType(request.getPlanType());
         plan.setPrice(request.getPrice());
+        plan.setNumberOfProjects(request.getNumberOfProjects());
         plan.setCurrency(request.getCurrency());
         plan.setDurationDays(request.getDurationDays());
         plan.setDescription(request.getDescription());
         plan.setIsActive(request.getIsActive());
 
         SubscriptionPlan updatedPlan = subscriptionPlanRepository.save(plan);
-        log.info("Updated subscription plan ID: {}", planId);
 
         return mapToResponse(updatedPlan);
     }

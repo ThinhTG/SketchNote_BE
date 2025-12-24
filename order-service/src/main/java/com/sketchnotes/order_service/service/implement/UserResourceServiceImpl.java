@@ -201,19 +201,19 @@ public class UserResourceServiceImpl implements UserResourceService {
             Long userCurrentVersionId = userResource.getCurrentVersionId(); // Version user is currently using
             List<ResourceTemplateVersion> templateVersions = new ArrayList<>(
                     versionsByTemplate.getOrDefault(template.getTemplateId(), new ArrayList<>()));
-            
+
             // Get latest published version - USE template.getCurrentPublishedVersionId() as the SINGLE SOURCE OF TRUTH
             // This is updated when staff approves a new version in reviewVersion()
             Long latestPublishedVersionId = template.getCurrentPublishedVersionId();
             ResourceTemplateVersion latestVersion = null;
-            
+
             if (latestPublishedVersionId != null) {
                 // Try to find latest version in the existing list
                 latestVersion = templateVersions.stream()
                         .filter(v -> v.getVersionId().equals(latestPublishedVersionId))
                         .findFirst()
                         .orElse(null);
-                
+
                 // If latest version is NOT in the list, fetch it separately and add to list
                 // This ensures availableVersions includes ALL versions the user can access
                 if (latestVersion == null) {
@@ -225,7 +225,7 @@ public class UserResourceServiceImpl implements UserResourceService {
                     }
                 }
             }
-            
+
             // Fallback: if still no latestVersion, use the last in list
             if (latestVersion == null && !templateVersions.isEmpty()) {
                 latestVersion = templateVersions.get(templateVersions.size() - 1);
@@ -245,7 +245,7 @@ public class UserResourceServiceImpl implements UserResourceService {
                     .filter(v -> v.getVersionId().equals(userCurrentVersionId))
                     .findFirst()
                     .orElse(purchasedVersion); // fallback to purchased version if currentVersionId is null
-            
+
             // Determine if there's a newer version available for upgrade
             // User's effective current version is: currentVersionId if set, otherwise purchasedVersionId
             Long userEffectiveVersionId = userCurrentVersionId != null ? userCurrentVersionId : purchasedVersionId;
