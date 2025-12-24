@@ -87,7 +87,24 @@ public class UserResourceController {
     }
 
     /**
-     * 🛒 [POST] Thêm mới user_resource (sử dụng khi test hoặc admin muốn thêm thủ công)
+     * � [GET] Lấy danh sách ResourceTemplate mà Designer đã đăng bán (không bao gồm các resource đã mua)
+     * Chỉ lấy các resource có status PUBLISHED.
+     */
+    @Operation(
+        summary = "Get designer's published templates",
+        description = "Returns all templates that the current user (as a designer) has published for sale. " +
+                      "This does NOT include purchased templates, only the ones created and published by the user."
+    )
+    @GetMapping("/user/me/published-templates")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<List<ResourceTemplateDTO>>> getMyPublishedTemplates() {
+        var user = identityClient.getCurrentUser();
+        List<ResourceTemplateDTO> templates = userResourceService.getDesignerPublishedTemplates(user.getResult().getId());
+        return ResponseEntity.ok(ApiResponse.success(templates, "Fetched designer's published templates"));
+    }
+
+    /**
+     * �🛒 [POST] Thêm mới user_resource (sử dụng khi test hoặc admin muốn thêm thủ công)
      * Trong thực tế, Kafka consumer sẽ tạo tự động sau khi payment success.
      */
     @PostMapping
