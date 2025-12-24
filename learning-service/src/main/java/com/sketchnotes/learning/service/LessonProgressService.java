@@ -2,11 +2,10 @@ package com.sketchnotes.learning.service;
 
 import com.sketchnotes.learning.dto.UpdateProgressRequest;
 import com.sketchnotes.learning.dto.enums.ProgressStatus;
-import com.sketchnotes.learning.entity.UserLessonProgress;
 import com.sketchnotes.learning.repository.CourseEnrollmentRepository;
-import com.sketchnotes.learning.repository.CourseRepository;
 import com.sketchnotes.learning.repository.LessonRepository;
 import com.sketchnotes.learning.repository.UserLessonProgressRepository;
+import com.sketchnotes.learning.service.interfaces.ILessonProgressService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,12 +18,12 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class LessonProgressService {
+public class LessonProgressService implements ILessonProgressService {
     private final UserLessonProgressRepository progressRepo;
     private final LessonRepository lessonRepo;
-    private final CourseRepository courseRepo;
     private final CourseEnrollmentRepository enrollRepo;
 
+    @Override
     @Transactional
     public void updateLessonProgress(Long userId, Long courseId, Long lessonId, UpdateProgressRequest request) {
         // Kiểm tra enrollment tồn tại và đã thanh toán

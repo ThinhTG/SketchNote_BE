@@ -2,7 +2,7 @@ package com.sketchnotes.learning.controller;
 
 import com.sketchnotes.learning.dto.ApiResponse;
 import com.sketchnotes.learning.dto.LessonDTO;
-import com.sketchnotes.learning.service.LessonService;
+import com.sketchnotes.learning.service.interfaces.ILessonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LessonController {
 
-    private final LessonService lessonService;
+    private final ILessonService lessonService;
 
     @PostMapping("/{courseId}")
     public ResponseEntity<ApiResponse<List<LessonDTO>>> createLessons(

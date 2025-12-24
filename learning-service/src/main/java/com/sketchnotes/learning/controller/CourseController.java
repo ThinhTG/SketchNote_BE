@@ -4,7 +4,7 @@ import com.sketchnotes.learning.client.IdentityClient;
 import com.sketchnotes.learning.dto.ApiResponse;
 import com.sketchnotes.learning.dto.CourseDTO;
 import com.sketchnotes.learning.dto.UpdateCourseRatingRequest;
-import com.sketchnotes.learning.service.CourseService;
+import com.sketchnotes.learning.service.interfaces.ICourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("/api/learning/courses")
 @RequiredArgsConstructor
 public class CourseController {
-    private final CourseService courseService;
+    private final ICourseService courseService;
     private final IdentityClient identityClient;
 
     @GetMapping

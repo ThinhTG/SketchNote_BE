@@ -15,6 +15,8 @@ import com.sketchnotes.learning.mapper.CourseMapper;
 import com.sketchnotes.learning.mapper.EnrollmentMapper;
 import com.sketchnotes.learning.repository.CourseEnrollmentRepository;
 import com.sketchnotes.learning.repository.CourseRepository;
+import com.sketchnotes.learning.repository.UserLessonProgressRepository;
+import com.sketchnotes.learning.service.interfaces.IEnrollmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,14 +30,15 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class EnrollmentService {
+public class EnrollmentService implements IEnrollmentService {
     private final CourseEnrollmentRepository enrollmentRepository;
     private final CourseRepository courseRepository;
     private final EnrollmentMapper enrollmentMapper;
     private final CourseMapper courseMapper;
     private final IdentityClient identityClient;
-    private final com.sketchnotes.learning.repository.UserLessonProgressRepository progressRepo;
+    private final UserLessonProgressRepository progressRepo;
 
+    @Override
     public EnrollmentDTO enroll(long courseId, long userId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
@@ -85,6 +88,7 @@ public class EnrollmentService {
         }
     }
 
+    @Override
     public Map<String, List<CourseDTO>> getUserCourseStatus(long userId) {
         List<Course> allCourses = courseRepository.findAll();
         List<CourseEnrollment> enrollments = enrollmentRepository.findByUserId(userId);
@@ -107,7 +111,7 @@ public class EnrollmentService {
         return result;
     }
 
-    // Lấy tất cả enrollment của user (kèm progressPercent)
+    @Override
     public List<EnrollmentDTO> getEnrollmentsByUser(Long userId) {
         List<CourseEnrollment> enrollments = enrollmentRepository.findByUserId(userId);
         return enrollments.stream()
@@ -136,9 +140,7 @@ public class EnrollmentService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Lấy enrollment của user cho 1 course cụ thể, kèm thông tin lesson progress
-     */
+    @Override
     public EnrollmentDTO getEnrollmentByUserAndCourse(Long userId, Long courseId) {
         CourseEnrollment enrollment = enrollmentRepository.findByUserIdAndCourse_CourseId(userId, courseId)
                 .orElseThrow(() -> new RuntimeException("Enrollment not found for user and course"));
@@ -166,8 +168,4 @@ public class EnrollmentService {
 
         return dto;
     }
-
-
-
-
 }

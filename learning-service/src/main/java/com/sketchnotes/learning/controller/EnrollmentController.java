@@ -4,7 +4,7 @@ import com.sketchnotes.learning.client.IdentityClient;
 import com.sketchnotes.learning.dto.ApiResponse;
 import com.sketchnotes.learning.dto.CourseDTO;
 import com.sketchnotes.learning.dto.EnrollmentDTO;
-import com.sketchnotes.learning.service.EnrollmentService;
+import com.sketchnotes.learning.service.interfaces.IEnrollmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ import java.util.Map;
 @RequestMapping("/api/learning/enrollments")
 @RequiredArgsConstructor
 public class EnrollmentController {
-    private final EnrollmentService enrollmentService;
+    private final IEnrollmentService enrollmentService;
     private final IdentityClient identityClient;
 
     @PostMapping("/{courseId}")

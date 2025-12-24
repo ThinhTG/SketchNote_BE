@@ -3,7 +3,7 @@ package com.sketchnotes.learning.controller;
 import com.sketchnotes.learning.client.IdentityClient;
 import com.sketchnotes.learning.dto.ApiResponse;
 import com.sketchnotes.learning.dto.UpdateProgressRequest;
-import com.sketchnotes.learning.service.LessonProgressService;
+import com.sketchnotes.learning.service.interfaces.ILessonProgressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/learning")
 @RequiredArgsConstructor
 public class LessonProgressController {
-    private final LessonProgressService lessonProgressService;
+    private final ILessonProgressService lessonProgressService;
     private final IdentityClient identityClient;
 
     @PostMapping("/courses/{courseId}/lessons/{lessonId}/progress")

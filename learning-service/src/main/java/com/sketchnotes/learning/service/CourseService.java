@@ -7,6 +7,7 @@ import com.sketchnotes.learning.exception.ErrorCode;
 import com.sketchnotes.learning.mapper.CourseMapper;
 import com.sketchnotes.learning.repository.CourseEnrollmentRepository;
 import com.sketchnotes.learning.repository.CourseRepository;
+import com.sketchnotes.learning.service.interfaces.ICourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,17 +16,18 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CourseService {
+public class CourseService implements ICourseService {
     private final CourseRepository courseRepository;
     private final CourseMapper courseMapper;
     private final CourseEnrollmentRepository enrollmentRepository;
 
+    @Override
     public List<CourseDTO> getAllCourses() {
         List<Course> courses = courseRepository.findAllWithLessons();
         return courseMapper.toDTOList(courses);
     }
 
-    // 1. Tạo Course
+    @Override
     public CourseDTO createCourse(CourseDTO dto) {
         Course course = courseMapper.toEntity(dto);
         course.setCreatedAt(LocalDateTime.now());
@@ -47,15 +49,14 @@ public class CourseService {
         return courseMapper.toDTO(saved);
     }
 
-    // 2. Lấy khóa học theo ID
+    @Override
     public CourseDTO getCourseById(Long id) {
         Course course = courseRepository.findByIdWithLessons(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
         return courseMapper.toDTO(course);
     }
 
-
-    // 4. Cập nhật khóa học
+    @Override
     public CourseDTO updateCourse(Long id, CourseDTO dto) {
         Course existingCourse = courseRepository.findByIdWithLessons(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
@@ -80,8 +81,7 @@ public class CourseService {
         return courseMapper.toDTO(updated);
     }
 
-
-    // 5. Xóa khóa học
+    @Override
     public void deleteCourse(Long id) {
         if (!courseRepository.existsById(id)) {
             throw new RuntimeException("Course not found with id: " + id);
@@ -95,24 +95,19 @@ public class CourseService {
         courseRepository.deleteById(id);
     }
 
-    // Get enrolled courses of a user
+    @Override
     public List<CourseDTO> getEnrolledCourses(Long userId) {
         List<Course> enrolledCourses = courseRepository.findEnrolledCoursesByUserId(userId);
         return courseMapper.toDTOList(enrolledCourses);
     }
 
-    // Get not enrolled courses of a user
+    @Override
     public List<CourseDTO> getNotEnrolledCourses(Long userId) {
         List<Course> notEnrolledCourses = courseRepository.findNotEnrolledCoursesByUserId(userId);
         return courseMapper.toDTOList(notEnrolledCourses);
     }
 
-    /**
-     * Cập nhật rating cho khóa học (được gọi từ identity-service khi có feedback mới)
-     * @param courseId ID của khóa học
-     * @param avgRating Điểm trung bình mới
-     * @param ratingCount Tổng số rating
-     */
+    @Override
     public void updateCourseRating(Long courseId, Double avgRating, Integer ratingCount) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
@@ -124,12 +119,7 @@ public class CourseService {
         courseRepository.save(course);
     }
 
-    /**
-     * Lấy thông tin rating của một khóa học
-     */
-    public CourseDTO getCourseRating(Long courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
+    @Override
         
         CourseDTO dto = new CourseDTO();
         dto.setCourseId(course.getCourseId());
