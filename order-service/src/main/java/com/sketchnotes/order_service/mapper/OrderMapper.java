@@ -55,7 +55,9 @@ public interface OrderMapper {
     @org.mapstruct.Mapping(target = "images", source = "images")
     @Mapping(target = "items", source = "items")
     ResourceTemplateDTO toDto(ResourceTemplate template);
+    
     ResourceTemplate toEntity(ResourceTemplateDTO dto);
+    
     List<ResourceTemplateDTO> toTemplateDtoList(List<ResourceTemplate> templates);
 
     // ResourceTemplateItem <-> ResourceItemDTO

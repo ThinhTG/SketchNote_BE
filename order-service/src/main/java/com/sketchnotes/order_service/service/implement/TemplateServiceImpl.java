@@ -62,9 +62,19 @@ public class TemplateServiceImpl implements TemplateService {
     public PagedResponseDTO<ResourceTemplateDTO> getAllActiveTemplates(int page, int size, String sortBy, String sortDir, Long currentUserId) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        // State Machine: Chỉ lấy templates có status = PUBLISHED
-        Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByStatus(
-            ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
+        
+        Page<ResourceTemplate> templatePage;
+        
+        if (currentUserId != null) {
+            // Filter: Chỉ lấy templates mà user chưa mua và không phải owner (JPQL)
+            templatePage = resourceTemplateRepository.findAvailableTemplatesForUser(
+                    ResourceTemplate.TemplateStatus.PUBLISHED, currentUserId, pageable);
+        } else {
+            // Guest user: show all published templates
+            templatePage = resourceTemplateRepository.findByStatus(
+                    ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
+        }
+        
         PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
         
         // Populate statistics, designer info and owner flag
@@ -390,12 +400,22 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getPopularTemplates(int limit, Long currentUserId) {
-        // For now, return templates sorted by price (as a simple popularity metric)
-        // In a real implementation, this would be based on order count or views
-        List<ResourceTemplate> templates = resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED).stream()
-                .sorted((t1, t2) -> t2.getPrice().compareTo(t1.getPrice()))
-                .limit(limit)
-                .toList();
+        Pageable pageable = PageRequest.of(0, limit);
+        
+        List<ResourceTemplate> templates;
+        
+        if (currentUserId != null) {
+            // Filter: Chỉ lấy templates mà user chưa mua và không phải owner, sắp xếp theo popularity (JPQL)
+            templates = resourceTemplateRepository.findPopularTemplatesForUser(
+                    ResourceTemplate.TemplateStatus.PUBLISHED, currentUserId, pageable);
+        } else {
+            // Guest user: show all published templates sorted by price (fallback)
+            templates = resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED).stream()
+                    .sorted((t1, t2) -> t2.getPrice().compareTo(t1.getPrice()))
+                    .limit(limit)
+                    .toList();
+        }
+        
         List<ResourceTemplateDTO> result = orderMapper.toTemplateDtoList(templates);
         populateStatistics(result);
         populateDesignerInfo(result);

@@ -95,7 +95,7 @@ public class ProjectCollaborationService implements IProjectCollaborationService
             throw new AppException(ErrorCode.FORBIDDEN_ACTION);
         }
         ProjectCollaboration projectCollaboration = projectCollaborationRepository.findByProjectAndUserIdAndDeletedAtIsNull(
-                        project, user.getResult().getId())
+                        project, dto.getUserId())
                 .orElseThrow(() -> new AppException(ErrorCode.COLLAB_NOT_FOUND));
         projectCollaboration.setProject(project);
         projectCollaboration.setUserId(user.getResult().getId());
