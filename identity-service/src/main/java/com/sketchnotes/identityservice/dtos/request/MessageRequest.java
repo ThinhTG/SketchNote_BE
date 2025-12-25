@@ -19,4 +19,10 @@ public class MessageRequest {
     @NotBlank(message = "Message content cannot be blank")
     @Size(min = 1, max = 10000, message = "Message content must be between 1 and 10000 characters")
     private String content;
+    
+    /**
+     * Flag to indicate if the message content is an image URL
+     * true = content is image URL, false = content is text message
+     */
+    private boolean isImage = false;
 }

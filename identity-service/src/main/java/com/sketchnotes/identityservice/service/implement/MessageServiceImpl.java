@@ -53,11 +53,10 @@ public class MessageServiceImpl implements MessageService {
                 .sender(sender)
                 .receiver(receiver)
                 .content(request.getContent())
+                .isImage(request.isImage())
                 .build();
         
         Message saved = messageRepository.save(message);
-        log.info("Message sent successfully with id: {}", saved.getId());
-        
         return toDto(saved);
     }
 
@@ -222,6 +221,7 @@ public class MessageServiceImpl implements MessageService {
                 .receiverName(message.getReceiver().getFirstName() + " " + message.getReceiver().getLastName())
                 .receiverAvatarUrl(message.getReceiver().getAvatarUrl())
                 .content(message.getContent())
+                .isImage(message.isImage())
                 .createdAt(message.getCreatedAt())
                 .updatedAt(message.getUpdatedAt())
                 .build();
