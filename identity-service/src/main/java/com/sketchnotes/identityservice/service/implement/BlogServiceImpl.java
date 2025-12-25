@@ -1,11 +1,14 @@
 package com.sketchnotes.identityservice.service.implement;
+
 import com.sketchnotes.identityservice.dtos.request.BlogRequest;
 import com.sketchnotes.identityservice.dtos.request.ContentRequest;
+import com.sketchnotes.identityservice.dtos.request.CreateNotificationRequest;
 import com.sketchnotes.identityservice.dtos.request.UpdateBlogRequest;
 import com.sketchnotes.identityservice.dtos.response.BlogModerationHistoryResponse;
 import com.sketchnotes.identityservice.dtos.response.BlogResponse;
 import com.sketchnotes.identityservice.dtos.response.ContentResponse;
 import com.sketchnotes.identityservice.enums.BlogStatus;
+import com.sketchnotes.identityservice.enums.NotificationType;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.model.Blog;
@@ -17,6 +20,7 @@ import com.sketchnotes.identityservice.repository.BlogRepository;
 import com.sketchnotes.identityservice.repository.ContentRepository;
 import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.service.interfaces.BlogService;
+import com.sketchnotes.identityservice.service.interfaces.INotificationService;
 import com.sketchnotes.identityservice.ultils.PagedResponse;
 import com.sketchnotes.identityservice.ultils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -37,11 +41,12 @@ public class BlogServiceImpl implements BlogService {
     private final IUserRepository userRepository;
     private final ContentRepository contentRepository;
     private final BlogModerationHistoryRepository moderationHistoryRepository;
+    private final INotificationService notificationService;
 
 
     @Override
     public BlogResponse createBlog(BlogRequest request) {
-        User user =  userRepository.findByKeycloakId(SecurityUtils.getCurrentUserId())
+        User user = userRepository.findByKeycloakId(SecurityUtils.getCurrentUserId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         Blog p = Blog.builder()
                 .title(request.getTitle())
@@ -51,8 +56,8 @@ public class BlogServiceImpl implements BlogService {
                 .imageUrl(request.getImageUrl())
                 .build();
         Blog saved = blogRepository.save(p);
-        for(ContentRequest cr : request.getContents()){
-             contentRepository.save(
+        for (ContentRequest cr : request.getContents()) {
+            contentRepository.save(
                     Content.builder()
                             .blog(saved)
                             .index(cr.getIndex())
@@ -72,8 +77,8 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public PagedResponse<BlogResponse> getAll(int pageNo, int pageSize, BlogStatus status)  {
-        Pageable pageable =  PageRequest.of(pageNo, pageSize);
+    public PagedResponse<BlogResponse> getAll(int pageNo, int pageSize, BlogStatus status) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Blog> blogs = blogRepository.findBlogsByStatusAndDeletedAtIsNull(status, pageable);
         List<BlogResponse> responses = blogs.stream().map(this::toDto).collect(Collectors.toList());
         return new PagedResponse<>(
@@ -99,6 +104,14 @@ public class BlogServiceImpl implements BlogService {
     public BlogResponse publishBlog(Long id, BlogStatus status) {
         Blog post = blogRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BLOG_NOT_FOUND));
         post.setStatus(status);
+        if (status == BlogStatus.REJECTED) {
+            notificationService.create(CreateNotificationRequest.builder()
+                    .userId(post.getAuthor().getId())
+                    .title("Blog Rejected")
+                    .message(String.format("Your blog '%s' has been rejected. Please check the moderation feedback for details.", post.getTitle()))
+                    .type(NotificationType.REJECT_BLOG)
+                    .build());
+        }
         return toDto(blogRepository.save(post));
     }
 
@@ -108,17 +121,17 @@ public class BlogServiceImpl implements BlogService {
                 .orElseThrow(() -> new AppException(ErrorCode.BLOG_NOT_FOUND));
         blog.setDeletedAt(java.time.LocalDateTime.now());
         List<Content> contents = contentRepository.findByBlogIdAndDeletedAtIsNullOrderByIndexAsc(blog.getId());
-        for(Content c : contents){
+        for (Content c : contents) {
             c.setDeletedAt(java.time.LocalDateTime.now());
             contentRepository.save(c);
         }
         blogRepository.save(blog);
     }
 
-    private BlogResponse toDto(Blog p){
+    private BlogResponse toDto(Blog p) {
         List<ContentResponse> contents = contentRepository.findByBlogIdAndDeletedAtIsNullOrderByIndexAsc(p.getId())
                 .stream().map(this::toDto).collect(Collectors.toList());
-        String userName =p.getAuthor().getFirstName() + " " + p.getAuthor().getLastName();
+        String userName = p.getAuthor().getFirstName() + " " + p.getAuthor().getLastName();
         return BlogResponse.builder()
                 .id(p.getId())
                 .title(p.getTitle())
@@ -132,7 +145,8 @@ public class BlogServiceImpl implements BlogService {
                 .contents(contents)
                 .build();
     }
-    private ContentResponse toDto(Content p){
+
+    private ContentResponse toDto(Content p) {
         return ContentResponse.builder()
                 .id(p.getId())
                 .sectionTitle(p.getSectionTitle())
@@ -149,15 +163,17 @@ public class BlogServiceImpl implements BlogService {
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
+
     @Override
     public List<BlogResponse> getMyBlogs() {
-        User user =  userRepository.findByKeycloakId(SecurityUtils.getCurrentUserId())
+        User user = userRepository.findByKeycloakId(SecurityUtils.getCurrentUserId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         List<Blog> blogs = blogRepository.findByAuthorIdAndDeletedAtIsNull(user.getId());
         return blogs.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
+
     /**
      * Get the latest moderation history for a blog
      *
