@@ -1,19 +1,21 @@
 package com.sketchnotes.project_service.controller;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
+import com.sketchnotes.project_service.service.RealtimeMessageService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * =============================================================================
@@ -34,9 +36,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * - Late join stroke handling (STROKE_INIT for mid-drawing join)
  * - Message sequence ordering (seq field for ordering)
  * 
+ * *** UPDATED: Now uses RealtimeMessageService for async broadcasting ***
+ * 
  * Message Flow:
- * - Client sends to: /app/project/{projectId}/action
- * - Server broadcasts to: /topic/project/{projectId}
+ * - Client sends to: /app/project/{projectId}/collaboration
+ * - Server broadcasts to: /topic/project/{projectId}/collaboration
  */
 @Slf4j
 @Controller
@@ -44,6 +48,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class CollaborationWebSocketController {
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final RealtimeMessageService realtimeMessageService;
 
     // Event type constants
     private static final String ELEMENT_CREATE = "ELEMENT_CREATE";
@@ -79,10 +84,7 @@ public class CollaborationWebSocketController {
     private static final String DRAW = "DRAW";
     
     // *** CRITICAL: In-memory state (replace with Redis in production) ***
-    // Sequence counter per project
-    private final ConcurrentHashMap<Long, AtomicLong> projectSequences = new ConcurrentHashMap<>();
-    // Version counter per project  
-    private final ConcurrentHashMap<Long, AtomicLong> projectVersions = new ConcurrentHashMap<>();
+    // NOTE: Sequence and version counters now managed by RealtimeMessageService
     // Element locks per project: projectId -> (elementId -> LockInfo)
     private final ConcurrentHashMap<Long, ConcurrentHashMap<String, LockInfo>> projectLocks = new ConcurrentHashMap<>();
     // Active strokes per project: projectId -> (strokeId -> StrokeInfo)
@@ -215,18 +217,20 @@ public class CollaborationWebSocketController {
     
     // ===========================================================================
     // CRITICAL: SEQUENCE & VERSION MANAGEMENT
+    // *** UPDATED: Now delegates to RealtimeMessageService ***
     // ===========================================================================
     
     private long getNextSequence(Long projectId) {
-        return projectSequences.computeIfAbsent(projectId, k -> new AtomicLong(0)).incrementAndGet();
+        // Use service for sequence (it has its own counters)
+        return realtimeMessageService.getNextSequence(projectId);
     }
     
     private long incrementVersion(Long projectId) {
-        return projectVersions.computeIfAbsent(projectId, k -> new AtomicLong(0)).incrementAndGet();
+        return realtimeMessageService.incrementVersion(projectId);
     }
     
     private long getCurrentVersion(Long projectId) {
-        return projectVersions.computeIfAbsent(projectId, k -> new AtomicLong(0)).get();
+        return realtimeMessageService.getCurrentVersion(projectId);
     }
     
     // ===========================================================================
@@ -517,16 +521,39 @@ public class CollaborationWebSocketController {
     
     /**
      * Broadcast message to all users in a project
+     * *** UPDATED: Now uses RealtimeMessageService for async, rate-limited broadcast ***
      * Uses /topic/project/{projectId}/collaboration to avoid conflict with stroke topic
      */
+    @SuppressWarnings("unchecked")
     private void broadcastToProject(Long projectId, Object message) {
-        String destination = "/topic/project/" + projectId + "/collaboration";
         try {
-            messagingTemplate.convertAndSend(destination, message);
-            log.debug("📤 [Collab] Broadcast to {}", destination);
+            if (message instanceof Map) {
+                Map<String, Object> msgMap = (Map<String, Object>) message;
+                Object userId = msgMap.get("userId");
+                
+                // Use async service for rate-limited broadcast
+                boolean queued = realtimeMessageService.enqueueMessage(projectId, userId, msgMap);
+                
+                if (!queued) {
+                    log.warn("📤 [Collab] Message dropped (rate limited or queue full) for project {}", projectId);
+                } else {
+                    log.debug("📤 [Collab] Message queued for project {}", projectId);
+                }
+            } else {
+                // Fallback for non-Map messages (shouldn't happen normally)
+                String destination = "/topic/project/" + projectId + "/collaboration";
+                messagingTemplate.convertAndSend(destination, message);
+            }
         } catch (Exception e) {
-            log.error("❌ [Collab] Failed to broadcast to {}: {}", destination, e.getMessage());
+            log.error("❌ [Collab] Failed to broadcast to project {}: {}", projectId, e.getMessage());
         }
+    }
+    
+    /**
+     * Broadcast message immediately (bypass queue) - for sync responses
+     */
+    private void broadcastToProjectImmediate(Long projectId, Object message) {
+        realtimeMessageService.broadcastImmediate(projectId, message, "collaboration");
     }
     
     /**
@@ -601,8 +628,8 @@ public class CollaborationWebSocketController {
             "seq", currentSeq
         ));
         
-        // TODO: Send only to requesting user using convertAndSendToUser
-        broadcastToProject(projectId, syncResponse);
+        // *** UPDATED: Use immediate broadcast for sync responses (bypass queue) ***
+        broadcastToProjectImmediate(projectId, syncResponse);
     }
     
     // ===========================================================================
