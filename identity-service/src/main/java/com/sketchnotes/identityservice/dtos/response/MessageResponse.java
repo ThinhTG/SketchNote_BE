@@ -18,6 +18,7 @@ public class MessageResponse {
     private String receiverName;
     private String receiverAvatarUrl;
     private String content;
+    private boolean isImage;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

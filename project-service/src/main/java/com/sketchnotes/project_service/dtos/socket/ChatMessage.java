@@ -15,5 +15,6 @@ public class ChatMessage {
     private String senderAvatarUrl;
     private Long receiverId;
     private String content;
+    private boolean isImage;
     private LocalDateTime timestamp;
 }
