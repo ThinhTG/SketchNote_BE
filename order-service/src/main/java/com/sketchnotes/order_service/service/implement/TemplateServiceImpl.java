@@ -469,18 +469,15 @@ public class TemplateServiceImpl implements TemplateService {
         if (template.getStatus() != ResourceTemplate.TemplateStatus.PENDING_REVIEW) {
             throw new IllegalStateException("Template with id " + id + " is not in PENDING_REVIEW status");
         }
-        
         // 🔹 Find the PENDING_REVIEW version for this template
         ResourceTemplateVersion pendingVersion = versionRepository
                 .findByTemplateIdAndStatus(id, ResourceTemplate.TemplateStatus.PENDING_REVIEW)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No pending version found for template " + id));
-        
         // 🔹 Update version status to REJECTED
         pendingVersion.setStatus(ResourceTemplate.TemplateStatus.REJECTED);
         pendingVersion.setReviewedAt(java.time.LocalDateTime.now());
-        // Optional: Set review comment if needed
         // pendingVersion.setReviewComment("Rejected by admin");
         versionRepository.save(pendingVersion);
         
