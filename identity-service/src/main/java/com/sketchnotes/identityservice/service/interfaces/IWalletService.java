@@ -12,6 +12,11 @@ public interface IWalletService {
         Wallet getWalletByUserId(Long userId);
 
         Transaction deposit(Long walletId, BigDecimal amount);
+        /**
+         * Deposit with explicit transaction type and optional description.
+         * Use this for admin revenue deposits to distinguish between different sources.
+         */
+        Transaction depositWithType(Long walletId, BigDecimal amount, com.sketchnotes.identityservice.enums.TransactionType type, String description);
         Transaction withdraw(Long walletId, BigDecimal amount);
         Transaction pay(Long walletId, BigDecimal amount);
         /**
