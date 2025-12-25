@@ -2,16 +2,25 @@ package com.sketchnotes.identityservice.service.implement;
 
 import com.sketchnotes.identityservice.dtos.request.SubscriptionPlanRequest;
 import com.sketchnotes.identityservice.dtos.response.SubscriptionPlanResponse;
+import com.sketchnotes.identityservice.dtos.response.UserResponse;
+import com.sketchnotes.identityservice.enums.Role;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
 import com.sketchnotes.identityservice.model.SubscriptionPlan;
+import com.sketchnotes.identityservice.model.User;
+import com.sketchnotes.identityservice.model.UserSubscription;
 import com.sketchnotes.identityservice.repository.ISubscriptionPlanRepository;
+import com.sketchnotes.identityservice.repository.IUserRepository;
+import com.sketchnotes.identityservice.repository.IUserSubscriptionRepository;
 import com.sketchnotes.identityservice.service.interfaces.ISubscriptionPlanService;
+import com.sketchnotes.identityservice.ultils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,7 +30,8 @@ import java.util.stream.Collectors;
 public class SubscriptionPlanService implements ISubscriptionPlanService {
 
     private final ISubscriptionPlanRepository subscriptionPlanRepository;
-
+    private final IUserSubscriptionRepository userSubscriptionRepository;
+   private final IUserRepository userRepository;
     @Override
     @Transactional
     public SubscriptionPlanResponse createPlan(SubscriptionPlanRequest request) {
@@ -65,10 +75,23 @@ public class SubscriptionPlanService implements ISubscriptionPlanService {
 
     @Override
     public List<SubscriptionPlanResponse> getAllActivePlans() {
-        log.info("Fetching all active subscription plans");
+        User user = userRepository.findByKeycloakId(SecurityUtils.getCurrentUserId()).filter(User::isActive)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         List<SubscriptionPlan> plans = subscriptionPlanRepository.findByIsActiveTrue();
+        List<UserSubscription> activeSubscriptions = userSubscriptionRepository
+                .findActiveSubscriptionsByUser(user, LocalDateTime.now());
+
+        if (!activeSubscriptions.isEmpty()) {
+            UserSubscription latestActiveSub = activeSubscriptions.get(0);
+
+            return plans.stream()
+                    .map(plan -> mapToResponse(plan, latestActiveSub.getSubscriptionPlan().getPrice().compareTo(plan.getPrice()) < 0))
+                    .sorted((Comparator.comparing(SubscriptionPlanResponse::getPrice)))
+                    .collect(Collectors.toList());
+        }
         return plans.stream()
                 .map(this::mapToResponse)
+                .sorted((Comparator.comparing(SubscriptionPlanResponse::getPrice)))
                 .collect(Collectors.toList());
     }
 
@@ -101,6 +124,24 @@ public class SubscriptionPlanService implements ISubscriptionPlanService {
                 .planType(plan.getPlanType())
                 .price(plan.getPrice())
                 .currency(plan.getCurrency())
+                .durationDays(plan.getDurationDays())
+                .description(plan.getDescription())
+                .isBuy(true)
+                .isActive(plan.getIsActive())
+                .numberOfProjects(plan.getNumberOfProjects())
+                .createdAt(plan.getCreatedAt())
+                .updatedAt(plan.getUpdatedAt())
+                .build();
+    }
+    private SubscriptionPlanResponse mapToResponse(SubscriptionPlan plan, boolean isBuy) {
+        return SubscriptionPlanResponse.builder()
+                .planId(plan.getPlanId())
+                .planName(plan.getPlanName())
+                .planType(plan.getPlanType())
+                .price(plan.getPrice())
+                .currency(plan.getCurrency())
+                .isBuy(isBuy)
+                .numberOfProjects(plan.getNumberOfProjects())
                 .durationDays(plan.getDurationDays())
                 .description(plan.getDescription())
                 .isActive(plan.getIsActive())
