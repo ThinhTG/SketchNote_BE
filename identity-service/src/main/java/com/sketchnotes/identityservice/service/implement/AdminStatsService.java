@@ -4,6 +4,7 @@ import com.sketchnotes.identityservice.enums.Role;
 import com.sketchnotes.identityservice.enums.TransactionType;
 import com.sketchnotes.identityservice.repository.ITransactionRepository;
 import com.sketchnotes.identityservice.repository.IUserRepository;
+import com.sketchnotes.identityservice.service.interfaces.IAdminStatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +16,11 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class AdminStatsService {
+public class AdminStatsService implements IAdminStatsService {
     private final IUserRepository userRepository;
     private final ITransactionRepository transactionRepository;
 
+    @Override
     public Map<String, Long> getUserStats() {
         Map<String, Long> stats = new HashMap<>();
         stats.put("totalUsers", userRepository.count());
@@ -27,6 +29,7 @@ public class AdminStatsService {
         return stats;
     }
 
+    @Override
     public List<Map<String, Object>> getCourseRevenue(LocalDateTime start, LocalDateTime end, String groupBy) {
         List<Object[]> rows;
         String type = TransactionType.COURSE_FEE.name();

@@ -10,6 +10,7 @@ import com.sketchnotes.order_service.events.PaymentSucceededEvent;
 import com.sketchnotes.order_service.repository.OrderRepository;
 import com.sketchnotes.order_service.repository.OrderDetailRepository;
 import com.sketchnotes.order_service.repository.ResourceTemplateRepository;
+import com.sketchnotes.order_service.service.IPaymentService;
 import com.sketchnotes.order_service.service.UserResourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentService {
+public class PaymentService implements IPaymentService {
 
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
@@ -32,6 +33,7 @@ public class PaymentService {
     private final ResourceTemplateRepository resourceTemplateRepository;
     private final IdentityClient identityClient;
 
+    @Override
     @Transactional
     public void handlePaymentSuccess(PaymentSucceededEvent event) {
         orderRepository.findById(event.getOrderId()).ifPresentOrElse(order -> {
@@ -122,6 +124,7 @@ public class PaymentService {
         });
     }
 
+    @Override
     @Transactional
     public void handlePaymentFailed(PaymentFailedEvent event) {
         orderRepository.findById(event.getOrderId()).ifPresentOrElse(order -> {

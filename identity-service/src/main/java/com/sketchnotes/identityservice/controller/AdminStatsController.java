@@ -1,6 +1,6 @@
 package com.sketchnotes.identityservice.controller;
 
-import com.sketchnotes.identityservice.service.implement.AdminStatsService;
+import com.sketchnotes.identityservice.service.interfaces.IAdminStatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +14,7 @@ import java.util.Map;
 @RequestMapping("/api/admin/stats")
 @RequiredArgsConstructor
 public class AdminStatsController {
-    private final AdminStatsService adminStatsService;
+    private final IAdminStatsService adminStatsService;
 
     @GetMapping("/users")
     public ResponseEntity<Map<String, Long>> getUserStats() {

@@ -15,6 +15,7 @@ import com.sketchnotes.learning.mapper.CourseMapper;
 import com.sketchnotes.learning.mapper.EnrollmentMapper;
 import com.sketchnotes.learning.repository.CourseEnrollmentRepository;
 import com.sketchnotes.learning.repository.CourseRepository;
+import com.sketchnotes.learning.service.interfaces.IEnrollmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class EnrollmentService {
+public class EnrollmentService implements IEnrollmentService {
     private final CourseEnrollmentRepository enrollmentRepository;
     private final CourseRepository courseRepository;
     private final EnrollmentMapper enrollmentMapper;
@@ -36,6 +37,7 @@ public class EnrollmentService {
     private final IdentityClient identityClient;
     private final com.sketchnotes.learning.repository.UserLessonProgressRepository progressRepo;
 
+    @Override
     public EnrollmentDTO enroll(long courseId, long userId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
@@ -85,6 +87,7 @@ public class EnrollmentService {
         }
     }
 
+    @Override
     public Map<String, List<CourseDTO>> getUserCourseStatus(long userId) {
         List<Course> allCourses = courseRepository.findAll();
         List<CourseEnrollment> enrollments = enrollmentRepository.findByUserId(userId);

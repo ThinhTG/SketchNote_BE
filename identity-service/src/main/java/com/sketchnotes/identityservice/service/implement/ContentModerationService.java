@@ -23,6 +23,7 @@ import com.sketchnotes.identityservice.model.BlogModerationHistory;
 import com.sketchnotes.identityservice.model.Content;
 import com.sketchnotes.identityservice.repository.BlogModerationHistoryRepository;
 import com.sketchnotes.identityservice.repository.BlogRepository;
+import com.sketchnotes.identityservice.service.interfaces.IContentModerationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -38,7 +39,7 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ContentModerationService {
+public class ContentModerationService implements IContentModerationService {
 
     private final BlogRepository blogRepository;
     private final BlogModerationHistoryRepository moderationHistoryRepository;
@@ -50,6 +51,7 @@ public class ContentModerationService {
      * Scheduled task runs every 15 minutes to check blogs that need moderation
      * Only moderates blogs that have been published for more than 15 minutes
      */
+    @Override
     @Scheduled(fixedRate = 60 * 1000) // Run every 15 minutes (15 * 60 * 1000 = 900000 ms)
     @Transactional
     public void moderatePendingBlogs() {
@@ -82,6 +84,7 @@ public class ContentModerationService {
      * @param blog Blog to check
      * @return ContentCheckResponse containing check results
      */
+    @Override
     public ContentCheckResponse checkBlogContent(Blog blog) {
         try {
             // Validate configuration
@@ -424,6 +427,7 @@ public class ContentModerationService {
      * @param file Image file to check
      * @return ImageSafetyCheckResponse with SafeSearch results
      */
+    @Override
     public ImageSafetyCheckResponse testImageSafety(MultipartFile file) {
         try {
             // Validate file

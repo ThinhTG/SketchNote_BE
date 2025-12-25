@@ -9,7 +9,7 @@ import com.sketchnotes.identityservice.dtos.response.BlogModerationHistoryRespon
 import com.sketchnotes.identityservice.dtos.response.BlogResponse;
 import com.sketchnotes.identityservice.dtos.response.ImageSafetyCheckResponse;
 import com.sketchnotes.identityservice.enums.BlogStatus;
-import com.sketchnotes.identityservice.service.implement.ContentModerationService;
+import com.sketchnotes.identityservice.service.interfaces.IContentModerationService;
 import com.sketchnotes.identityservice.service.interfaces.BlogService;
 import com.sketchnotes.identityservice.ultils.PagedResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,7 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BlogController {
     private final BlogService postService;
-    private final ContentModerationService contentModerationService;
+    private final IContentModerationService contentModerationService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<BlogResponse>> create(@RequestBody BlogRequest req){

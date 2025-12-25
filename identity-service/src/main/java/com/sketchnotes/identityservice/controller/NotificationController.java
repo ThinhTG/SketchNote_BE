@@ -2,11 +2,11 @@ package com.sketchnotes.identityservice.controller;
 
 import com.sketchnotes.identityservice.dtos.request.CreateNotificationRequest;
 import com.sketchnotes.identityservice.dtos.response.NotificationDto;
+import com.sketchnotes.identityservice.dtos.response.UserResponse;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
-import com.sketchnotes.identityservice.model.User;
-import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.service.interfaces.INotificationService;
+import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import com.sketchnotes.identityservice.ultils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,7 +35,7 @@ import java.util.Map;
 public class NotificationController {
     
     private final INotificationService notificationService;
-    private final IUserRepository userRepository;
+    private final IUserService userService;
     
     /**
      * Get paginated notifications for the current authenticated user.
@@ -107,11 +107,14 @@ public class NotificationController {
     
     /**
      * Helper method to get current user's database ID from keycloak ID.
+     * Uses IUserService instead of direct repository access.
      */
     private Long getCurrentUserId() {
         String keycloakId = SecurityUtils.getCurrentUserId();
-        User user = userRepository.findByKeycloakId(keycloakId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        UserResponse user = userService.getUserByKeycloakId(keycloakId);
+        if (user == null) {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        }
         return user.getId();
     }
 }

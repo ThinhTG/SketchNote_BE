@@ -4,10 +4,11 @@ import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.dtos.request.CreditPackageRequest;
 import com.sketchnotes.identityservice.dtos.response.CreditPackageResponse;
 import com.sketchnotes.identityservice.dtos.response.PurchasePackageResponse;
+import com.sketchnotes.identityservice.dtos.response.UserResponse;
 import com.sketchnotes.identityservice.exception.AppException;
 import com.sketchnotes.identityservice.exception.ErrorCode;
-import com.sketchnotes.identityservice.repository.IUserRepository;
 import com.sketchnotes.identityservice.service.interfaces.INotificationService;
+import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,7 @@ import java.util.List;
 public class CreditPackageController {
     
     private final INotificationService.ICreditPackageService creditPackageService;
-    private final IUserRepository userRepository;
+    private final IUserService userService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<CreditPackageResponse>>> getActivePackages() {
@@ -126,6 +127,7 @@ public class CreditPackageController {
     
     /**
      * Helper method để extract userId từ JWT token
+     * Uses IUserService instead of direct repository access
      */
     private Long extractUserId(Authentication authentication) {
         if (authentication == null || authentication.getPrincipal() == null) {
@@ -142,15 +144,14 @@ public class CreditPackageController {
             throw new AppException(ErrorCode.INVALID_TOKEN);
         }
         
-        // Query User by keycloakId
-        return userRepository.findByKeycloakId(keycloakId)
-                .map(user -> {
-                    log.debug("User found for keycloakId: {} -> userId: {}", keycloakId, user.getId());
-                    return user.getId();
-                })
-                .orElseThrow(() -> {
-                    log.error("User not found for keycloakId: {}", keycloakId);
-                    return new AppException(ErrorCode.UNAUTHENTICATED);
-                });
+        // Use IUserService to get user by keycloakId
+        UserResponse user = userService.getUserByKeycloakId(keycloakId);
+        if (user == null) {
+            log.error("User not found for keycloakId: {}", keycloakId);
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        
+        log.debug("User found for keycloakId: {} -> userId: {}", keycloakId, user.getId());
+        return user.getId();
     }
 }

@@ -8,6 +8,7 @@ import com.sketchnotes.learning.mapper.LessonMapper;
 import com.sketchnotes.learning.repository.CourseEnrollmentRepository;
 import com.sketchnotes.learning.repository.CourseRepository;
 import com.sketchnotes.learning.repository.LessonRepository;
+import com.sketchnotes.learning.service.interfaces.ILessonService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class LessonService {
+public class LessonService implements ILessonService {
 
     private final LessonRepository lessonRepository;
     private final CourseRepository courseRepository;
@@ -33,6 +34,7 @@ public class LessonService {
     }
 
     // Tạo danh sách Lesson cho một Course
+    @Override
     @Transactional
     public List<LessonDTO> createLessonsForCourse(Long courseId, List<LessonDTO> lessonDtos) {
         Course course = courseRepository.findById(courseId)
@@ -62,12 +64,14 @@ public class LessonService {
     }
 
     // Lấy tất cả lesson của 1 course
+    @Override
     public List<LessonDTO> getLessonsByCourse(Long courseId) {
         List<Lesson> lessons = lessonRepository.findByCourse_CourseId(courseId);
         return lessonMapper.toDTOList(lessons);
     }
 
     // Lấy một lesson theo ID
+    @Override
     public LessonDTO getLessonById(Long lessonId) {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException(ErrorCode.LESSON_NOT_FOUND.getMessage()));
@@ -75,6 +79,7 @@ public class LessonService {
     }
 
     // Cập nhật lesson
+    @Override
     @Transactional
     public LessonDTO updateLesson(Long lessonId, LessonDTO dto) {
         Lesson existingLesson = lessonRepository.findById(lessonId)
@@ -115,6 +120,7 @@ public class LessonService {
     }
 
     // Xóa lesson
+    @Override
     @Transactional
     public void deleteLesson(Long lessonId) {
         Lesson lesson = lessonRepository.findById(lessonId)

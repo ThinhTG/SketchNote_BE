@@ -3,7 +3,7 @@ package com.sketchnotes.identityservice.controller;
 
 import com.sketchnotes.identityservice.dtos.ApiResponse;
 import com.sketchnotes.identityservice.model.Wallet;
-import com.sketchnotes.identityservice.service.implement.PendingTransactionCleanupService;
+import com.sketchnotes.identityservice.service.interfaces.IPendingTransactionCleanupService;
 import com.sketchnotes.identityservice.service.interfaces.IPaymentGatewayService;
 import com.sketchnotes.identityservice.service.interfaces.IUserService;
 import com.sketchnotes.identityservice.service.interfaces.IWalletService;
@@ -29,7 +29,7 @@ public class PaymentController {
     private final IWalletService walletService;
     private final IUserService userService;
     private final PayOS payOS;
-    private final PendingTransactionCleanupService cleanupService;
+    private final IPendingTransactionCleanupService cleanupService;
 
     @PostMapping("/deposit")
     public ApiResponse<String> deposit(@RequestParam BigDecimal amount) {

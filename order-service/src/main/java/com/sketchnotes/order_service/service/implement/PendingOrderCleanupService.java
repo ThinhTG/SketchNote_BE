@@ -4,6 +4,7 @@ import com.sketchnotes.order_service.client.PaymentClient;
 import com.sketchnotes.order_service.dtos.PaymentResponseDTO;
 import com.sketchnotes.order_service.entity.Order;
 import com.sketchnotes.order_service.repository.OrderRepository;
+import com.sketchnotes.order_service.service.IPendingOrderCleanupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -30,7 +31,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PendingOrderCleanupService {
+public class PendingOrderCleanupService implements IPendingOrderCleanupService {
 
     private final OrderRepository orderRepository;
     private final PaymentClient paymentClient;
@@ -55,6 +56,7 @@ public class PendingOrderCleanupService {
     /**
      * Scheduled job chạy mỗi 5 phút để kiểm tra và cleanup các PENDING orders.
      */
+    @Override
     @Scheduled(fixedRate = 5 * 60 * 1000) // 5 phút
     @Transactional
     public void cleanupPendingOrders() {

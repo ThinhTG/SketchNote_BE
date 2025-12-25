@@ -7,6 +7,7 @@ import com.sketchnotes.learning.exception.ErrorCode;
 import com.sketchnotes.learning.mapper.CourseMapper;
 import com.sketchnotes.learning.repository.CourseEnrollmentRepository;
 import com.sketchnotes.learning.repository.CourseRepository;
+import com.sketchnotes.learning.service.interfaces.ICourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,17 +16,19 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CourseService {
+public class CourseService implements ICourseService {
     private final CourseRepository courseRepository;
     private final CourseMapper courseMapper;
     private final CourseEnrollmentRepository enrollmentRepository;
 
+    @Override
     public List<CourseDTO> getAllCourses() {
         List<Course> courses = courseRepository.findAllWithLessons();
         return courseMapper.toDTOList(courses);
     }
 
     // 1. Tạo Course
+    @Override
     public CourseDTO createCourse(CourseDTO dto) {
         Course course = courseMapper.toEntity(dto);
         course.setCreatedAt(LocalDateTime.now());
@@ -48,6 +51,7 @@ public class CourseService {
     }
 
     // 2. Lấy khóa học theo ID
+    @Override
     public CourseDTO getCourseById(Long id) {
         Course course = courseRepository.findByIdWithLessons(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
@@ -56,6 +60,7 @@ public class CourseService {
 
 
     // 4. Cập nhật khóa học
+    @Override
     public CourseDTO updateCourse(Long id, CourseDTO dto) {
         Course existingCourse = courseRepository.findByIdWithLessons(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
@@ -82,6 +87,7 @@ public class CourseService {
 
 
     // 5. Xóa khóa học
+    @Override
     public void deleteCourse(Long id) {
         if (!courseRepository.existsById(id)) {
             throw new RuntimeException("Course not found with id: " + id);
@@ -96,6 +102,7 @@ public class CourseService {
     }
 
     // Get enrolled courses of a user
+    @Override
     public List<CourseDTO> getEnrolledCourses(Long userId) {
         List<Course> enrolledCourses = courseRepository.findEnrolledCoursesByUserId(userId);
         return courseMapper.toDTOList(enrolledCourses);

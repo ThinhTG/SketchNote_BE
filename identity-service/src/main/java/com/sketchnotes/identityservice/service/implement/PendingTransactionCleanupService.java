@@ -3,6 +3,7 @@ package com.sketchnotes.identityservice.service.implement;
 import com.sketchnotes.identityservice.enums.PaymentStatus;
 import com.sketchnotes.identityservice.model.Transaction;
 import com.sketchnotes.identityservice.repository.ITransactionRepository;
+import com.sketchnotes.identityservice.service.interfaces.IPendingTransactionCleanupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -31,7 +32,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PendingTransactionCleanupService {
+public class PendingTransactionCleanupService implements IPendingTransactionCleanupService {
 
     private final ITransactionRepository transactionRepository;
 
@@ -55,6 +56,7 @@ public class PendingTransactionCleanupService {
      * - Thêm 5 phút grace period để webhook có thời gian đến
      * - Sau 20 phút mà vẫn PENDING => đánh dấu FAILED
      */
+    @Override
     @Scheduled(fixedRate = 5 * 60 * 1000) // 5 phút
     @Transactional
     public void cleanupPendingTransactions() {
