@@ -38,6 +38,8 @@ public class User{
     @Column(name = "is_verified", nullable = false)
     private boolean verified = false;
 
+    @Column(name = "max_projects", nullable = false, columnDefinition = "integer default 3")
+    @Builder.Default
     private Integer maxProjects = 3;
     
     // AI Credits management
