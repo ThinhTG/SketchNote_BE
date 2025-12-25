@@ -40,7 +40,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Transactional
 public class TemplateServiceImpl implements TemplateService {
-    
+
     private final ResourceTemplateRepository resourceTemplateRepository;
     private final ResourceTemplateVersionRepository versionRepository;
     private final UserResourceRepository userResourceRepository;
@@ -54,7 +54,7 @@ public class TemplateServiceImpl implements TemplateService {
     public List<ResourceTemplateDTO> getAllActiveTemplates() {
         // State Machine: Chỉ lấy templates có status = PUBLISHED (active trên marketplace)
         return orderMapper.toTemplateDtoList(
-            resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED));
+                resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED));
     }
 
     @Override
@@ -62,11 +62,21 @@ public class TemplateServiceImpl implements TemplateService {
     public PagedResponseDTO<ResourceTemplateDTO> getAllActiveTemplates(int page, int size, String sortBy, String sortDir, Long currentUserId) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        // State Machine: Chỉ lấy templates có status = PUBLISHED
-        Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByStatus(
-            ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
+
+        Page<ResourceTemplate> templatePage;
+
+        if (currentUserId != null) {
+            // Filter: Chỉ lấy templates mà user chưa mua và không phải owner (JPQL)
+            templatePage = resourceTemplateRepository.findAvailableTemplatesForUser(
+                    ResourceTemplate.TemplateStatus.PUBLISHED, currentUserId, pageable);
+        } else {
+            // Guest user: show all published templates
+            templatePage = resourceTemplateRepository.findByStatus(
+                    ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
+        }
+
         PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
-        
+
         // Populate statistics, designer info and owner flag
         populateStatistics(result.getContent());
         populateDesignerInfo(result.getContent());
@@ -80,10 +90,10 @@ public class TemplateServiceImpl implements TemplateService {
     public ResourceTemplateDTO getTemplateById(Long id, Long currentUserId) {
         // State Machine: Chỉ lấy template có status = PUBLISHED
         ResourceTemplate template = resourceTemplateRepository.findByTemplateIdAndStatus(
-            id, ResourceTemplate.TemplateStatus.PUBLISHED)
-            .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
+                        id, ResourceTemplate.TemplateStatus.PUBLISHED)
+                .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
         ResourceTemplateDTO dto = orderMapper.toDto(template);
-        
+
         // Populate statistics, designer info and owner flag
         populateStatistics(dto);
         populateDesignerInfo(dto);
@@ -97,7 +107,7 @@ public class TemplateServiceImpl implements TemplateService {
     public List<ResourceTemplateDTO> getTemplatesByDesigner(Long designerId) {
         // State Machine: Chỉ lấy templates có status = PUBLISHED (cho customer xem)
         return orderMapper.toTemplateDtoList(
-            resourceTemplateRepository.findByDesignerIdAndStatus(designerId, ResourceTemplate.TemplateStatus.PUBLISHED)
+                resourceTemplateRepository.findByDesignerIdAndStatus(designerId, ResourceTemplate.TemplateStatus.PUBLISHED)
         );
     }
 
@@ -110,10 +120,10 @@ public class TemplateServiceImpl implements TemplateService {
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        
+
         Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByDesignerIdAndStatus(
-            designerId, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
-        
+                designerId, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
+
         PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
         populateStatistics(result.getContent());
         populateDesignerInfo(result.getContent());
@@ -125,14 +135,14 @@ public class TemplateServiceImpl implements TemplateService {
     @Transactional(readOnly = true)
     public PagedResponseDTO<ResourceTemplateDTO> getTemplatesByDesignerAndStatus(
             Long designerId, String status, int page, int size, String sortBy, String sortDir) {
-        
+
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        
+
         Page<ResourceTemplate> templatePage;
-        
+
         // NOTE: Method này được dùng bởi Designer để xem sản phẩm của mình
         // State Machine: Designer có thể xem tất cả status (PUBLISHED, ARCHIVED, PENDING_REVIEW, etc.)
         if (status != null) {
@@ -173,7 +183,7 @@ public class TemplateServiceImpl implements TemplateService {
             Pageable pageable = PageRequest.of(page, size, sort);
             // State Machine: Chỉ lấy templates có status = PUBLISHED
             Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByTypeAndStatus(
-                templateType, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
+                    templateType, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
             PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
             populateStatistics(result.getContent());
             populateDesignerInfo(result.getContent());
@@ -197,7 +207,7 @@ public class TemplateServiceImpl implements TemplateService {
         Pageable pageable = PageRequest.of(page, size, sort);
         // State Machine: Chỉ tìm templates có status = PUBLISHED
         Page<ResourceTemplate> templatePage = resourceTemplateRepository.searchByKeyword(
-            keyword, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
+                keyword, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
         PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
         populateStatistics(result.getContent());
         populateDesignerInfo(result.getContent());
@@ -216,7 +226,7 @@ public class TemplateServiceImpl implements TemplateService {
     public PagedResponseDTO<ResourceTemplateDTO> getTemplatesByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page, int size, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-    Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByPriceRange(minPrice, maxPrice, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
+        Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByPriceRange(minPrice, maxPrice, ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
         PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
         populateStatistics(result.getContent());
         return result;
@@ -252,10 +262,7 @@ public class TemplateServiceImpl implements TemplateService {
                         it.setResourceTemplate(template);
                         return it;
                     }).toList();
-            // FIX: Don't replace collection reference - clear and addAll instead
-            // to avoid "orphan deletion was no longer referenced" error
-            template.getItems().clear();
-            template.getItems().addAll(itemEntities);
+            template.setItems(itemEntities);
         }
 
 
@@ -267,10 +274,10 @@ public class TemplateServiceImpl implements TemplateService {
                 throw new IllegalArgumentException("Invalid template type: " + templateDTO.getType());
             }
         }
-        
+
         // Save template first to get ID
         ResourceTemplate saved = resourceTemplateRepository.save(template);
-        
+
         // 🔹 AUTO-CREATE VERSION 1.0 with PENDING_REVIEW status
         ResourceTemplateVersion version = new ResourceTemplateVersion();
         version.setTemplateId(saved.getTemplateId());
@@ -281,7 +288,7 @@ public class TemplateServiceImpl implements TemplateService {
         version.setType(saved.getType());
         version.setStatus(ResourceTemplate.TemplateStatus.PENDING_REVIEW);
         version.setCreatedBy(templateDTO.getDesignerId());
-        
+
         // Copy images to version
         if (saved.getImages() != null && !saved.getImages().isEmpty()) {
             List<ResourceTemplateVersionImage> versionImages = saved.getImages().stream()
@@ -292,10 +299,9 @@ public class TemplateServiceImpl implements TemplateService {
                         vImg.setVersion(version);
                         return vImg;
                     }).toList();
-            version.getImages().clear();
-            version.getImages().addAll(versionImages);
+            version.setImages(versionImages);
         }
-        
+
         // Copy items to version
         if (saved.getItems() != null && !saved.getItems().isEmpty()) {
             List<ResourceTemplateVersionItem> versionItems = saved.getItems().stream()
@@ -307,12 +313,11 @@ public class TemplateServiceImpl implements TemplateService {
                         vItem.setVersion(version);
                         return vItem;
                     }).toList();
-            version.getItems().clear();
-            version.getItems().addAll(versionItems);
+            version.setItems(versionItems);
         }
-        
+
         versionRepository.save(version);
-        
+
         return orderMapper.toDto(saved);
     }
 
@@ -320,13 +325,13 @@ public class TemplateServiceImpl implements TemplateService {
     public ResourceTemplateDTO updateTemplate(Long id, TemplateCreateUpdateDTO templateDTO) {
         ResourceTemplate existingTemplate = resourceTemplateRepository.findById(id)
                 .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
-        
+
         // Update fields
         existingTemplate.setName(templateDTO.getName());
         existingTemplate.setDescription(templateDTO.getDescription());
         existingTemplate.setPrice(templateDTO.getPrice());
         existingTemplate.setReleaseDate(templateDTO.getReleaseDate());
-        
+
         if (templateDTO.getType() != null) {
             try {
                 existingTemplate.setType(ResourceTemplate.TemplateType.valueOf(templateDTO.getType().toUpperCase()));
@@ -334,7 +339,7 @@ public class TemplateServiceImpl implements TemplateService {
                 throw new IllegalArgumentException("Invalid template type: " + templateDTO.getType());
             }
         }
-        
+
         ResourceTemplate saved = resourceTemplateRepository.save(existingTemplate);
         return orderMapper.toDto(saved);
     }
@@ -353,8 +358,8 @@ public class TemplateServiceImpl implements TemplateService {
         ResourceTemplate template = resourceTemplateRepository.findById(id)
                 .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
         // Toggle between PUBLISHED and REJECTED
-        template.setStatus(template.getStatus() == ResourceTemplate.TemplateStatus.PUBLISHED ? 
-            ResourceTemplate.TemplateStatus.REJECTED : ResourceTemplate.TemplateStatus.PUBLISHED);
+        template.setStatus(template.getStatus() == ResourceTemplate.TemplateStatus.PUBLISHED ?
+                ResourceTemplate.TemplateStatus.REJECTED : ResourceTemplate.TemplateStatus.PUBLISHED);
         ResourceTemplate saved = resourceTemplateRepository.save(template);
         return orderMapper.toDto(saved);
     }
@@ -362,7 +367,7 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getTemplatesByStatus(Boolean isActive) {
-        List<ResourceTemplate> templates = isActive ? 
+        List<ResourceTemplate> templates = isActive ?
                 resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED) :
                 resourceTemplateRepository.findAll().stream()
                         .filter(t -> !t.getStatus().equals(ResourceTemplate.TemplateStatus.PUBLISHED))
@@ -395,12 +400,22 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getPopularTemplates(int limit, Long currentUserId) {
-        // For now, return templates sorted by price (as a simple popularity metric)
-        // In a real implementation, this would be based on order count or views
-        List<ResourceTemplate> templates = resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED).stream()
-                .sorted((t1, t2) -> t2.getPrice().compareTo(t1.getPrice()))
-                .limit(limit)
-                .toList();
+        Pageable pageable = PageRequest.of(0, limit);
+
+        List<ResourceTemplate> templates;
+
+        if (currentUserId != null) {
+            // Filter: Chỉ lấy templates mà user chưa mua và không phải owner, sắp xếp theo popularity (JPQL)
+            templates = resourceTemplateRepository.findPopularTemplatesForUser(
+                    ResourceTemplate.TemplateStatus.PUBLISHED, currentUserId, pageable);
+        } else {
+            // Guest user: show all published templates sorted by price (fallback)
+            templates = resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED).stream()
+                    .sorted((t1, t2) -> t2.getPrice().compareTo(t1.getPrice()))
+                    .limit(limit)
+                    .toList();
+        }
+
         List<ResourceTemplateDTO> result = orderMapper.toTemplateDtoList(templates);
         populateStatistics(result);
         populateDesignerInfo(result);
@@ -414,10 +429,10 @@ public class TemplateServiceImpl implements TemplateService {
         // 1. Tìm template
         ResourceTemplate template = resourceTemplateRepository.findById(id)
                 .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
-        
+
         // 2. Tìm tất cả version PENDING_REVIEW của template này, chọn version mới nhất
         List<ResourceTemplateVersion> pendingVersions = versionRepository.findByTemplateIdAndStatusOrderByCreatedAtDesc(
-            id, ResourceTemplate.TemplateStatus.PENDING_REVIEW);
+                id, ResourceTemplate.TemplateStatus.PENDING_REVIEW);
         if (pendingVersions.isEmpty()) {
             throw new IllegalStateException("No pending version found for template " + id);
         }
@@ -425,22 +440,22 @@ public class TemplateServiceImpl implements TemplateService {
 //            log.warn("Template {} has {} PENDING_REVIEW versions. Only the newest will be approved.", id, pendingVersions.size());
 //        }
         ResourceTemplateVersion pendingVersion = pendingVersions.get(0); // newest
-        
+
         // 3. Approve version: PENDING_REVIEW -> PUBLISHED
         pendingVersion.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
         pendingVersion.setReviewedAt(java.time.LocalDateTime.now());
         versionRepository.save(pendingVersion);
-        
+
         // 4. Sync metadata từ version lên template
         template.setName(pendingVersion.getName());
         template.setDescription(pendingVersion.getDescription());
         template.setPrice(pendingVersion.getPrice());
         template.setType(pendingVersion.getType());
-        
+
         // 5. Auto-publish version này làm version chính thức
         template.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
         template.setCurrentPublishedVersionId(pendingVersion.getVersionId());
-        
+
         ResourceTemplate saved = resourceTemplateRepository.save(template);
         return orderMapper.toDto(saved);
     }
@@ -449,7 +464,7 @@ public class TemplateServiceImpl implements TemplateService {
     public ResourceTemplateDTO rejectTemplate(Long id) {
         ResourceTemplate template = resourceTemplateRepository.findById(id)
                 .orElseThrow(() -> new ResourceTemplateNotFoundException("Template not found with id: " + id));
-        
+
         // Validate current status
         if (template.getStatus() != ResourceTemplate.TemplateStatus.PENDING_REVIEW) {
             throw new IllegalStateException("Template with id " + id + " is not in PENDING_REVIEW status");
@@ -465,7 +480,7 @@ public class TemplateServiceImpl implements TemplateService {
         pendingVersion.setReviewedAt(java.time.LocalDateTime.now());
         // pendingVersion.setReviewComment("Rejected by admin");
         versionRepository.save(pendingVersion);
-        
+
         // 🔹 Update template status
         template.setStatus(ResourceTemplate.TemplateStatus.REJECTED);
         ResourceTemplate saved = resourceTemplateRepository.save(template);
@@ -512,7 +527,7 @@ public class TemplateServiceImpl implements TemplateService {
         version.setReviewedBy(staffId);
 
         // Check if this is a NEW version (not the first version of the template)
-        boolean isNewVersionForExistingTemplate = template.getCurrentPublishedVersionId() != null 
+        boolean isNewVersionForExistingTemplate = template.getCurrentPublishedVersionId() != null
                 && !template.getCurrentPublishedVersionId().equals(versionId);
 
         if (approve) {
@@ -527,10 +542,10 @@ public class TemplateServiceImpl implements TemplateService {
 
             template.setStatus(ResourceTemplate.TemplateStatus.PUBLISHED);
             template.setCurrentPublishedVersionId(version.getVersionId());
-            
+
             versionRepository.save(version);
             resourceTemplateRepository.save(template);
-            
+
             // Send notification to all customers who own this resource about the new version
             if (isNewVersionForExistingTemplate) {
                 notifyCustomersAboutNewVersion(template, version);
@@ -544,14 +559,14 @@ public class TemplateServiceImpl implements TemplateService {
                     && ResourceTemplate.TemplateStatus.PENDING_REVIEW.equals(template.getStatus())) {
                 template.setStatus(ResourceTemplate.TemplateStatus.REJECTED);
             }
-            
+
             versionRepository.save(version);
             resourceTemplateRepository.save(template);
         }
 
         return orderMapper.toVersionDto(version);
     }
-    
+
     /**
      * Notify all customers who own this resource about a new version being available.
      * Customers will receive a notification and can choose to upgrade for free.
@@ -559,12 +574,12 @@ public class TemplateServiceImpl implements TemplateService {
     private void notifyCustomersAboutNewVersion(ResourceTemplate template, ResourceTemplateVersion newVersion) {
         try {
             // Find all users who own this resource and are not already on the latest version
-            List<com.sketchnotes.order_service.entity.UserResource> owners = 
+            List<com.sketchnotes.order_service.entity.UserResource> owners =
                     userResourceRepository.findByResourceTemplateIdAndActiveTrue(template.getTemplateId());
-            
+
             String resourceName = template.getName();
             String newVersionNumber = newVersion.getVersionNumber();
-            
+
             for (com.sketchnotes.order_service.entity.UserResource owner : owners) {
                 // Only notify users who are not already on the latest version
                 Long userCurrentVersionId = owner.getCurrentVersionId();
@@ -579,22 +594,22 @@ public class TemplateServiceImpl implements TemplateService {
                                 .type("VERSION_AVAILABLE")
                                 .resourceItemId(template.getTemplateId())
                                 .build();
-                        
+
                         identityClient.createNotification(notification);
-                        log.info("Sent new version notification to user {} for resource {}", 
+                        log.info("Sent new version notification to user {} for resource {}",
                                 owner.getUserId(), template.getTemplateId());
                     } catch (Exception e) {
-                        log.error("Failed to send notification to user {} for resource {}: {}", 
+                        log.error("Failed to send notification to user {} for resource {}: {}",
                                 owner.getUserId(), template.getTemplateId(), e.getMessage());
                         // Continue with other users even if one notification fails
                     }
                 }
             }
-            
-            log.info("Completed sending new version notifications for resource {} version {}", 
+
+            log.info("Completed sending new version notifications for resource {} version {}",
                     template.getTemplateId(), newVersion.getVersionNumber());
         } catch (Exception e) {
-            log.error("Error while sending new version notifications for resource {}: {}", 
+            log.error("Error while sending new version notifications for resource {}: {}",
                     template.getTemplateId(), e.getMessage());
             // Don't fail the version approval if notifications fail
         }
@@ -611,33 +626,33 @@ public class TemplateServiceImpl implements TemplateService {
 
         // 🔹 2. Map dữ liệu từ Project + DTO
         ResourceTemplate template = new ResourceTemplate();
-        template.setName(templateDTO.getName() != null && !templateDTO.getName().isEmpty() 
-                ? templateDTO.getName() 
+        template.setName(templateDTO.getName() != null && !templateDTO.getName().isEmpty()
+                ? templateDTO.getName()
                 : project.getName());
-        template.setDescription(templateDTO.getDescription() != null && !templateDTO.getDescription().isEmpty() 
-                ? templateDTO.getDescription() 
+        template.setDescription(templateDTO.getDescription() != null && !templateDTO.getDescription().isEmpty()
+                ? templateDTO.getDescription()
                 : project.getDescription());
-        
+
         // Convert type string to enum
         if (templateDTO.getType() != null) {
             try {
                 template.setType(ResourceTemplate.TemplateType.valueOf(templateDTO.getType().toUpperCase()));
             } catch (IllegalArgumentException e) {
                 // List all valid template types
-                String validTypes = String.join(", ", 
-                    java.util.Arrays.stream(ResourceTemplate.TemplateType.values())
-                        .map(Enum::name)
-                        .toArray(String[]::new));
+                String validTypes = String.join(", ",
+                        java.util.Arrays.stream(ResourceTemplate.TemplateType.values())
+                                .map(Enum::name)
+                                .toArray(String[]::new));
                 throw new IllegalArgumentException(
-                    "Invalid template type: '" + templateDTO.getType() + "'. " +
-                    "Valid types are: " + validTypes);
+                        "Invalid template type: '" + templateDTO.getType() + "'. " +
+                                "Valid types are: " + validTypes);
             }
         } else {
             throw new IllegalArgumentException("Template type is required");
         }
-        
+
         template.setPrice(templateDTO.getPrice());
-        
+
         template.setReleaseDate(LocalDate.now());
         template.setDesignerId(userId);
         template.setStatus(ResourceTemplate.TemplateStatus.PENDING_REVIEW);
@@ -690,8 +705,7 @@ public class TemplateServiceImpl implements TemplateService {
                         vImg.setVersion(version);
                         return vImg;
                     }).toList();
-            version.getImages().clear();
-            version.getImages().addAll(versionImages);
+            version.setImages(versionImages);
         }
 
         // Copy items to version
@@ -705,8 +719,7 @@ public class TemplateServiceImpl implements TemplateService {
                         vItem.setVersion(version);
                         return vItem;
                     }).toList();
-            version.getItems().clear();
-            version.getItems().addAll(versionItems);
+            version.setItems(versionItems);
         }
 
         return orderMapper.toDto(saved);
@@ -718,7 +731,7 @@ public class TemplateServiceImpl implements TemplateService {
             ResourceTemplate.TemplateStatus templateStatus = ResourceTemplate.TemplateStatus.valueOf(status.toUpperCase());
             Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
             Pageable pageable = PageRequest.of(page, size, sort);
-            
+
             Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByStatus(templateStatus, pageable);
             PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
             populateStatistics(result.getContent());
@@ -730,7 +743,7 @@ public class TemplateServiceImpl implements TemplateService {
 
     private PagedResponseDTO<ResourceTemplateDTO> convertToPagedResponse(Page<ResourceTemplate> page) {
         List<ResourceTemplateDTO> content = orderMapper.toTemplateDtoList(page.getContent());
-        
+
         return PagedResponseDTO.<ResourceTemplateDTO>builder()
                 .content(content)
                 .page(page.getNumber())
@@ -743,7 +756,7 @@ public class TemplateServiceImpl implements TemplateService {
                 .hasPrevious(page.hasPrevious())
                 .build();
     }
-    
+
     /**
      * Populate statistics fields for a single template DTO
      */
@@ -751,12 +764,12 @@ public class TemplateServiceImpl implements TemplateService {
         if (dto == null || dto.getResourceTemplateId() == null) {
             return;
         }
-        
+
         try {
             // Get purchase count from OrderRepository
             Long purchaseCount = orderRepository.countSuccessfulOrdersByTemplateId(dto.getResourceTemplateId());
             dto.setPurchaseCount(purchaseCount != null ? purchaseCount : 0L);
-            
+
             // Get feedback statistics from IdentityClient
             try {
                 var feedbackResponse = identityClient.getFeedbackStats(dto.getResourceTemplateId());
@@ -784,7 +797,7 @@ public class TemplateServiceImpl implements TemplateService {
             dto.setAvgResourceRating(null);
         }
     }
-    
+
     /**
      * Populate statistics fields for a list of template DTOs
      */
@@ -792,7 +805,7 @@ public class TemplateServiceImpl implements TemplateService {
         if (dtos == null || dtos.isEmpty()) {
             return;
         }
-        
+
         dtos.forEach(this::populateStatistics);
     }
 
