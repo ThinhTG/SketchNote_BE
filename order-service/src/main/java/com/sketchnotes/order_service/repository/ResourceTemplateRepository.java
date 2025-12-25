@@ -142,4 +142,40 @@ public interface ResourceTemplateRepository extends JpaRepository<ResourceTempla
      */
     long countByDesignerId(Long designerId);
 
+    /**
+     * Lấy templates mà user chưa mua và không phải owner (JPQL)
+     * Exclude: templates user đã mua (trong UserResource) và templates user tạo ra (designerId)
+     */
+    @Query("SELECT rt FROM ResourceTemplate rt " +
+           "WHERE rt.status = :status " +
+           "AND rt.designerId != :userId " +
+           "AND rt.templateId NOT IN (" +
+           "    SELECT ur.resourceTemplateId FROM UserResource ur " +
+           "    WHERE ur.userId = :userId AND ur.active = true" +
+           ") " +
+           "ORDER BY rt.createdAt DESC")
+    Page<ResourceTemplate> findAvailableTemplatesForUser(
+            @Param("status") ResourceTemplate.TemplateStatus status,
+            @Param("userId") Long userId,
+            Pageable pageable);
+
+    /**
+     * Lấy popular templates mà user chưa mua và không phải owner (JPQL)
+     * Sắp xếp theo số lượng purchase
+     */
+    @Query("SELECT rt FROM ResourceTemplate rt " +
+           "LEFT JOIN Order o ON o.resourceTemplateId = rt.templateId AND o.orderStatus = 'SUCCESS' " +
+           "WHERE rt.status = :status " +
+           "AND rt.designerId != :userId " +
+           "AND rt.templateId NOT IN (" +
+           "    SELECT ur.resourceTemplateId FROM UserResource ur " +
+           "    WHERE ur.userId = :userId AND ur.active = true" +
+           ") " +
+           "GROUP BY rt " +
+           "ORDER BY COUNT(o) DESC")
+    List<ResourceTemplate> findPopularTemplatesForUser(
+            @Param("status") ResourceTemplate.TemplateStatus status,
+            @Param("userId") Long userId,
+            Pageable pageable);
+
 }
