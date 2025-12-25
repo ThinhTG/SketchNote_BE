@@ -83,4 +83,48 @@ public class ResourceTemplateVersion {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    // ============ HELPER METHODS for orphanRemoval ============
+    // Use these methods to properly manage bidirectional relationships
+    // and avoid "orphan deletion was no longer referenced" errors
+
+    public void addImage(ResourceTemplateVersionImage image) {
+        images.add(image);
+        image.setVersion(this);
+    }
+
+    public void removeImage(ResourceTemplateVersionImage image) {
+        images.remove(image);
+        image.setVersion(null);
+    }
+
+    public void clearAndSetImages(List<ResourceTemplateVersionImage> newImages) {
+        this.images.clear();
+        if (newImages != null) {
+            newImages.forEach(img -> {
+                img.setVersion(this);
+                this.images.add(img);
+            });
+        }
+    }
+
+    public void addItem(ResourceTemplateVersionItem item) {
+        items.add(item);
+        item.setVersion(this);
+    }
+
+    public void removeItem(ResourceTemplateVersionItem item) {
+        items.remove(item);
+        item.setVersion(null);
+    }
+
+    public void clearAndSetItems(List<ResourceTemplateVersionItem> newItems) {
+        this.items.clear();
+        if (newItems != null) {
+            newItems.forEach(item -> {
+                item.setVersion(this);
+                this.items.add(item);
+            });
+        }
+    }
 }
