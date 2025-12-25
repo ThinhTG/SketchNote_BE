@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -107,14 +108,24 @@ public class ProjectCollaborationService implements IProjectCollaborationService
         Project project = projectRepository.findById(projectId).filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
         List<ProjectCollaboration> projectCollaborations = projectCollaborationRepository.findByProjectAndDeletedAtIsNull(project);
-        return projectCollaborations.stream().map(p -> ProjectCollaborationResponse.builder()
+        List<ProjectCollaborationResponse>  listResponse= new ArrayList<>(projectCollaborations.stream().map(p -> ProjectCollaborationResponse.builder()
                 .projectId(p.getProject().getProjectId())
                 .email(userClient.getUserById(p.getUserId()).getResult().getEmail())
                 .userId(p.getUserId())
                 .isEdited(p.isEdited())
                 .avatarUrl(userClient.getUserById(p.getUserId()).getResult().getAvatarUrl())
                 .createdAt(p.getCreatedAt())
-                .build()).toList();
+                .build()).toList());
+
+        listResponse.add(ProjectCollaborationResponse.builder()
+                .projectId(project.getProjectId())
+                .email(userClient.getUserById(project.getOwnerId()).getResult().getEmail())
+                .userId(project.getOwnerId())
+                .isEdited(true)
+                .avatarUrl(userClient.getUserById(project.getOwnerId()).getResult().getAvatarUrl())
+                .createdAt(project.getCreatedAt())
+                .build());
+        return listResponse;
     }
 
     @Override
