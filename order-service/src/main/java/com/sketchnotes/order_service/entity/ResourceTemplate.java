@@ -83,4 +83,48 @@ public class ResourceTemplate {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private TemplateStatus status = TemplateStatus.PENDING_REVIEW;
+
+    // ============ HELPER METHODS for orphanRemoval ============
+    // Use these methods to properly manage bidirectional relationships
+    // and avoid "orphan deletion was no longer referenced" errors
+
+    public void addImage(ResourcesTemplateImage image) {
+        images.add(image);
+        image.setResourceTemplate(this);
+    }
+
+    public void removeImage(ResourcesTemplateImage image) {
+        images.remove(image);
+        image.setResourceTemplate(null);
+    }
+
+    public void clearAndSetImages(List<ResourcesTemplateImage> newImages) {
+        this.images.clear();
+        if (newImages != null) {
+            newImages.forEach(img -> {
+                img.setResourceTemplate(this);
+                this.images.add(img);
+            });
+        }
+    }
+
+    public void addItem(ResourceTemplateItem item) {
+        items.add(item);
+        item.setResourceTemplate(this);
+    }
+
+    public void removeItem(ResourceTemplateItem item) {
+        items.remove(item);
+        item.setResourceTemplate(null);
+    }
+
+    public void clearAndSetItems(List<ResourceTemplateItem> newItems) {
+        this.items.clear();
+        if (newItems != null) {
+            newItems.forEach(item -> {
+                item.setResourceTemplate(this);
+                this.items.add(item);
+            });
+        }
+    }
 }

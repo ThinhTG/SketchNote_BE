@@ -62,19 +62,9 @@ public class TemplateServiceImpl implements TemplateService {
     public PagedResponseDTO<ResourceTemplateDTO> getAllActiveTemplates(int page, int size, String sortBy, String sortDir, Long currentUserId) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        
-        Page<ResourceTemplate> templatePage;
-        
-        if (currentUserId != null) {
-            // Filter: Chỉ lấy templates mà user chưa mua và không phải owner (JPQL)
-            templatePage = resourceTemplateRepository.findAvailableTemplatesForUser(
-                    ResourceTemplate.TemplateStatus.PUBLISHED, currentUserId, pageable);
-        } else {
-            // Guest user: show all published templates
-            templatePage = resourceTemplateRepository.findByStatus(
-                    ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
-        }
-        
+        // State Machine: Chỉ lấy templates có status = PUBLISHED
+        Page<ResourceTemplate> templatePage = resourceTemplateRepository.findByStatus(
+            ResourceTemplate.TemplateStatus.PUBLISHED, pageable);
         PagedResponseDTO<ResourceTemplateDTO> result = convertToPagedResponse(templatePage);
         
         // Populate statistics, designer info and owner flag
@@ -262,7 +252,10 @@ public class TemplateServiceImpl implements TemplateService {
                         it.setResourceTemplate(template);
                         return it;
                     }).toList();
-            template.setItems(itemEntities);
+            // FIX: Don't replace collection reference - clear and addAll instead
+            // to avoid "orphan deletion was no longer referenced" error
+            template.getItems().clear();
+            template.getItems().addAll(itemEntities);
         }
 
 
@@ -299,7 +292,8 @@ public class TemplateServiceImpl implements TemplateService {
                         vImg.setVersion(version);
                         return vImg;
                     }).toList();
-            version.setImages(versionImages);
+            version.getImages().clear();
+            version.getImages().addAll(versionImages);
         }
         
         // Copy items to version
@@ -313,7 +307,8 @@ public class TemplateServiceImpl implements TemplateService {
                         vItem.setVersion(version);
                         return vItem;
                     }).toList();
-            version.setItems(versionItems);
+            version.getItems().clear();
+            version.getItems().addAll(versionItems);
         }
         
         versionRepository.save(version);
@@ -400,22 +395,12 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     @Transactional(readOnly = true)
     public List<ResourceTemplateDTO> getPopularTemplates(int limit, Long currentUserId) {
-        Pageable pageable = PageRequest.of(0, limit);
-        
-        List<ResourceTemplate> templates;
-        
-        if (currentUserId != null) {
-            // Filter: Chỉ lấy templates mà user chưa mua và không phải owner, sắp xếp theo popularity (JPQL)
-            templates = resourceTemplateRepository.findPopularTemplatesForUser(
-                    ResourceTemplate.TemplateStatus.PUBLISHED, currentUserId, pageable);
-        } else {
-            // Guest user: show all published templates sorted by price (fallback)
-            templates = resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED).stream()
-                    .sorted((t1, t2) -> t2.getPrice().compareTo(t1.getPrice()))
-                    .limit(limit)
-                    .toList();
-        }
-        
+        // For now, return templates sorted by price (as a simple popularity metric)
+        // In a real implementation, this would be based on order count or views
+        List<ResourceTemplate> templates = resourceTemplateRepository.findByStatus(ResourceTemplate.TemplateStatus.PUBLISHED).stream()
+                .sorted((t1, t2) -> t2.getPrice().compareTo(t1.getPrice()))
+                .limit(limit)
+                .toList();
         List<ResourceTemplateDTO> result = orderMapper.toTemplateDtoList(templates);
         populateStatistics(result);
         populateDesignerInfo(result);
@@ -708,7 +693,8 @@ public class TemplateServiceImpl implements TemplateService {
                         vImg.setVersion(version);
                         return vImg;
                     }).toList();
-            version.setImages(versionImages);
+            version.getImages().clear();
+            version.getImages().addAll(versionImages);
         }
 
         // Copy items to version
@@ -722,7 +708,8 @@ public class TemplateServiceImpl implements TemplateService {
                         vItem.setVersion(version);
                         return vItem;
                     }).toList();
-            version.setItems(versionItems);
+            version.getItems().clear();
+            version.getItems().addAll(versionItems);
         }
 
         return orderMapper.toDto(saved);
