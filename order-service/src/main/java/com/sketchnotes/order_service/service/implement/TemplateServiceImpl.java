@@ -694,8 +694,7 @@ public class TemplateServiceImpl implements TemplateService {
         version.setReleaseDate(saved.getReleaseDate());
         version.setStatus(ResourceTemplate.TemplateStatus.PENDING_REVIEW);
         version.setCreatedBy(userId);
-        versionRepository.save(version);
-        // Copy images to version
+    // Copy images to version
         if (saved.getImages() != null && !saved.getImages().isEmpty()) {
             List<ResourceTemplateVersionImage> versionImages = saved.getImages().stream()
                     .map(img -> {
@@ -721,6 +720,9 @@ public class TemplateServiceImpl implements TemplateService {
                     }).toList();
             version.setItems(versionItems);
         }
+
+        // Save version after children are attached to avoid replacing managed collections
+        versionRepository.save(version);
 
         return orderMapper.toDto(saved);
     }
