@@ -60,7 +60,8 @@ public class WithdrawalRequest {
      */
     @Column(name = "bank_account_holder", nullable = false, length = 200)
     private String bankAccountHolder;
-    
+
+    private String billImage;
     /**
      * Current status of the withdrawal request
      */
