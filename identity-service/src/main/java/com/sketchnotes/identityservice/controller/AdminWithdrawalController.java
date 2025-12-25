@@ -1,6 +1,7 @@
 package com.sketchnotes.identityservice.controller;
 
 import com.sketchnotes.identityservice.dtos.ApiResponse;
+import com.sketchnotes.identityservice.dtos.request.ApproveRequest;
 import com.sketchnotes.identityservice.dtos.request.RejectWithdrawalRequest;
 import com.sketchnotes.identityservice.dtos.response.WithdrawalResponse;
 import com.sketchnotes.identityservice.enums.WithdrawalStatus;
@@ -34,16 +35,11 @@ public class AdminWithdrawalController {
      * PUT /api/admin/withdraw/{id}/approve
      */
     @PutMapping("/{id}/approve")
-    public ResponseEntity<ApiResponse<WithdrawalResponse>> approveWithdrawal(@PathVariable Long id) {
-        log.info("Approving withdrawal request: {}", id);
-        
+    public ResponseEntity<ApiResponse<WithdrawalResponse>> approveWithdrawal(@PathVariable Long id, @RequestBody ApproveRequest dto) {
         Long staffId = userService.getCurrentUser().getId();
-        WithdrawalResponse response = withdrawalService.approveWithdrawal(id, staffId);
+        WithdrawalResponse response = withdrawalService.approveWithdrawal(id, staffId, dto);
         
-        return ResponseEntity.ok(ApiResponse.success(
-                response,
-                "Withdrawal approved and marked as completed."
-        ));
+        return ResponseEntity.ok(ApiResponse.success(response, "Withdrawal approved and marked as completed."));
     }
     
     /**

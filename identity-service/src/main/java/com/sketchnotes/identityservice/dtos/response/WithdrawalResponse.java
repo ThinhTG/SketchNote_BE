@@ -25,6 +25,7 @@ public class WithdrawalResponse {
     private WithdrawalStatus status;
     private Long staffId;
     private String rejectionReason;
+    private String billImage;
     
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;

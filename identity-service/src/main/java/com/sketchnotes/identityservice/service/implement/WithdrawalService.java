@@ -1,5 +1,6 @@
 package com.sketchnotes.identityservice.service.implement;
 
+import com.sketchnotes.identityservice.dtos.request.ApproveRequest;
 import com.sketchnotes.identityservice.dtos.request.CreateNotificationRequest;
 import com.sketchnotes.identityservice.dtos.request.RejectWithdrawalRequest;
 import com.sketchnotes.identityservice.dtos.request.WithdrawalRequestDto;
@@ -84,7 +85,7 @@ public class WithdrawalService implements IWithdrawalService {
         
         withdrawalRequest = withdrawalRequestRepository.save(withdrawalRequest);
         log.info("Withdrawal request {} created successfully for user {}", withdrawalRequest.getId(), userId);
-        
+
         // Send notification to customer
         try {
             CreateNotificationRequest notificationRequest = CreateNotificationRequest.builder()
@@ -124,7 +125,7 @@ public class WithdrawalService implements IWithdrawalService {
     
     @Override
     @Transactional
-    public WithdrawalResponse approveWithdrawal(Long withdrawalId, Long staffId) {
+    public WithdrawalResponse approveWithdrawal(Long withdrawalId, Long staffId, ApproveRequest dto) {
         log.info("Staff {} approving withdrawal request {}", staffId, withdrawalId);
         
         WithdrawalRequest withdrawalRequest = withdrawalRequestRepository.findById(withdrawalId)
@@ -138,10 +139,9 @@ public class WithdrawalService implements IWithdrawalService {
         // Update status
         withdrawalRequest.setStatus(WithdrawalStatus.APPROVED);
         withdrawalRequest.setStaffId(staffId);
+        withdrawalRequest.setBillImage(dto.getBillImage());
         withdrawalRequest = withdrawalRequestRepository.save(withdrawalRequest);
-        
-        log.info("Withdrawal request {} approved by staff {}", withdrawalId, staffId);
-        
+
         // Send notification to customer
         try {
             CreateNotificationRequest notificationRequest = CreateNotificationRequest.builder()
@@ -248,6 +248,7 @@ public class WithdrawalService implements IWithdrawalService {
                 .id(request.getId())
                 .userId(request.getUserId())
                 .amount(request.getAmount())
+                .billImage(request.getBillImage())
                 .bankName(request.getBankName())
                 .bankAccountNumber(request.getBankAccountNumber())
                 .bankAccountHolder(request.getBankAccountHolder())

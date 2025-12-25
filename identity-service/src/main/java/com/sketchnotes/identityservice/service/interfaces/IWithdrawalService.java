@@ -1,5 +1,6 @@
 package com.sketchnotes.identityservice.service.interfaces;
 
+import com.sketchnotes.identityservice.dtos.request.ApproveRequest;
 import com.sketchnotes.identityservice.dtos.request.RejectWithdrawalRequest;
 import com.sketchnotes.identityservice.dtos.request.WithdrawalRequestDto;
 import com.sketchnotes.identityservice.dtos.response.WithdrawalResponse;
@@ -47,7 +48,7 @@ public interface IWithdrawalService {
      * @param staffId the staff ID who is approving
      * @return the updated withdrawal response
      */
-    WithdrawalResponse approveWithdrawal(Long withdrawalId, Long staffId);
+    WithdrawalResponse approveWithdrawal(Long withdrawalId, Long staffId, ApproveRequest dto);
     
     /**
      * Staff rejects a withdrawal request.
