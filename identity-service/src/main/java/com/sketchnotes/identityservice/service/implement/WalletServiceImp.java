@@ -82,6 +82,28 @@ public class WalletServiceImp implements IWalletService {
 
     @Override
     @Transactional
+    public Transaction depositWithType(Long walletId, BigDecimal amount, TransactionType type, String description) {
+        Wallet wallet = getWallet(walletId);
+        wallet.setBalance(wallet.getBalance().add(amount));
+        wallet.setUpdatedAt(LocalDateTime.now());
+        walletRepository.save(wallet);
+
+        Transaction transaction = Transaction.builder()
+                .wallet(wallet)
+                .amount(amount)
+                .balance(wallet.getBalance())
+                .type(type)
+                .status(PaymentStatus.SUCCESS)
+                .description(description)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        log.info("Deposited {} to wallet {} with type {} - {}", amount, walletId, type, description);
+        return transactionRepository.save(transaction);
+    }
+
+    @Override
+    @Transactional
     public Transaction withdraw(Long walletId, BigDecimal amount) {
         Wallet wallet = getWallet(walletId);
         if (wallet.getBalance().compareTo(amount) < 0) {
@@ -136,7 +158,7 @@ public class WalletServiceImp implements IWalletService {
                 // Tạo wallet nếu chưa có
                 adminWallet = createWallet(adminUser.getId());
             }
-            deposit(adminWallet.getWalletId(), amount);
+            depositWithType(adminWallet.getWalletId(), amount, TransactionType.COURSE_FEE, "Admin revenue from course purchase");
         }
         return transactionRepository.save(transaction);
     }

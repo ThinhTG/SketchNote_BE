@@ -257,7 +257,12 @@ public class UserSubscriptionService implements IUserSubscriptionService {
                 // Tạo wallet nếu chưa có
                 adminWallet = walletService.createWallet(adminUser.getId());
             }
-            walletService.deposit(adminWallet.getWalletId(), plan.getPrice());
+            walletService.depositWithType(
+                adminWallet.getWalletId(), 
+                plan.getPrice(), 
+                com.sketchnotes.identityservice.enums.TransactionType.SUBSCRIPTION, 
+                "Admin revenue from subscription: " + plan.getName()
+            );
         }
 
         return mapToResponse(savedSubscription);

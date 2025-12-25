@@ -238,7 +238,12 @@ public class CreditPackageService implements INotificationService.ICreditPackage
                 // Tạo wallet nếu chưa có
                 adminWallet = walletService.createWallet(adminUser.getId());
             }
-            walletService.deposit(adminWallet.getWalletId(), amountToPay);
+            walletService.depositWithType(
+                adminWallet.getWalletId(), 
+                amountToPay, 
+                com.sketchnotes.identityservice.enums.TransactionType.PURCHASE_AI_CREDITS, 
+                "Admin revenue from AI credits purchase: " + creditPackage.getName()
+            );
         }
         // 6. Cộng credits cho user
         Integer newBalance = previousBalance + creditPackage.getCreditAmount();
