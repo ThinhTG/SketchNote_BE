@@ -261,7 +261,7 @@ public class UserSubscriptionService implements IUserSubscriptionService {
                 adminWallet.getWalletId(), 
                 plan.getPrice(), 
                 com.sketchnotes.identityservice.enums.TransactionType.SUBSCRIPTION, 
-                "Admin revenue from subscription: " + plan.getName()
+                "Admin revenue from subscription: " + plan.getPlanName()
             );
         }
 
