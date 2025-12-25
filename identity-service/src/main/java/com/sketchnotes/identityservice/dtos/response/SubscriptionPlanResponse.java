@@ -20,6 +20,7 @@ public class SubscriptionPlanResponse {
     private String currency;
     private Integer durationDays;
     private String description;
+    private Boolean isBuy;
     private Boolean isActive;
     private Integer numberOfProjects;
     private LocalDateTime createdAt;

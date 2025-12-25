@@ -56,21 +56,21 @@ public class UserSubscriptionService implements IUserSubscriptionService {
     @Override
     public SubscriptionUpgradeCheckResponse checkUpgrade(Long userId, Long planId) {
         log.info("Checking upgrade eligibility for user {} to plan {}", userId, planId);
-        
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        
+
         SubscriptionPlan newPlan = subscriptionPlanRepository.findById(planId)
                 .orElseThrow(() -> new AppException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
-        
+
         if (!newPlan.getIsActive()) {
             throw new AppException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND);
         }
-        
+
         // Check for active subscriptions - get the latest one
         List<UserSubscription> activeSubscriptions = userSubscriptionRepository
                 .findActiveSubscriptionsByUser(user, LocalDateTime.now());
-        
+
         SubscriptionUpgradeCheckResponse.NewPlanInfo newPlanInfo = SubscriptionUpgradeCheckResponse.NewPlanInfo.builder()
                 .planId(newPlan.getPlanId())
                 .planName(newPlan.getPlanName())
@@ -78,7 +78,7 @@ public class UserSubscriptionService implements IUserSubscriptionService {
                 .price(newPlan.getPrice())
                 .durationDays(newPlan.getDurationDays())
                 .build();
-        
+
         if (activeSubscriptions.isEmpty()) {
             // No active subscription - can purchase freely
             return SubscriptionUpgradeCheckResponse.builder()
@@ -89,12 +89,13 @@ public class UserSubscriptionService implements IUserSubscriptionService {
                     .newPlan(newPlanInfo)
                     .build();
         }
-        
+
         // Has active subscription - get the latest one
         UserSubscription activeSub = activeSubscriptions.get(0);
+
         int remainingDays = (int) ChronoUnit.DAYS.between(LocalDateTime.now(), activeSub.getEndDate());
-        
-        SubscriptionUpgradeCheckResponse.CurrentSubscriptionInfo currentInfo = 
+
+        SubscriptionUpgradeCheckResponse.CurrentSubscriptionInfo currentInfo =
                 SubscriptionUpgradeCheckResponse.CurrentSubscriptionInfo.builder()
                         .subscriptionId(activeSub.getSubscriptionId())
                         .planName(activeSub.getSubscriptionPlan().getPlanName())
@@ -102,7 +103,16 @@ public class UserSubscriptionService implements IUserSubscriptionService {
                         .endDate(activeSub.getEndDate())
                         .remainingDays(Math.max(0, remainingDays))
                         .build();
-        
+        // Check if trying to downgrade
+        if (newPlan.getPrice().compareTo(activeSub.getSubscriptionPlan().getPrice()) < 0) {
+            return SubscriptionUpgradeCheckResponse.builder()
+                    .canUpgrade(false)
+                    .hasActiveSubscription(true)
+                    .warningMessage("You can only upgrade to a higher-priced subscription plan.")
+                    .currentSubscription(currentInfo)
+                    .newPlan(newPlanInfo)
+                    .build();
+        }
         // Check if trying to buy the same plan
         if (activeSub.getSubscriptionPlan().getPlanId().equals(planId)) {
             return SubscriptionUpgradeCheckResponse.builder()
@@ -113,17 +123,17 @@ public class UserSubscriptionService implements IUserSubscriptionService {
                     .newPlan(newPlanInfo)
                     .build();
         }
-        
+
         // Can upgrade but with warning
         String warningMessage = String.format(
                 "Your current subscription '%s' has not expired yet (%d days remaining). " +
-                "If you proceed, your current subscription will be cancelled and replaced with the new plan '%s'. " +
-                "Are you sure you want to upgrade?",
+                        "If you proceed, your current subscription will be cancelled and replaced with the new plan '%s'. " +
+                        "Are you sure you want to upgrade?",
                 activeSub.getSubscriptionPlan().getPlanName(),
                 Math.max(0, remainingDays),
                 newPlan.getPlanName()
         );
-        
+
         return SubscriptionUpgradeCheckResponse.builder()
                 .canUpgrade(true)
                 .hasActiveSubscription(true)
@@ -153,21 +163,21 @@ public class UserSubscriptionService implements IUserSubscriptionService {
         // Check for active subscriptions - get all and cancel them if user confirms upgrade
         List<UserSubscription> activeSubscriptions = userSubscriptionRepository
                 .findActiveSubscriptionsByUser(user, LocalDateTime.now());
-        
+
         if (!activeSubscriptions.isEmpty()) {
             // Check if trying to buy the same plan (check against the latest active sub)
             UserSubscription latestActiveSub = activeSubscriptions.get(0);
             if (latestActiveSub.getSubscriptionPlan().getPlanId().equals(request.getPlanId())) {
                 throw new AppException(ErrorCode.SUBSCRIPTION_ALREADY_ACTIVE);
             }
-            
+
             // If user hasn't confirmed upgrade, return error with warning
             if (request.getConfirmUpgrade() == null || !request.getConfirmUpgrade()) {
                 throw new AppException(ErrorCode.SUBSCRIPTION_UPGRADE_CONFIRMATION_REQUIRED);
             }
-            
+
             // User confirmed upgrade - cancel ALL old active subscriptions
-            log.info("User {} confirmed upgrade. Cancelling {} old subscription(s)", 
+            log.info("User {} confirmed upgrade. Cancelling {} old subscription(s)",
                     userId, activeSubscriptions.size());
             for (UserSubscription activeSub : activeSubscriptions) {
                 activeSub.setStatus(SubscriptionStatus.CANCELLED);
@@ -192,9 +202,9 @@ public class UserSubscriptionService implements IUserSubscriptionService {
         walletRepository.save(wallet);
 
         // Create transaction record
-        log.info("Creating transaction for subscription purchase. Amount: {}, Wallet ID: {}", 
+        log.info("Creating transaction for subscription purchase. Amount: {}, Wallet ID: {}",
                 plan.getPrice(), wallet.getWalletId());
-        
+
         Transaction transaction = Transaction.builder()
                 .wallet(wallet)
                 .amount(plan.getPrice())
@@ -205,9 +215,9 @@ public class UserSubscriptionService implements IUserSubscriptionService {
                 .createdAt(LocalDateTime.now())
                 .build();
         Transaction savedTransaction = transactionRepository.save(transaction);
-        
+
         log.info("Transaction saved successfully. Transaction ID: {}", savedTransaction.getTransactionId());
-        
+
         if (savedTransaction.getTransactionId() == null) {
             log.error("Transaction ID is null after save!");
             throw new RuntimeException("Failed to create transaction - ID is null");
@@ -216,7 +226,7 @@ public class UserSubscriptionService implements IUserSubscriptionService {
         // Create subscription
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime endDate = now.plusDays(plan.getDurationDays());
-        
+
         String transactionIdStr = savedTransaction.getTransactionId().toString();
         log.info("Setting transaction ID in subscription: {}", transactionIdStr);
 
@@ -242,7 +252,7 @@ public class UserSubscriptionService implements IUserSubscriptionService {
             try {
                 roleService.assignRoleByName(userId, "DESIGNER");
             } catch (Exception e) {
-               throw new AppException(ErrorCode.ROLE_ASSIGNMENT_FAILED);
+                throw new AppException(ErrorCode.ROLE_ASSIGNMENT_FAILED);
             }
         }
 
@@ -258,10 +268,10 @@ public class UserSubscriptionService implements IUserSubscriptionService {
                 adminWallet = walletService.createWallet(adminUser.getId());
             }
             walletService.depositWithType(
-                adminWallet.getWalletId(), 
-                plan.getPrice(), 
-                com.sketchnotes.identityservice.enums.TransactionType.SUBSCRIPTION, 
-                "Admin revenue from subscription: " + plan.getPlanName()
+                    adminWallet.getWalletId(),
+                    plan.getPrice(),
+                    com.sketchnotes.identityservice.enums.TransactionType.SUBSCRIPTION,
+                    "Admin revenue from subscription: " + plan.getPlanName()
             );
         }
 
@@ -291,11 +301,11 @@ public class UserSubscriptionService implements IUserSubscriptionService {
 
         List<UserSubscription> activeSubscriptions = userSubscriptionRepository
                 .findActiveSubscriptionsByUser(user, LocalDateTime.now());
-        
+
         if (activeSubscriptions.isEmpty()) {
             return null;
         }
-        
+
         // Return the latest active subscription
         return mapToResponse(activeSubscriptions.get(0));
     }
@@ -326,7 +336,7 @@ public class UserSubscriptionService implements IUserSubscriptionService {
 
         // Check if user has active subscription
         boolean hasActiveSubscription = user.hasActiveSubscription();
-        int maxProjects = user.getMaxProjects(); // -1 for unlimited, 3 for free
+        int maxProjects = user.getMaxProjects();
 
         String subscriptionType = "Free";
         if (hasActiveSubscription) {
@@ -336,17 +346,13 @@ public class UserSubscriptionService implements IUserSubscriptionService {
             }
         }
 
-        boolean canCreateProject;
+        boolean canCreateProject = true;
         Integer remainingProjects = null;
 
-        if (maxProjects == -1) {
-            // Unlimited
-            canCreateProject = true;
-            remainingProjects = null;
-        } else {
+        if (maxProjects <= currentProjects) {
             // Limited (free tier: 3 projects)
             remainingProjects = Math.max(0, maxProjects - currentProjects);
-            canCreateProject = currentProjects < maxProjects;
+            canCreateProject = false;
         }
 
         return UserQuotaResponse.builder()
@@ -364,7 +370,7 @@ public class UserSubscriptionService implements IUserSubscriptionService {
         UserQuotaResponse quota = getUserQuota(userId);
         return quota.getCanCreateProject();
     }
-    
+
     @Override
     public boolean hasActiveSubscription(Long userId) {
         try {
@@ -386,7 +392,7 @@ public class UserSubscriptionService implements IUserSubscriptionService {
     public void processExpiredSubscriptions() {
         log.info("Processing expired subscriptions...");
 
-        List<UserSubscription> expiredSubscriptions = 
+        List<UserSubscription> expiredSubscriptions =
                 userSubscriptionRepository.findExpiredSubscriptions(LocalDateTime.now());
 
         for (UserSubscription subscription : expiredSubscriptions) {
