@@ -210,32 +210,30 @@ public class DesignerResourceServiceImpl implements DesignerResourceService {
         if (dto.getPrice() != null) version.setPrice(dto.getPrice());
         if (dto.getReleaseDate() != null) version.setReleaseDate(dto.getReleaseDate());
 
-        // Update images
-        if (dto.getImages() != null) {
-            version.getImages().clear();
-            List<ResourceTemplateVersionImage> images = dto.getImages().stream()
-                    .map(imgDto -> ResourceTemplateVersionImage.builder()
-                            .version(version)
-                            .imageUrl(imgDto.getImageUrl())
-                            .isThumbnail(imgDto.getIsThumbnail() != null ? imgDto.getIsThumbnail() : false)
-                            .build())
-                    .collect(Collectors.toList());
-            version.setImages(images);
-        }
+    // Update images - use helper to avoid replacing the persistent collection (orphanRemoval)
+    if (dto.getImages() != null) {
+        List<ResourceTemplateVersionImage> images = dto.getImages().stream()
+            .map(imgDto -> ResourceTemplateVersionImage.builder()
+                .imageUrl(imgDto.getImageUrl())
+                .isThumbnail(imgDto.getIsThumbnail() != null ? imgDto.getIsThumbnail() : false)
+                .build())
+            .collect(Collectors.toList());
+        // clearAndSetImages will clear the existing persistent collection and set the back-reference
+        version.clearAndSetImages(images);
+    }
 
-        // Update items
-        if (dto.getItems() != null) {
-            version.getItems().clear();
-            List<ResourceTemplateVersionItem> items = dto.getItems().stream()
-                    .map(itemDto -> ResourceTemplateVersionItem.builder()
-                            .version(version)
-                            .itemIndex(itemDto.getItemIndex())
-                            .itemUrl(itemDto.getItemUrl())
-                            .imageUrl(itemDto.getImageUrl())
-                            .build())
-                    .collect(Collectors.toList());
-            version.setItems(items);
-        }
+    // Update items - use helper to avoid replacing the persistent collection (orphanRemoval)
+    if (dto.getItems() != null) {
+        List<ResourceTemplateVersionItem> items = dto.getItems().stream()
+            .map(itemDto -> ResourceTemplateVersionItem.builder()
+                .itemIndex(itemDto.getItemIndex())
+                .itemUrl(itemDto.getItemUrl())
+                .imageUrl(itemDto.getImageUrl())
+                .build())
+            .collect(Collectors.toList());
+        // clearAndSetItems will clear the existing persistent collection and set the back-reference
+        version.clearAndSetItems(items);
+    }
 
         ResourceTemplateVersion updated = versionRepository.save(version);
         log.info("Updated version {} by designer {}", versionId, designerId);
