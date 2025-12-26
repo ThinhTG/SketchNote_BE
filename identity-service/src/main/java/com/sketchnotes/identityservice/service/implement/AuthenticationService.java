@@ -299,7 +299,7 @@ public class AuthenticationService implements  IAuthService {
                     .createAt(LocalDateTime.now())
                     .role(Role.CUSTOMER)
                     .isActive(true)
-                    .verified(false)
+                    .verified(true)
                     .avatarUrl(request.getAvatarUrl())
                     .build();
                 user = userRepository.save(user);
