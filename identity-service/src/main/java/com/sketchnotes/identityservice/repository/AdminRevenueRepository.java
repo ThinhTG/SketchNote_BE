@@ -23,36 +23,48 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     /**
      * Tổng doanh thu từ Subscription trong khoảng thời gian
      * Bao gồm cả SUBSCRIPTION và PURCHASE_SUBSCRIPTION để cover tất cả cases
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "JOIN t.wallet w JOIN w.user u " +
            "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS' " +
+           "AND u.role = com.sketchnotes.identityservice.enums.Role.ADMIN " +
            "AND t.createdAt BETWEEN :start AND :end")
     BigDecimal getTotalSubscriptionRevenue(@Param("start") LocalDateTime start, 
                                            @Param("end") LocalDateTime end);
     
     /**
      * Tổng doanh thu từ Token/AI Credits trong khoảng thời gian
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "JOIN t.wallet w JOIN w.user u " +
            "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS' " +
+           "AND u.role = com.sketchnotes.identityservice.enums.Role.ADMIN " +
            "AND t.createdAt BETWEEN :start AND :end")
     BigDecimal getTotalTokenRevenue(@Param("start") LocalDateTime start, 
                                     @Param("end") LocalDateTime end);
     
     /**
      * Tổng doanh thu từ bán khóa học trong khoảng thời gian
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "JOIN t.wallet w JOIN w.user u " +
            "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS' " +
+           "AND u.role = com.sketchnotes.identityservice.enums.Role.ADMIN " +
            "AND t.createdAt BETWEEN :start AND :end")
     BigDecimal getTotalCourseRevenue(@Param("start") LocalDateTime start, 
                                      @Param("end") LocalDateTime end);
     
     /**
      * Tổng doanh thu từ tất cả nguồn (Subscription + Token + Course)
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "JOIN t.wallet w JOIN w.user u " +
            "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS', 'COURSE_FEE') AND t.status = 'SUCCESS' " +
+           "AND u.role = com.sketchnotes.identityservice.enums.Role.ADMIN " +
            "AND t.createdAt BETWEEN :start AND :end")
     BigDecimal getTotalRevenue(@Param("start") LocalDateTime start, 
                                @Param("end") LocalDateTime end);
@@ -61,27 +73,36 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Đếm số giao dịch subscription thành công
+     * CHỈ đếm transaction cộng vào ví của user có role ADMIN
      */
     @Query("SELECT COUNT(t) FROM Transaction t " +
+           "JOIN t.wallet w JOIN w.user u " +
            "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS' " +
+           "AND u.role = com.sketchnotes.identityservice.enums.Role.ADMIN " +
            "AND t.createdAt BETWEEN :start AND :end")
     Long countSubscriptionTransactions(@Param("start") LocalDateTime start, 
                                        @Param("end") LocalDateTime end);
     
     /**
      * Đếm số giao dịch mua token thành công
+     * CHỈ đếm transaction cộng vào ví của user có role ADMIN
      */
     @Query("SELECT COUNT(t) FROM Transaction t " +
+           "JOIN t.wallet w JOIN w.user u " +
            "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS' " +
+           "AND u.role = com.sketchnotes.identityservice.enums.Role.ADMIN " +
            "AND t.createdAt BETWEEN :start AND :end")
     Long countTokenTransactions(@Param("start") LocalDateTime start, 
                                 @Param("end") LocalDateTime end);
     
     /**
      * Đếm số giao dịch mua khóa học thành công
+     * CHỈ đếm transaction cộng vào ví của user có role ADMIN
      */
     @Query("SELECT COUNT(t) FROM Transaction t " +
+           "JOIN t.wallet w JOIN w.user u " +
            "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS' " +
+           "AND u.role = com.sketchnotes.identityservice.enums.Role.ADMIN " +
            "AND t.createdAt BETWEEN :start AND :end")
     Long countCourseTransactions(@Param("start") LocalDateTime start, 
                                  @Param("end") LocalDateTime end);
@@ -90,11 +111,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Doanh thu subscription theo ngày
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM-DD') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
+                   "JOIN wallet w ON t.wallet_id = w.wallet_id " +
+                   "JOIN users u ON w.user_id = u.id " +
                    "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS' " +
+                   "AND u.role = 'ADMIN' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getSubscriptionRevenueByDay(@Param("start") LocalDateTime start, 
@@ -102,11 +127,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Doanh thu token theo ngày
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM-DD') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
+                   "JOIN wallet w ON t.wallet_id = w.wallet_id " +
+                   "JOIN users u ON w.user_id = u.id " +
                    "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS' " +
+                   "AND u.role = 'ADMIN' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getTokenRevenueByDay(@Param("start") LocalDateTime start, 
@@ -114,11 +143,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Tổng doanh thu theo ngày (Subscription + Token + Course)
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM-DD') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
+                   "JOIN wallet w ON t.wallet_id = w.wallet_id " +
+                   "JOIN users u ON w.user_id = u.id " +
                    "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS', 'COURSE_FEE') AND t.status = 'SUCCESS' " +
+                   "AND u.role = 'ADMIN' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getTotalRevenueByDay(@Param("start") LocalDateTime start, 
@@ -126,11 +159,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Doanh thu khóa học theo ngày
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM-DD') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
+                   "JOIN wallet w ON t.wallet_id = w.wallet_id " +
+                   "JOIN users u ON w.user_id = u.id " +
                    "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS' " +
+                   "AND u.role = 'ADMIN' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getCourseRevenueByDay(@Param("start") LocalDateTime start, 
@@ -140,11 +177,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Doanh thu subscription theo tháng
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
+                   "JOIN wallet w ON t.wallet_id = w.wallet_id " +
+                   "JOIN users u ON w.user_id = u.id " +
                    "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS' " +
+                   "AND u.role = 'ADMIN' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getSubscriptionRevenueByMonth(@Param("start") LocalDateTime start, 
@@ -152,11 +193,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Doanh thu token theo tháng
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
+                   "JOIN wallet w ON t.wallet_id = w.wallet_id " +
+                   "JOIN users u ON w.user_id = u.id " +
                    "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS' " +
+                   "AND u.role = 'ADMIN' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getTokenRevenueByMonth(@Param("start") LocalDateTime start, 
@@ -164,11 +209,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Tổng doanh thu theo tháng
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
+                   "JOIN wallet w ON t.wallet_id = w.wallet_id " +
+                   "JOIN users u ON w.user_id = u.id " +
                    "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS', 'COURSE_FEE') AND t.status = 'SUCCESS' " +
+                   "AND u.role = 'ADMIN' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getTotalRevenueByMonth(@Param("start") LocalDateTime start, 
@@ -176,11 +225,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Doanh thu khóa học theo tháng
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY-MM') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
+                   "JOIN wallet w ON t.wallet_id = w.wallet_id " +
+                   "JOIN users u ON w.user_id = u.id " +
                    "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS' " +
+                   "AND u.role = 'ADMIN' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getCourseRevenueByMonth(@Param("start") LocalDateTime start, 
@@ -190,11 +243,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Doanh thu subscription theo năm
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
+                   "JOIN wallet w ON t.wallet_id = w.wallet_id " +
+                   "JOIN users u ON w.user_id = u.id " +
                    "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS' " +
+                   "AND u.role = 'ADMIN' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getSubscriptionRevenueByYear(@Param("start") LocalDateTime start, 
@@ -202,11 +259,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Doanh thu token theo năm
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
+                   "JOIN wallet w ON t.wallet_id = w.wallet_id " +
+                   "JOIN users u ON w.user_id = u.id " +
                    "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS' " +
+                   "AND u.role = 'ADMIN' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getTokenRevenueByYear(@Param("start") LocalDateTime start, 
@@ -214,11 +275,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Tổng doanh thu theo năm
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
+                   "JOIN wallet w ON t.wallet_id = w.wallet_id " +
+                   "JOIN users u ON w.user_id = u.id " +
                    "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS', 'COURSE_FEE') AND t.status = 'SUCCESS' " +
+                   "AND u.role = 'ADMIN' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getTotalRevenueByYear(@Param("start") LocalDateTime start, 
@@ -226,11 +291,15 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Doanh thu khóa học theo năm
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query(value = "SELECT to_char(t.created_at, 'YYYY') as period, " +
                    "COALESCE(SUM(t.amount), 0) as amount, COUNT(*) as count " +
                    "FROM transaction t " +
+                   "JOIN wallet w ON t.wallet_id = w.wallet_id " +
+                   "JOIN users u ON w.user_id = u.id " +
                    "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS' " +
+                   "AND u.role = 'ADMIN' " +
                    "AND t.created_at BETWEEN :start AND :end " +
                    "GROUP BY period ORDER BY period", nativeQuery = true)
     List<Object[]> getCourseRevenueByYear(@Param("start") LocalDateTime start, 
@@ -254,30 +323,42 @@ public interface AdminRevenueRepository extends JpaRepository<Transaction, Long>
     
     /**
      * Tổng doanh thu từ tất cả thời gian (All-time revenue)
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
-           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS', 'COURSE_FEE') AND t.status = 'SUCCESS'")
+           "JOIN t.wallet w JOIN w.user u " +
+           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION', 'PURCHASE_AI_CREDITS', 'COURSE_FEE') AND t.status = 'SUCCESS' " +
+           "AND u.role = com.sketchnotes.identityservice.enums.Role.ADMIN")
     BigDecimal getAllTimeRevenue();
     
     /**
      * Tổng doanh thu subscription từ tất cả thời gian
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
-           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS'")
+           "JOIN t.wallet w JOIN w.user u " +
+           "WHERE t.type IN ('SUBSCRIPTION', 'PURCHASE_SUBSCRIPTION') AND t.status = 'SUCCESS' " +
+           "AND u.role = com.sketchnotes.identityservice.enums.Role.ADMIN")
     BigDecimal getAllTimeSubscriptionRevenue();
     
     /**
      * Tổng doanh thu token từ tất cả thời gian
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
-           "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS'")
+           "JOIN t.wallet w JOIN w.user u " +
+           "WHERE t.type = 'PURCHASE_AI_CREDITS' AND t.status = 'SUCCESS' " +
+           "AND u.role = com.sketchnotes.identityservice.enums.Role.ADMIN")
     BigDecimal getAllTimeTokenRevenue();
     
     /**
      * Tổng doanh thu khóa học từ tất cả thời gian
+     * CHỈ lấy transaction cộng vào ví của user có role ADMIN
      */
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
-           "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS'")
+           "JOIN t.wallet w JOIN w.user u " +
+           "WHERE t.type = 'COURSE_FEE' AND t.status = 'SUCCESS' " +
+           "AND u.role = com.sketchnotes.identityservice.enums.Role.ADMIN")
     BigDecimal getAllTimeCourseRevenue();
     
     /**
